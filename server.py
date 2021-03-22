@@ -16,5 +16,5 @@ dm = DispatcherMiddleware(app_file,
 
 if __name__ == '__main__':
     # app.run("0.0.0.0", port=int(os.environ.get('PORT', '8000')), debug=False)
-    run_simple('0.0.0.0', int(os.environ.get('PORT', '8000')), dm, use_reloader=True)
-    # run_simple('0.0.0.0', int(os.environ.get('PORT', '8000')), dm, use_reloader=False)
+    # run_simple('0.0.0.0', int(os.environ.get('PORT', '8000')), dm, use_reloader=True)
+    run_simple('0.0.0.0', int(os.environ.get('PORT', '8000')), dm, use_reloader=False)
