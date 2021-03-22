@@ -1,9 +1,11 @@
 import time
 import threading
 from gbk.api import API
-from gbk.config import Config
+from gbk.config import config
 from gbk.beans import *
 from gbk.utils import logger
+from gbk.exceptions import *
+from gbk.login import main as login_main
 
 
 class Scheduler:
@@ -16,21 +18,53 @@ class Scheduler:
         self.solution_id = 1834526
         self.api.ktv.set_shop_id(581990543)
         self.api.room_stock.set_shop_id(581990543)
-        self.config = Config()
-        # self.shop_id = self.api.ktv.get_shop_id(self.solution_id)
-        # print(self.shop_id)
+        self.has_login = False
+
+        self.running = False
+        # 数据锁
+        self.lock = threading.Lock()
+
+        # 注意调用方式
+        _ = self.fetch_init_data
+
+        config.save()
+
+    class LoginTry(object):
+        def __init__(self, func):
+            self.func = func
+
+        def __get__(self, instance, owner):
+            while not instance.has_login:
+                instance.has_login = False
+                try:
+                    rets = self.func(instance)
+                    instance.has_login = True
+                    return rets
+                except GBKPermissionError as e:
+                    login_main(enter_exit=False)
+
+    # def login_try(func):
+    #     def ware(self, *args, **kwargs):
+    #         print('This is a decrator!', self.has_login)
+    #         while not self.has_login:
+    #             self.has_login = False
+    #             try:
+    #                 rets = func(self, *args, **kwargs)
+    #                 self.has_login = True
+    #                 return rets
+    #             except GBKPermissionError as e:
+    #                 login_main(enter_exit=False)
+    #
+    #     return ware
+
+    @LoginTry
+    def fetch_init_data(self):
         logger.info('Loading reserve_date...')
         print(self.api.ktv.get_reserve_date())
         logger.info('Loading reserve_table...')
         print(self.api.ktv.get_reserve_table())
         logger.info('Loading room_stock...')
         print(self.api.room_stock.get_room_stock())
-
-        self.running = False
-        # 数据锁
-        self.lock = threading.Lock()
-
-        self.config.save()
 
     def run(self):
         self.running = True
@@ -45,16 +79,24 @@ class Scheduler:
     def batch(self):
         logger.info('new batch')
         # 排序计划数据
-        self.config.timetable_node.sort(key=lambda x: x.time_)
-        self.config.timetable_period.sort(key=lambda x: x.time_start)
-        # TODO: 判断时间是否到了然后调整价格
+        config.timetable_node.sort(key=lambda x: x.time_)
+        config.timetable_period.sort(key=lambda x: x.time_start)
+        # 判断时间是否到了然后调整价格
+        # 拿到时间信息之后再锁，防止信息被忽略
+        while not self.has_login:
+            time.sleep(0.31)
+        _ = self.batch_inside
+
+    @staticmethod
+    @LoginTry
+    def batch_inside(self):
         # 只判断到当前秒
         time_stamp = int(time.time()) * 1000
-        for node in self.config.timetable_node:
+        for node in config.timetable_node:
             if node.is_on_turn(time_stamp):
                 self.api.ktv.update_price(node.roomItem.itemId, node.roomItem.itemType, node.price)
 
         # TODO: 扫描房间状态判断是否调整
 
     def add_timetable_node(self, timetable_node: TimeTableNode):
-        self.config.timetable_node.append(timetable_node)
+        config.timetable_node.append(timetable_node)

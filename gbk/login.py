@@ -1,7 +1,11 @@
+import selenium.common
 from selenium import webdriver
 from selenium.webdriver import Chrome
 from selenium.webdriver import ChromeOptions
 import requests
+from gbk.config import config
+from gbk.utils import logger
+import time
 
 
 def browser_init():
@@ -33,7 +37,7 @@ def test(cookie,
     print(req.text)
 
 
-def browser_login(browser, account=None, password=None):
+def browser_login(browser, account=None, password=None, enter_exit=True):
     # browser.get(
     #     "https://epassport.meituan.com/new/login/account?service=dpmerchantlogin&feconfig=dpmerchantlogin&bg_source=2")
     browser.get("https://e.dianping.com")
@@ -42,18 +46,44 @@ def browser_login(browser, account=None, password=None):
         browser.find_element_by_id("account").send_keys(account)
     if password is not None:
         browser.find_element_by_id("password").send_keys(password)
-    input("登录完成后来这里按下回车")
+    # input("登录完成后来这里按下回车")
+    timeout = 60 * 10
+    while timeout > 0:
+        try:
+            if 'https://e.dianping.com/app/merchant-platform/' in browser.current_url:
+                logger.info('登录完成')
+                break
+            browser.get_cookies()
+        except selenium.common.exceptions.WebDriverException:
+            logger.error("浏览器被手动关闭")
+            exit(1)
+        time.sleep(3)
+        timeout -= 3
+    if timeout <= 0:
+        logger.warning("Timeout!!")
+        if enter_exit:
+            logger.error("尝试登录超时，回车退出")
+            input()
+        else:
+            logger.error("尝试登录超时")
+        exit(1)
     cookies = browser.get_cookies()
-    print('cookies', cookies)
+    logger.info('cookies: %s' % cookies)
     cookies_str = '; '.join([f"{d['name']}={d['value']}" for d in cookies])
-    print('cookies_str', cookies_str)
-    test(cookies_str)
+    logger.info('cookies_str: %s' % cookies_str)
+    # test(cookies_str)
+    return cookies_str
 
 
-def main():
+def main(enter_exit=True):
+    logger.info("正在打开 Chrome 浏览器...如果无反应请重启程序")
     browser = browser_init()
-    browser_login(browser)
-    input()
+    cookies_str = browser_login(browser)
+    config.cookies = cookies_str
+    config.save()
+    browser.close()
+    if enter_exit:
+        input("完成，按回车键退出")
 
 
 if __name__ == '__main__':

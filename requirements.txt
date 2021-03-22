@@ -2,3 +2,6 @@ pyDes
 flask
 requests
 selenium
+flask_cors
+colorlog
+psutil
