@@ -3,8 +3,12 @@ from pyDes import des, CBC, PAD_PKCS5
 import logging
 from colorlog import ColoredFormatter
 import os
+import sys
+import time
 import re
 import psutil
+
+
 # from gbk.config import config
 
 
@@ -62,12 +66,18 @@ def get_net_info():
     return net_info
 
 
-def get_ip_info():
+def get_ip_info() -> list:
     return list(map(lambda k: k[-1], [item for item in get_net_info() if len(item) == 2]))
 
 
 def get_static_file_path(static_path: str, path: str):
     return os.path.join(static_path, path)
+
+
+def restart_program(timeout=3):
+    time.sleep(timeout)
+    python = sys.executable
+    os.execl(python, python, *sys.argv)
 
 
 # 检查请求路径有效性
@@ -83,3 +93,8 @@ def is_file_path_legal(static_path: str, path: str):
     if '..' in re.split(r"[/\\]", file_path):
         return False
     return True
+
+
+def get_request_json(req):
+    js = req.json
+    return js

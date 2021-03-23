@@ -1,9 +1,11 @@
 import os
 from flask import Flask
+import threading
 from flask_cors import CORS
 from gbk.make_result import *
 from gbk.config import config
-from gbk.utils import logger
+from gbk.utils import *
+from gbk.beans import *
 
 app = Flask(__name__)
 # 设置可跨域访问
@@ -29,12 +31,72 @@ def test():
     })
 
 
+@app.route("/get/ips")
+def get_ips():
+    return make_result(data={
+        "ips": get_ip_info()
+    })
+
+
+@app.route("/get/timetable_node")
+def get_timetable_node():
+    return make_result(data={
+        "timetable_node": [node.to_dict for node in config.timetable_node]
+    })
+
+
+@app.route("/get/timetable_period")
+def get_timetable_period():
+    return make_result(data={
+        "timetable_period": [period.to_dict for period in config.timetable_period]
+    })
+
+
+@app.route("/get/room_stock_plan")
+def get_room_stock_plan():
+    return make_result(data={
+        "room_stock_plan": [stock.to_dict for stock in config.room_stock_plan]
+    })
+
+
+@app.route("/get/status")
+def get_status():
+    return make_result(data={})
+
+
+@app.route("/add/timetable_node", methods=['POST', 'GET'])
+def add_timetable_node():
+    # node = get_request_json(request)
+    # logger.info(node)
+    # config.lock.acquire()
+    # config.timetable_node.append(TimeTableNode.from_json(node))
+    # config.lock.release()
+    # config.save()
+    return make_result()
+
+
+@app.route("/logout")
+def logout():
+    config.cookies = ""
+    config.save()
+    t = threading.Thread(target=restart_program)
+    t.setDaemon(True)
+    t.start()
+    return make_result()
+
+
 # 统一错误处理信息
 @app.errorhandler(404)
 def handler_404(error):
-    # TODO: 添加404页面
     logger.error(f"{error}")
     return make_result(404), 404
+
+
+# 统一错误处理信息
+@app.errorhandler(500)
+def handler_500(error):
+    logger.error(f"{error}")
+    return make_result(500), 500
 
 
 if __name__ == '__main__':

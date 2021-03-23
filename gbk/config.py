@@ -3,6 +3,7 @@ import json
 from gbk.beans import *
 from gbk.utils import des_decrypt, des_encrypt
 import binascii
+import threading
 
 
 class Config:
@@ -15,9 +16,9 @@ class Config:
         self.data_default = {
             "debug": True,
             "version": 0.1,
-            # "cookies": des_encrypt(Config.KEY,
-            #                        "_lxsdk_cuid=17771fd8425c8-0f5b6f7abba2ce8-4c3f217f-ca800-17771fd8425c8; _lxsdk=17771fd8425c8-0f5b6f7abba2ce8-4c3f217f-ca800-17771fd8425c8; _hc.v=6594ea87-cd60-00b4-94e8-05bc93197b85.1612525177; mpmerchant_portal_shopid=581990543; __utma=1.458675775.1615809801.1615809801.1615809801.1; __utmz=1.1615809801.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _lxsdk_s=1783a0f35e8-ed9-745-a7a%7C%7C67; edper=GG0X8NYFrZ9UqzH3wnTLqdRGpSYN5iMTDXinruwu_9YRRTfgluNHEfK-q5RjRmEJJ7diRjn5uZY9s3Ilx-roRw; JSESSIONID=A399CFC1BB3CE8771D7B3DD0006BFD55; merchantBookShopID=581990543; merchantCategoryID=2890; logan_session_token=ur8o312ny2cxhtxg4r42; logan_custom_report="),
-            "cookies": "",
+            "cookies": des_encrypt(Config.KEY,
+                                   "_lxsdk_cuid=17771fd8425c8-0f5b6f7abba2ce8-4c3f217f-ca800-17771fd8425c8; _lxsdk=17771fd8425c8-0f5b6f7abba2ce8-4c3f217f-ca800-17771fd8425c8; _hc.v=6594ea87-cd60-00b4-94e8-05bc93197b85.1612525177; mpmerchant_portal_shopid=581990543; __utma=1.458675775.1615809801.1615809801.1615809801.1; __utmz=1.1615809801.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _lxsdk_s=1783a0f35e8-ed9-745-a7a%7C%7C67; edper=GG0X8NYFrZ9UqzH3wnTLqdRGpSYN5iMTDXinruwu_9YRRTfgluNHEfK-q5RjRmEJJ7diRjn5uZY9s3Ilx-roRw; JSESSIONID=A399CFC1BB3CE8771D7B3DD0006BFD55; merchantBookShopID=581990543; merchantCategoryID=2890; logan_session_token=ur8o312ny2cxhtxg4r42; logan_custom_report="),
+            # "cookies": "",
             "timetable_node": {
                 "upgradable": False,
                 "data": []
@@ -38,6 +39,7 @@ class Config:
                 "upgradable": True,
                 "static_path": "./public",
                 "index": "index.html",
+                "routers": ["settings", "verify", "plan/time", "plan/stock", "connect"]
             }
         }
         self.data = self.data_default
@@ -45,6 +47,8 @@ class Config:
         self.timetable_period = []
         self.room_stock_plan = []
         self.cookies = ""
+        self.lock = threading.RLock()
+        self.thread = None
         self.load()
 
     def load_data(self):

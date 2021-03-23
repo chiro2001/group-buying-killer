@@ -222,19 +222,19 @@ export default function App() {
               <Route path={"/"} exact={true}>
                   <Launch config={store.getState().config} />
                 </Route>
-                <Route path={"/plan/time"} exact={true}>
+                <Route path={"/plan/time"} exact={false}>
                   <PlanTime config={store.getState().config} />
                 </Route>
-                <Route path={"/plan/stock"} exact={true}>
+                <Route path={"/plan/stock"} exact={false}>
                   <PlanStock config={store.getState().config} />
                 </Route>
-                <Route path={"/settings"} exact={true}>
+                <Route path={"/settings"} exact={false}>
                   <Settings config={store.getState().config} />
                 </Route>
-                <Route path={"/verify"} exact={true}>
+                <Route path={"/verify"} exact={false}>
                   <Verify config={store.getState().config} />
                 </Route>
-                <Route path={"/connect"} exact={true}>
+                <Route path={"/connect"} exact={false}>
                   <Connect config={store.getState().config} />
                 </Route>
               </Switch>

@@ -64,12 +64,12 @@ class RoomStockType:
 
 
 class RoomItem:
-    def __init__(self, itemId, price, foodDesc, signHours, stock, itemType, periodType):
-        self.itemId, self.price, self.foodDesc, self.singHours, self.stock, self.itemType, self.periodType = itemId, price, foodDesc, signHours, stock, itemType, periodType
+    def __init__(self, itemId, price, foodDesc, singHours, stock, itemType, periodType):
+        self.itemId, self.price, self.foodDesc, self.singHours, self.stock, self.itemType, self.periodType = itemId, price, foodDesc, singHours, stock, itemType, periodType
 
     @staticmethod
     def from_json(js):
-        return RoomItem(js['itemId'], js['price'], js['foodDesc'], js['signHours'], js['stock'],
+        return RoomItem(js['itemId'], js['price'], js['foodDesc'], js['singHours'], js['stock'],
                         js['itemType'], js['periodType'])
 
 

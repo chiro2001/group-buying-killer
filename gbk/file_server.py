@@ -16,6 +16,8 @@ def handler_404(error):
 
 @app.route("/<path:path>")
 def file_server(path: str):
+    if path in config.data['file_server']['routers']:
+        return index()
     file_path = get_static_file_path(config.data['file_server']['static_path'], path)
     if not is_file_path_legal(config.data['file_server']['static_path'], path):
         logger.warning(f'visiting illegal path: {file_path}')
