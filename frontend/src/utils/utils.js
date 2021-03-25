@@ -1,3 +1,6 @@
+import moment from 'moment';
+import 'moment/locale/zh-cn'
+
 export function isMobileDevice() {
   const sUserAgent = navigator.userAgent;
   return (sUserAgent.indexOf('Android') > -1 || sUserAgent.indexOf('iPhone') > -1 || sUserAgent.indexOf('iPad') > -1 || sUserAgent.indexOf('iPod') > -1 || sUserAgent.indexOf('Symbian') > -1);
@@ -32,4 +35,8 @@ export function urlEncode2(obj) {
     console.error(e);
     return "";
   }
+}
+
+export function parseTimePoint(time) {
+  return moment.format();
 }

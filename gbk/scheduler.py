@@ -6,6 +6,7 @@ from gbk.beans import *
 from gbk.utils import logger
 from gbk.exceptions import *
 from gbk.login import main as login_main
+from gbk.login import test_login
 
 
 class Scheduler:
@@ -18,7 +19,7 @@ class Scheduler:
         self.solution_id = 1834526
         self.api.ktv.set_shop_id(581990543)
         self.api.room_stock.set_shop_id(581990543)
-        self.has_login = False
+        self.has_login = test_login(config.cookies)
 
         self.running = False
         # 数据锁
@@ -27,16 +28,23 @@ class Scheduler:
         # 注意调用方式
         _ = self.fetch_init_data
 
-        config.save()
-
     class LoginTry(object):
         def __init__(self, func):
             self.func = func
 
         def __get__(self, instance, owner):
+            # logger.warning('#1 instance.has_login: %s' % instance.has_login)
+            if not instance.has_login:
+                login_main(enter_exit=False)
+            try:
+                rets = self.func(instance)
+                instance.has_login = True
+                return rets
+            except GBKPermissionError as e:
+                login_main(enter_exit=False)
             while not instance.has_login:
-                instance.has_login = False
                 try:
+                    logger.warning('instance.has_login: %s' % instance.has_login)
                     rets = self.func(instance)
                     instance.has_login = True
                     return rets
@@ -60,11 +68,11 @@ class Scheduler:
     @LoginTry
     def fetch_init_data(self):
         logger.info('Loading reserve_date...')
-        print(self.api.ktv.get_reserve_date())
+        logger.debug(self.api.ktv.get_reserve_date())
         logger.info('Loading reserve_table...')
-        print(self.api.ktv.get_reserve_table())
+        logger.debug(self.api.ktv.get_reserve_table())
         logger.info('Loading room_stock...')
-        print(self.api.room_stock.get_room_stock())
+        logger.debug(self.api.room_stock.get_room_stock())
 
     def run(self):
         self.running = True
@@ -77,7 +85,6 @@ class Scheduler:
 
     @staticmethod
     def batch(self):
-        logger.info('new batch')
         # 排序计划数据
         config.timetable_node.sort(key=lambda x: x.time_)
         config.timetable_period.sort(key=lambda x: x.time_start)
@@ -86,10 +93,17 @@ class Scheduler:
         while not self.has_login:
             time.sleep(0.31)
         _ = self.batch_inside
+        # while not self.has_login:
+        #     self.has_login = False
+        #     try:
+        #         self.batch_inside()
+        #         self.has_login = True
+        #     except GBKPermissionError as e:
+        #         login_main(enter_exit=False)
 
-    @staticmethod
     @LoginTry
     def batch_inside(self):
+        logger.info('new batch')
         # 只判断到当前秒
         time_stamp = int(time.time()) * 1000
         for node in config.timetable_node:

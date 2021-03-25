@@ -29,6 +29,7 @@ import { Provider } from 'react-redux'
 import store from './data/store'
 
 import { isMobileDevice } from "./utils/utils"
+import { API } from "./api/api"
 
 import ListItemLink from "./components/listItemLink"
 import LoginDialog from "./pages/loginDialog"
@@ -115,15 +116,24 @@ export default function App() {
   // 拉大到800会打开，拉小到600关闭
   const triggerWidthOpen = 800;
   const triggerWidthClose = 600;
-  
+
+  const api = new API();
+
+  // onMount
   React.useEffect(() => {
     const onWindowResize = () => {
       let width = window.innerWidth;
+      console.log(width);
       if (!open && width >= triggerWidthOpen) setOpen(true);
       if (open && width <= triggerWidthClose) setOpen(false);
     };
     window.addEventListener("load", onWindowResize);
     window.addEventListener('resize', onWindowResize);
+
+    return () => {
+      window.removeEventListener("load", onWindowResize);
+      window.removeEventListener("resize", onWindowResize);
+    };
   });
 
   // console.log("store", store);
@@ -219,7 +229,7 @@ export default function App() {
             <main className={classes.content}>
               <div className={classes.toolbar} />
               <Switch>
-              <Route path={"/"} exact={true}>
+                <Route path={"/"} exact={true}>
                   <Launch config={store.getState().config} />
                 </Route>
                 <Route path={"/plan/time"} exact={false}>
@@ -240,7 +250,7 @@ export default function App() {
               </Switch>
             </main>
           </Router>
-          <LoginDialog config={store.getState().config} open={popupLogin} onClose={handleLoginClose}></LoginDialog>
+          <LoginDialog config={store.getState().config} open={popupLogin && store.getState().config.has_login} onClose={handleLoginClose}></LoginDialog>
         </ThemeProvider>
       </Provider>
     </div>

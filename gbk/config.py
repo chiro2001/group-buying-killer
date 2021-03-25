@@ -5,6 +5,10 @@ from gbk.utils import des_decrypt, des_encrypt
 import binascii
 import threading
 
+# debug开关:
+# 1. 使用默认配置
+# 2. 配置文件保持最新
+
 
 class Config:
     FILE_NAME = "kp.json"
@@ -80,12 +84,24 @@ class Config:
         try:
             with open(os.path.join(Config.FILE_PATH, Config.FILE_NAME), "r") as f:
                 data = json.load(f)
-                if data['debug']:
+                # 如果在程序中设置了debug模式就直接替换文件
+                if self.data_default['debug']:
                     self.data = self.data_default
                     self.load_data()
-                if data['version'] < self.data_default['version']:
+                else:
+                    for k in data:
+                        self.data[k] = data[k]
+                    # 检查文件是否需要和做版本更新，用default更新内容
                     for k in self.data_default:
-                        if type(self.data_default[k]) is dict and 'upgradable' in self.data_default[k]:
+                        if k not in self.data:
+                            self.data[k] = self.data_default[k]
+                            continue
+                        if data['version'] < self.data_default['version']:
+                            # 在版本更新时候才会更新dict内的upgradable项
+                            if type(self.data_default[k]) is dict and 'upgradable' in self.data_default[k]:
+                                self.data[k] = self.data_default[k]
+                        # 不含upgradable就直接更新
+                        if not (type(self.data_default[k]) is dict and 'upgradable' in self.data_default[k]):
                             self.data[k] = self.data_default[k]
         except KeyError:
             logger.error("Err loading, KeyError.")
@@ -98,6 +114,7 @@ class Config:
             self.data = self.data_default
         finally:
             self.load_data()
+            logger.debug(f'config load from: {os.path.abspath(os.path.join(Config.FILE_PATH, Config.FILE_NAME))} got data: {self.data}')
             self.save()
 
     def save(self):
@@ -106,7 +123,7 @@ class Config:
         self.data['cookies'] = des_encrypt(Config.KEY, self.cookies)
         with open(os.path.join(Config.FILE_PATH, Config.FILE_NAME), "w") as f:
             json.dump(self.data, f)
-        logger.info('config saved!')
+        logger.debug(f'config saved to:   {os.path.abspath(os.path.join(Config.FILE_PATH, Config.FILE_NAME))} and data: {self.data}')
 
 
 config = Config()

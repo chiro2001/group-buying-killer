@@ -6,10 +6,12 @@ from gbk.make_result import *
 from gbk.config import config
 from gbk.utils import *
 from gbk.beans import *
+from gbk.login import test_login
 
 app = Flask(__name__)
 # 设置可跨域访问
 CORS(app, supports_credentials=True)
+# CORS(app, supports_credentials=False)
 
 
 @app.route("/")
@@ -31,6 +33,13 @@ def test():
     })
 
 
+@app.route("/has_login")
+def has_login():
+    return make_result(data={
+        "has_login": test_login(config.cookies)
+    })
+
+
 @app.route("/get/ips")
 def get_ips():
     return make_result(data={
@@ -41,21 +50,21 @@ def get_ips():
 @app.route("/get/timetable_node")
 def get_timetable_node():
     return make_result(data={
-        "timetable_node": [node.to_dict for node in config.timetable_node]
+        "timetable_node": [node.to_dict() for node in config.timetable_node]
     })
 
 
 @app.route("/get/timetable_period")
 def get_timetable_period():
     return make_result(data={
-        "timetable_period": [period.to_dict for period in config.timetable_period]
+        "timetable_period": [period.to_dict() for period in config.timetable_period]
     })
 
 
 @app.route("/get/room_stock_plan")
 def get_room_stock_plan():
     return make_result(data={
-        "room_stock_plan": [stock.to_dict for stock in config.room_stock_plan]
+        "room_stock_plan": [stock.to_dict() for stock in config.room_stock_plan]
     })
 
 
@@ -64,24 +73,28 @@ def get_status():
     return make_result(data={})
 
 
+# Bug: 在cors情况下post速度缓慢
+# Fix: 通过不传送cookie解决
 @app.route("/add/timetable_node", methods=['POST', 'GET'])
 def add_timetable_node():
-    # node = get_request_json(request)
-    # logger.info(node)
-    # config.lock.acquire()
-    # config.timetable_node.append(TimeTableNode.from_json(node))
-    # config.lock.release()
-    # config.save()
+    node = get_request_json(request)
+    logger.info(node)
+    config.lock.acquire()
+    config.timetable_node.append(TimeTableNode.from_json(node))
+    config.lock.release()
+    config.save()
     return make_result()
 
 
 @app.route("/logout")
 def logout():
+    logger.info(f'cookie before now: {config.cookies}')
     config.cookies = ""
     config.save()
-    t = threading.Thread(target=restart_program)
-    t.setDaemon(True)
-    t.start()
+    logger.debug("data: %s" % json.dumps(config.data))
+    # t = threading.Thread(target=restart_program, args=(1, ))
+    # t.setDaemon(True)
+    # t.start()
     return make_result()
 
 

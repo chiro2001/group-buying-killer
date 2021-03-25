@@ -86,11 +86,7 @@ class API:
                 raise Exception("需要获取shopId")
             return self.request_func(self.url_update_price % (self.shop_id, item_id, type_, price))
 
-    def __init__(self, cookies=None):
-        self.cookies = cookies
-        if self.cookies is None:
-            # self.cookies = g_cookies
-            self.cookies = config.cookies
+    def __init__(self):
         self.ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:86.0) Gecko/20100101 Firefox/86.0"
         self.ktv = API.KTV(self.request)
         self.room_stock = API.RoomsStock(self.request)
@@ -98,7 +94,7 @@ class API:
     def request(self, url: str):
         resp = requests.get(url, headers={
             "User-Agent": self.ua,
-            "Cookie": self.cookies
+            "Cookie": config.cookies
         })
         js = resp.json()
         if 'code' in js and js['code'] != 200:

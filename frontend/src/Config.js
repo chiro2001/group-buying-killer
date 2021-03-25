@@ -1,5 +1,6 @@
 import { createMuiTheme, makeStyles, ThemeProvider } from '@material-ui/core/styles';
 import { orange, grey, blueGrey } from '@material-ui/core/colors';
+import { API } from "./api/api";
 
 class Config {
   ITEM_NAME = "group_bying_config";
@@ -33,6 +34,10 @@ class Config {
     };
     this.data = this.data_default;
     this.theme = this.theme_avaliable["default"];
+    this.api = new API();
+    // 先声明已经登录，然后再检查登录状态
+    this.has_login = true;
+    this.api.has_login().then(state => { this.has_login = state; });
     this.load();
   }
 

@@ -4,8 +4,9 @@ from selenium.webdriver import Chrome
 from selenium.webdriver import ChromeOptions
 import requests
 from gbk.config import config
-from gbk.utils import logger
+from gbk.utils import logger, fmt_time
 import time
+import json
 
 
 def browser_init():
@@ -27,14 +28,22 @@ def browser_init():
     return bro
 
 
-def test(cookie,
-         url='https://e.dianping.com/sku/api/merchant/ktvreserve/queryreservetable.json?shopid=581990543&timestamp=1615968223552'):
+def test_login(cookie,
+               url=f'https://e.dianping.com/sku/api/merchant/ktvreserve/queryreservetable.json?shopid=581990543&timestamp={fmt_time(time.time() * 1000)}'):
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:86.0) Gecko/20100101 Firefox/86.0",
         "Cookie": cookie
     }
     req = requests.get(url, headers=headers)
-    print(req.text)
+    try:
+        js = req.json()
+        if js['code'] == 200:
+            return True
+    except json.decoder.JSONDecodeError:
+        return False
+    except KeyError:
+        return False
+    return False
 
 
 def browser_login(browser, account=None, password=None, enter_exit=True):
@@ -75,15 +84,23 @@ def browser_login(browser, account=None, password=None, enter_exit=True):
     return cookies_str
 
 
-def main(enter_exit=True):
-    logger.info("正在打开 Chrome 浏览器...如果无反应请重启程序")
-    browser = browser_init()
-    cookies_str = browser_login(browser)
-    config.cookies = cookies_str
-    config.save()
-    browser.close()
-    if enter_exit:
-        input("完成，按回车键退出")
+def main(enter_exit=True, re_login=False):
+    # logger.debug('replacing cookie...')
+    # config.cookies = "_lxsdk_cuid=17771fd8425c8-0f5b6f7abba2ce8-4c3f217f-ca800-17771fd8425c8; _lxsdk=17771fd8425c8-0f5b6f7abba2ce8-4c3f217f-ca800-17771fd8425c8; _hc.v=6594ea87-cd60-00b4-94e8-05bc93197b85.1612525177; mpmerchant_portal_shopid=581990543; __utma=1.458675775.1615809801.1615809801.1615809801.1; __utmz=1.1615809801.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _lxsdk_s=1783a0f35e8-ed9-745-a7a%7C%7C67; edper=GG0X8NYFrZ9UqzH3wnTLqdRGpSYN5iMTDXinruwu_9YRRTfgluNHEfK-q5RjRmEJJ7diRjn5uZY9s3Ilx-roRw; JSESSIONID=A399CFC1BB3CE8771D7B3DD0006BFD55; merchantBookShopID=581990543; merchantCategoryID=2890; logan_session_token=ur8o312ny2cxhtxg4r42; logan_custom_report="
+    # config.save()
+    # return
+    if not test_login(config.cookies) or re_login:
+        logger.info("正在打开 Chrome 浏览器...如果无反应请重启程序")
+        logger.info('test: %s' % test_login(config.cookies))
+        browser = browser_init()
+        cookies_str = browser_login(browser)
+        config.cookies = cookies_str
+        config.save()
+        browser.close()
+        if enter_exit:
+            input("完成，按回车键退出")
+    else:
+        logger.info('已经登录')
 
 
 if __name__ == '__main__':
