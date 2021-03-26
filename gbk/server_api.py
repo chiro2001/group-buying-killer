@@ -11,6 +11,8 @@ from gbk.login import test_login
 app = Flask(__name__)
 # 设置可跨域访问
 CORS(app, supports_credentials=True)
+
+
 # CORS(app, supports_credentials=False)
 
 
@@ -75,12 +77,23 @@ def get_status():
 
 # Bug: 在cors情况下post速度缓慢
 # Fix: 通过不传送cookie解决
-@app.route("/add/timetable_node", methods=['POST', 'GET'])
+@app.route("/add/timetable_node", methods=['POST'])
 def add_timetable_node():
     node = get_request_json(request)
     logger.info(node)
     config.lock.acquire()
     config.timetable_node.append(TimeTableNode.from_json(node))
+    config.lock.release()
+    config.save()
+    return make_result()
+
+
+@app.route("/add/timetable_period", methods=['POST'])
+def add_timetable_period():
+    period = get_request_json(request)
+    logger.info(period)
+    config.lock.acquire()
+    config.timetable_period.append(TimeTablePeriod.from_json(period))
     config.lock.release()
     config.save()
     return make_result()

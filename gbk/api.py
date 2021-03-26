@@ -92,6 +92,13 @@ class API:
         self.room_stock = API.RoomsStock(self.request)
 
     def request(self, url: str):
+        # resp = requests.get(url, headers={
+        #     "User-Agent": self.ua,
+        #     "Cookie": config.cookies
+        # }, proxies={
+        #     "http": "",
+        #     "https": ""
+        # })
         resp = requests.get(url, headers={
             "User-Agent": self.ua,
             "Cookie": config.cookies

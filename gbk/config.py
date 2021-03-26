@@ -123,7 +123,7 @@ class Config:
         self.data['cookies'] = des_encrypt(Config.KEY, self.cookies)
         with open(os.path.join(Config.FILE_PATH, Config.FILE_NAME), "w") as f:
             json.dump(self.data, f)
-        logger.debug(f'config saved to:   {os.path.abspath(os.path.join(Config.FILE_PATH, Config.FILE_NAME))} and data: {self.data}')
+        logger.debug(f'config saved to:  {os.path.abspath(os.path.join(Config.FILE_PATH, Config.FILE_NAME))} and data: {self.data}')
 
 
 config = Config()

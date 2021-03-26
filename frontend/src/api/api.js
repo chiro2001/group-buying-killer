@@ -12,6 +12,8 @@ class API {
       get_ips: 'get/ips',
       get_timetable_node: "get/timetable_node",
       add_timetable_node: "add/timetable_node",
+      get_timetable_period: "get/timetable_period",
+      add_timetable_period: "add/timetable_period",
       logout: "logout",
       has_login: 'has_login',
     }
@@ -62,10 +64,15 @@ class API {
   async get_timetable_node() {
     return (await this.request(this.url.get_timetable_node)).data.timetable_node;
   }
-
   async add_timetable_node(node) {
     return await this.request(this.url.add_timetable_node, node, 'POST');
   }
-};
+  async get_timetable_period() {
+    return (await this.request(this.url.get_timetable_period)).data.timetable_period;
+  }
+  async add_timetable_period(period) {
+    return await this.request(this.url.add_timetable_period, period, 'POST');
+  }
+}
 
 export { API };

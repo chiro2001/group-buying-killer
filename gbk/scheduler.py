@@ -107,8 +107,8 @@ class Scheduler:
         # 只判断到当前秒
         time_stamp = int(time.time()) * 1000
         for node in config.timetable_node:
-            logger.info(node.to_dict())
             if node.is_on_turn(time_stamp):
+                logger.info(f"adjusting:{node.to_dict()}")
                 self.api.ktv.update_price(node.roomItem.itemId, node.roomItem.itemType, node.price)
 
         # TODO: 扫描房间状态判断是否调整

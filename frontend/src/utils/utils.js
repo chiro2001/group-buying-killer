@@ -38,5 +38,19 @@ export function urlEncode2(obj) {
 }
 
 export function parseTimePoint(time) {
-  return moment.format();
+  return moment().format('LLLL', time);
+}
+
+export function parseTimePeriod(time) {
+  return moment.duration(time).humanize();
+}
+
+export function getTextFieldValue(el) {
+  return el.current.childNodes[el.current.childElementCount - 1].childNodes[0].value;
+}
+
+export function sleep(time_ms) {
+  return new Promise(accept => {
+    setTimeout(accept, time_ms);
+  });
 }

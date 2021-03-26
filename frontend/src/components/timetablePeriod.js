@@ -7,9 +7,8 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import ExpandLessIcon from '@material-ui/icons/ExpandLess';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import PropTypes from 'prop-types';
-import { DateTimePicker } from '@material-ui/pickers';
-import { parseTimePoint, parseTimePeriod, sleep } from '../utils/utils';
-import TimetableNodeList from '../components/timetableNodeList';
+import { parseTimePoint, parseTimePeriod, sleep } from '../utils/utils'
+import TimetablePeriodList from './timetablePeriodList';
 
 const useStyles = makeStyles((theme) => ({
   nested: {
@@ -20,21 +19,21 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-function TimetableNode(props) {
+function TimetablePeriod(props) {
   const classes = useStyles();
-  const { node, onClose } = props;
+  const { period, onClose } = props;
   const [open, setOpen] = React.useState(false);
   const handleClick = () => {
     setOpen(!open);
   };
   const getSecondaryText = () => {
-    return `${node.periodId}/调整至:${node.price}/下次调整:${parseTimePoint(node.time_)}/周期:${node.cycle > 0 ? parseTimePeriod(node.cycle) : "单次"}/${node.avaliable ? "可用" : "不可用"}`
+    return `${period.periodId}/调整至:${period.price}/下次调整:${parseTimePoint(period.time_start)}/下次调整结束:${parseTimePoint(period.time_end)}/周期:${period.cycle > 0 ? parseTimePeriod(period.cycle) : "单次"}/${period.avaliable ? "可用" : "不可用"}`
   };
   return (
     <div>
       <ListItem button onClick={handleClick}>
         <ListItemIcon><AlarmOnIcon /></ListItemIcon>
-        <ListItemText primary={node.itemName} secondary={getSecondaryText()} />
+        <ListItemText primary={period.itemName} secondary={getSecondaryText()} />
         <div className={classes.secondaryIcon}>
           {open ? <ExpandLessIcon /> : <ExpandMoreIcon />}
         </div>
@@ -45,19 +44,19 @@ function TimetableNode(props) {
         </ListItemSecondaryAction>
       </ListItem>
       <Collapse in={open} timeout="auto" unmountOnExit>
-        <TimetableNodeList node={node} onClose={node => {
-          console.log('onClose', node, onClose);
-          setOpen(false);
+        <TimetablePeriodList period={period} onClose={period => {
+          console.log('onClose', period);
           if (onClose) onClose();
+          setOpen(false);
         }} />
       </Collapse>
     </div>
   );
 }
 
-TimetableNode.propTypes = {
-  node: PropTypes.object.isRequired,
+TimetablePeriod.propTypes = {
+  period: PropTypes.object.isRequired,
   onClose: PropTypes.func
 };
 
-export default TimetableNode;
+export default TimetablePeriod;
