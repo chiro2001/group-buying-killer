@@ -1,3 +1,5 @@
+import os
+import json
 import time
 import threading
 from gbk.api import API
@@ -67,12 +69,22 @@ class Scheduler:
 
     @LoginTry
     def fetch_init_data(self):
+        logger.info('Loading shop_info')
+        logger.debug(self.api.ktv.get_shop_id(self.solution_id))
+        # with open(os.path.join(config.FILE_PATH, "shop_info.json"), 'w') as f:
+        #     json.dump(self.api.ktv.shop_info, f)
         logger.info('Loading reserve_date...')
         logger.debug(self.api.ktv.get_reserve_date())
+        # with open(os.path.join(config.FILE_PATH, "reserve_date.json"), 'w') as f:
+        #     json.dump(self.api.ktv.reserve_date, f)
         logger.info('Loading reserve_table...')
         logger.debug(self.api.ktv.get_reserve_table())
+        # with open(os.path.join(config.FILE_PATH, "reserve_table.json"), 'w') as f:
+        #     json.dump(self.api.ktv.reserve_table, f)
         logger.info('Loading room_stock...')
         logger.debug(self.api.room_stock.get_room_stock())
+        # with open(os.path.join(config.FILE_PATH, "room_stock.json"), 'w') as f:
+        #     json.dump(self.api.room_stock.room_stock_data, f)
 
     def run(self):
         self.running = True
@@ -103,7 +115,7 @@ class Scheduler:
 
     @LoginTry
     def batch_inside(self):
-        logger.info('new batch')
+        # logger.info('new batch')
         # 只判断到当前秒
         time_stamp = int(time.time()) * 1000
         for node in config.timetable_node:
@@ -115,3 +127,6 @@ class Scheduler:
 
     def add_timetable_node(self, timetable_node: TimeTableNode):
         config.timetable_node.append(timetable_node)
+
+
+scheduler = Scheduler()

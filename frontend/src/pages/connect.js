@@ -1,6 +1,7 @@
 import React from "react"
 import Container from '@material-ui/core/Container';
 import Typography from '@material-ui/core/Typography';
+import LinkText from '@material-ui/core/Link';
 import { ListItem, ListItemText, List } from '@material-ui/core';
 import Button from '@material-ui/core/Button';
 import { API, test } from "../api/api"
@@ -37,7 +38,7 @@ class Connect extends React.Component {
         )}
       </List>
       <QRCode value={this.state.url} size={this.state.qrcodeWidth} />
-      <Typography variant="body1">或者打开：<a href={this.state.url}>{this.state.url}</a></Typography>
+      <Typography variant="body1">或者打开：<LinkText href={this.state.url}>{this.state.url}</LinkText></Typography>
     </Container >)
   }
 };

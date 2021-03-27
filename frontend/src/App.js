@@ -33,8 +33,9 @@ import MomentUtils from '@date-io/moment';
 import moment from 'moment';
 import 'moment/locale/zh-cn'
 import store from './data/store'
+import { setConfig, setReserveTableData, setRoomStockData, setShopInfo } from "./data/action";
 
-import { isMobileDevice } from "./utils/utils"
+import { isMobileDevice, sleep } from "./utils/utils"
 import { API } from "./api/api"
 
 import ListItemLink from "./components/listItemLink"
@@ -54,6 +55,8 @@ moment.locale('zh-cn');
 const useStyles = makeStyles((theme) => ({
   root: {
     display: 'flex',
+    width: '100%',
+    // overflowX: 'auto',
   },
   appBar: {
     zIndex: theme.zIndex.drawer + 1,
@@ -113,8 +116,20 @@ const useStyles = makeStyles((theme) => ({
   content: {
     flexGrow: 1,
     padding: theme.spacing(3),
+    width: '100%',
+    overflowX: 'auto',
   },
 }));
+
+const api = new API();
+api.get_shop_info().then(shopInfo => {
+  console.log('shopInfo', shopInfo);
+  store.dispatch(setShopInfo(shopInfo));
+})
+
+// store.subscribe(() => {
+//   console.log('redux update to', store.getState());
+// });
 
 export default function App() {
   const classes = useStyles();
@@ -126,13 +141,11 @@ export default function App() {
   const triggerWidthOpen = 800;
   const triggerWidthClose = 600;
 
-  const api = new API();
-
-  // onMount
+  // onMount & onUpdate
   React.useEffect(() => {
     const onWindowResize = () => {
       let width = window.innerWidth;
-      console.log(width);
+      // console.log(width);
       if (!open && width >= triggerWidthOpen) setOpen(true);
       if (open && width <= triggerWidthClose) setOpen(false);
     };
@@ -166,79 +179,79 @@ export default function App() {
   };
 
   const handleClickAction = () => {
-    if (window.innerWidth < 600) {
+    if (window.innerWidth < 600 || window.location.pathname === '/') {
       setOpen(false);
     }
+
   };
 
   return (
     <div className={classes.root}>
-      <Provider store={store}>
-        <ThemeProvider theme={store.getState().config.theme}>
-          <Router>
-            <MuiPickersUtilsProvider utils={MomentUtils} locale="zh-cn">
-              <CssBaseline />
-              <AppBar
-                position="fixed"
-                className={clsx(classes.appBar, {
-                  [classes.appBarShift]: open,
-                })}
-              >
-                <Toolbar>
-                  <IconButton
-                    color="inherit"
-                    aria-label="open drawer"
-                    onClick={handleDrawerOpen}
-                    edge="start"
-                    className={clsx(classes.menuButton, {
-                      [classes.hide]: open,
-                    })}
-                  >
-                    <MenuIcon />
-                  </IconButton>
-                  <Typography variant="h6" noWrap className={classes.title}>
-                    团购杀手 - KTV体验版
+      <ThemeProvider theme={store.getState().config.theme}>
+        <Router>
+          <MuiPickersUtilsProvider utils={MomentUtils} locale="zh-cn">
+            <CssBaseline />
+            <AppBar
+              position="fixed"
+              className={clsx(classes.appBar, {
+                [classes.appBarShift]: open,
+              })}
+            >
+              <Toolbar>
+                <IconButton
+                  color="inherit"
+                  aria-label="open drawer"
+                  onClick={handleDrawerOpen}
+                  edge="start"
+                  className={clsx(classes.menuButton, {
+                    [classes.hide]: open,
+                  })}
+                >
+                  <MenuIcon />
+                </IconButton>
+                <Typography variant="h6" noWrap className={classes.title}>
+                  团购杀手 - KTV体验版
                 </Typography>
-                  <IconButton
-                    color="inherit"
-                    aria-label="login"
-                    onClick={handleLoginOpen}
-                  >
-                    <AccountCircleIcon />
-                  </IconButton>
-                </Toolbar>
-              </AppBar>
-              <Drawer
-                variant="permanent"
-                className={clsx(classes.drawer, {
+                <IconButton
+                  color="inherit"
+                  aria-label="login"
+                  onClick={handleLoginOpen}
+                >
+                  <AccountCircleIcon />
+                </IconButton>
+              </Toolbar>
+            </AppBar>
+            <Drawer
+              variant="permanent"
+              className={clsx(classes.drawer, {
+                [classes.drawerOpen]: open,
+                [classes.drawerClose]: !open,
+              })}
+              classes={{
+                paper: clsx({
                   [classes.drawerOpen]: open,
                   [classes.drawerClose]: !open,
-                })}
-                classes={{
-                  paper: clsx({
-                    [classes.drawerOpen]: open,
-                    [classes.drawerClose]: !open,
-                  }),
-                }}
-              >
-                <div className={classes.toolbar}>
-                  <IconButton onClick={handleDrawerClose}>
-                    {theme.direction === 'rtl' ? <ChevronRightIcon /> : <ChevronLeftIcon />}
-                  </IconButton>
-                </div>
-                <Divider />
-                <List onClick={handleClickAction}>
-                  <ListItemLink to="/" primary="启动页" icon={<DashboardIcon />} />
-                  <ListItemLink to="/plan/time" primary="时间计划" icon={<AlarmIcon />} />
-                  <ListItemLink to="/plan/stock" primary="库存计划" icon={<StorageIcon />} />
-                  <ListItemLink to="/settings" primary="设置" icon={<SettingsIcon />} />
-                  <ListItemLink to="/verify" primary="授权" icon={<VerifiedUserIcon />} />
-                  {isMobileDevice() ? null : <ListItemLink to="/connect" primary="移动设备" icon={<PhonelinkIcon />} />}
-                </List>
-              </Drawer>
-              <main className={classes.content}>
-                <div className={classes.toolbar} />
-                {/* <Route render={({ location }) => {
+                }),
+              }}
+            >
+              <div className={classes.toolbar}>
+                <IconButton onClick={handleDrawerClose}>
+                  {theme.direction === 'rtl' ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+                </IconButton>
+              </div>
+              <Divider />
+              <List onClick={handleClickAction}>
+                <ListItemLink to="/" primary="启动页" icon={<DashboardIcon />} />
+                <ListItemLink to="/plan/time" primary="时间计划" icon={<AlarmIcon />} />
+                <ListItemLink to="/plan/stock" primary="库存计划" icon={<StorageIcon />} />
+                <ListItemLink to="/settings" primary="设置" icon={<SettingsIcon />} />
+                <ListItemLink to="/verify" primary="授权" icon={<VerifiedUserIcon />} />
+                {isMobileDevice() ? null : <ListItemLink to="/connect" primary="移动设备" icon={<PhonelinkIcon />} />}
+              </List>
+            </Drawer>
+            <main className={classes.content}>
+              <div className={classes.toolbar} />
+              {/* <Route render={({ location }) => {
                   console.log('location', location);
                   return (
                     <TransitionGroup>
@@ -272,32 +285,32 @@ export default function App() {
                   );
                 }}>
                 </Route> */}
-                <Switch>
-                  <Route path={"/"} exact={true}>
-                    <Launch config={store.getState().config} />
-                  </Route>
-                  <Route path={"/plan/time"} exact={false}>
-                    <PlanTime config={store.getState().config} />
-                  </Route>
-                  <Route path={"/plan/stock"} exact={false}>
-                    <PlanStock config={store.getState().config} />
-                  </Route>
-                  <Route path={"/settings"} exact={false}>
-                    <Settings config={store.getState().config} />
-                  </Route>
-                  <Route path={"/verify"} exact={false}>
-                    <Verify config={store.getState().config} />
-                  </Route>
-                  <Route path={"/connect"} exact={false}>
-                    <Connect config={store.getState().config} />
-                  </Route>
-                </Switch>
-              </main>
-            </MuiPickersUtilsProvider>
-          </Router>
-          <LoginDialog config={store.getState().config} open={popupLogin && store.getState().config.has_login} onClose={handleLoginClose}></LoginDialog>
-        </ThemeProvider>
-      </Provider>
+              {/* {'' + store.getState().shopInfo} */}
+              <Switch>
+                <Route path={"/"} exact={true}>
+                  <Launch config={store.getState().config} />
+                </Route>
+                <Route path={"/plan/time"} exact={false}>
+                  <PlanTime config={store.getState().config} />
+                </Route>
+                <Route path={"/plan/stock"} exact={false}>
+                  <PlanStock config={store.getState().config} />
+                </Route>
+                <Route path={"/settings"} exact={false}>
+                  <Settings config={store.getState().config} />
+                </Route>
+                <Route path={"/verify"} exact={false}>
+                  <Verify config={store.getState().config} />
+                </Route>
+                <Route path={"/connect"} exact={false}>
+                  <Connect config={store.getState().config} />
+                </Route>
+              </Switch>
+            </main>
+          </MuiPickersUtilsProvider>
+        </Router>
+        <LoginDialog config={store.getState().config} open={popupLogin && store.getState().config.has_login} onClose={handleLoginClose}></LoginDialog>
+      </ThemeProvider>
     </div>
   );
 }

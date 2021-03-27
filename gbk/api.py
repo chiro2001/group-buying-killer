@@ -1,8 +1,9 @@
 import time
-from gbk.utils import logger
+from gbk.utils import *
 import requests
 from gbk.config import config
 from gbk.exceptions import *
+
 
 # g_cookies = "_lxsdk_cuid=17771fd8425c8-0f5b6f7abba2ce8-4c3f217f-ca800-17771fd8425c8; _lxsdk=17771fd8425c8-0f5b6f7abba2ce8-4c3f217f-ca800-17771fd8425c8; _hc.v=6594ea87-cd60-00b4-94e8-05bc93197b85.1612525177; mpmerchant_portal_shopid=581990543; __utma=1.458675775.1615809801.1615809801.1615809801.1; __utmz=1.1615809801.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _lxsdk_s=1783a0f35e8-ed9-745-a7a%7C%7C67; edper=GG0X8NYFrZ9UqzH3wnTLqdRGpSYN5iMTDXinruwu_9YRRTfgluNHEfK-q5RjRmEJJ7diRjn5uZY9s3Ilx-roRw; JSESSIONID=A399CFC1BB3CE8771D7B3DD0006BFD55; merchantBookShopID=581990543; merchantCategoryID=2890; logan_session_token=ur8o312ny2cxhtxg4r42; logan_custom_report="
 
@@ -22,7 +23,7 @@ class API:
 
         def get_room_stock(self):
             resp = self.request_func(self.url_load_price_table % self.shop_id)
-            self.room_stock_data = resp['data']['dailyStockList']
+            self.room_stock_data = resp['data']
             return resp
 
     class KTV:
@@ -54,7 +55,9 @@ class API:
             self.shop_id = 0
             self.shop_info = None
             self.reserve_date = None
-            self.reserve_table = None
+            # self.reserve_table是reserveTable的缓存
+            # TODO: Fix 这里的reserve_table可能变大的缺陷
+            self.reserve_table = {}
             self.periods = []
             self.room_types = []
 
@@ -72,14 +75,20 @@ class API:
             self.reserve_date = resp['data']
             return resp
 
-        def get_reserve_table(self, timestamp: int = None):
-            if type(timestamp) is not int:
+        # 以date优先，timestamp默认为当前时间
+        def get_reserve_table(self, timestamp: int = None, date: str = None):
+            if date is not None:
+                timestamp = get_date_timestamp(date)
+            elif timestamp is not None:
+                date = get_date_today()
+                timestamp = get_date_timestamp(date)
+            else:
                 timestamp = int(time.time() * 1000)
             if self.shop_id == 0:
                 raise Exception("需要获取shopId")
             resp = self.request_func(self.url_get_reserve_table % (self.shop_id, timestamp))
-            self.reserve_table = resp['data']
-            return resp
+            self.reserve_table[get_timestamp_date(timestamp)] = resp['data']
+            return resp['data']
 
         def update_price(self, item_id: int, type_: int, price: str):
             if self.shop_id == 0:

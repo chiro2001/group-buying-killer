@@ -10,7 +10,8 @@ class ResultRules:
     code_message = {
         200: "OK",
         404: "The Requested URL Was Not Found",
-        500: "Internal Server Error"
+        500: "Internal Server Error",
+        403: "Forbidden"
     }
 
 

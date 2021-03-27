@@ -6,7 +6,9 @@ from gbk.make_result import *
 from gbk.config import config
 from gbk.utils import *
 from gbk.beans import *
+from gbk.exceptions import *
 from gbk.login import test_login
+from gbk.scheduler import scheduler
 
 app = Flask(__name__)
 # 设置可跨域访问
@@ -22,7 +24,8 @@ def index():
         'description': f'GroupBuyingKiller API v{config.data.get("version", None)}',
         'apis': {
             '/': {
-                "description": 'Index and description of the API'
+                "description": 'Index and description of the API',
+                'args': []
             }
         }
     })
@@ -75,8 +78,38 @@ def get_status():
     return make_result(data={})
 
 
+@app.route("/get/shop_info")
+def get_shop_info():
+    return make_result(data={
+        'shop_info': scheduler.api.ktv.shop_info
+    })
+
+
+@app.route("/get/reserve_date")
+def get_reserve_date():
+    return make_result(data={
+        'reserve_date': scheduler.api.ktv.reserve_date
+    })
+
+
+# date未指定：获取的是当天数据
+# date指定：获取的是那一天的数据
+@app.route("/get/reserve_table")
+def get_reserve_table():
+    date = request.args.get('date', get_date_today())
+    logger.debug(f'date = {date}')
+    try:
+        resp = scheduler.api.ktv.get_reserve_table(date=date)
+        logger.debug(f'reserve_table:{resp}')
+        return make_result(data={
+            'reserve_table': resp
+        })
+    except GBKPermissionError:
+        return make_result(403)
+
+
 # Bug: 在cors情况下post速度缓慢
-# Fix: 通过不传送cookie解决
+# Fix: 通过不传送cookie解决或者取消跨域
 @app.route("/add/timetable_node", methods=['POST'])
 def add_timetable_node():
     node = get_request_json(request)

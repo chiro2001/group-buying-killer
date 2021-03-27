@@ -5,6 +5,7 @@ from colorlog import ColoredFormatter
 import os
 import sys
 import time
+import datetime
 import re
 import psutil
 
@@ -98,3 +99,16 @@ def is_file_path_legal(static_path: str, path: str):
 def get_request_json(req):
     js = req.json
     return js
+
+
+def get_date_timestamp(date) -> int:
+    return int(datetime.datetime.timestamp(datetime.datetime.fromisoformat(date)) * 1000)
+
+
+def get_timestamp_date(timestamp) -> str:
+    return datetime.datetime.fromtimestamp(timestamp / 1000).isoformat()[:10]
+
+
+# YYYY-MM-DD 格式
+def get_date_today() -> str:
+    return get_timestamp_date(datetime.datetime.today().timestamp() * 1000)

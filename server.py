@@ -11,8 +11,9 @@ from wsgiref.simple_server import make_server
 from gbk.server_api import app as app_api
 from gbk.file_server import app as app_file
 from gbk.config import config
-from gbk.scheduler import Scheduler
+from gbk.scheduler import scheduler
 
+# 代理到当前hot-update
 app_file = ProxyMiddleware(app_file, {
     '/running': {
         "target": "http://localhost:3000/"
@@ -22,6 +23,7 @@ app_file = ProxyMiddleware(app_file, {
     }
 })
 
+# API性能测试
 # app_api.wsgi_app = ProfilerMiddleware(app_api, profile_dir="./tmp")
 
 # 中间件
@@ -31,11 +33,9 @@ dm = DispatcherMiddleware(app_file,
                           }
                           )
 
-s = Scheduler()
-
 
 def run_scheduler():
-    s.run()
+    scheduler.run()
 
 
 if __name__ == '__main__':

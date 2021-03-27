@@ -6,53 +6,44 @@ import TimetablePeriod from "../components/timetablePeriod"
 import { API } from "../api/api"
 import TimetableNodeAddDialog from "./timetableNodeAddDialog";
 import TimetablePeriodAddDialog from "./timetablePeriodAddDialog";
+import store from '../data/store'
+import { setTimetablePeriods, setTimetableNodes } from "../data/action";
 
-class PlanTime extends React.Component {
-  constructor(props) {
-    super(props);
-    this.render = this.render.bind(this);
-    this.updateData = this.updateData.bind(this);
-    this.api = new API();
-    this.state = {
-      timetableNodes: [],
-      timetablePeriods: [],
-      nodeAddOpen: false,
-      periodAddOpen: false,
-    };
-    this.updateData();
+function PlanTime(props) {
+  const [nodeAddOpen, setNodeAddOpen] = React.useState(false);
+  const [periodAddOpen, setPeriodAddOpen] = React.useState(false);
+  const { timetableNodes, timetablePeriods, config } = store.getState();
+  async function updateData() {
+    const api = new API();
+    await api.get_timetable_node().then(nodes => { store.dispatch(setTimetableNodes(nodes)); });
+    await api.get_timetable_period().then(periods => { store.dispatch(setTimetablePeriods(periods)); });
   }
-  async updateData() {
-    await this.api.get_timetable_node().then(nodes => { this.setState({ timetableNodes: nodes }); })
-    await this.api.get_timetable_period().then(periods => { this.setState({ timetablePeriods: periods }); })
-  }
-  render() {
-    let { config } = this.props;
-    let key_count = 0;
-    return (<Container size="xs">
-      <List subheader={<ListSubheader component="div">
-        按时间点管理
-        <Button style={{ float: 'right' }} color="primary" variant="contained" onClick={async () => {
-          // await this.api.add_timetable_node({ "roomItem": { "itemId": 0, "price": 0, "foodDesc": 0, "singHours": 0, "stock": 0, "itemType": 0, "periodType": 0 }, "periodId": 0, "itemName": 0, "price": 0, "time_": new Date().getTime() + 1000, "cycle": 0 });
-          // await this.updateData();
-          this.setState({ nodeAddOpen: true });
-        }}>增加</Button>
-      </ListSubheader>}>
-        {this.state.timetableNodes.map(node => <TimetableNode key={key_count++} node={node} />)}
-      </List>
-      <List subheader={<ListSubheader component="div">
-        按时间段管理
-        <Button style={{ float: 'right' }} color="primary" variant="contained" onClick={async () => {
-          // await this.api.add_timetable_period({ "roomItem": { "itemId": 0, "price": 0, "foodDesc": 0, "singHours": 0, "stock": 0, "itemType": 0, "periodType": 0 }, "periodId": 0, "itemName": 0, "price": 0, "time_start": new Date().getTime() + 1000, "time_end": new Date().getTime() + 1000 * 60 * 2, "cycle": 0 });
-          // await this.updateData();
-          this.setState({ periodAddOpen: true });
-        }}>增加</Button>
-      </ListSubheader>}>
-        {this.state.timetablePeriods.map(period => <TimetablePeriod key={key_count++} period={period} />)}
-      </List>
-      <TimetableNodeAddDialog config={config} open={this.state.nodeAddOpen} onClose={() => { this.setState({ nodeAddOpen: false }); this.updateData(); }} />
-      <TimetablePeriodAddDialog config={config} open={this.state.periodAddOpen} onClose={() => { this.setState({ periodAddOpen: false }); this.updateData(); }} />
-    </Container >)
-  }
-};
+  return (<Container>
+    <List subheader={<ListSubheader component="div">
+      按时间点管理
+      <Button style={{ float: 'right' }} color="primary" variant="contained" onClick={async () => {
+        setNodeAddOpen(true);
+      }}>增加</Button>
+    </ListSubheader>}>
+      {timetableNodes.map(node => <TimetableNode key={key_count++} node={node} />)}
+    </List>
+    <List subheader={<ListSubheader component="div">
+      按时间段管理
+      <Button style={{ float: 'right' }} color="primary" variant="contained" onClick={async () => {
+        setPeriodAddOpen(true);
+      }}>增加</Button>
+    </ListSubheader>}>
+      {timetablePeriods.map(period => <TimetablePeriod key={key_count++} period={period} />)}
+    </List>
+    <TimetableNodeAddDialog config={config} open={nodeAddOpen} onClose={() => {
+      setNodeAddOpen(false);
+      updateData();
+    }} />
+    <TimetablePeriodAddDialog config={config} open={periodAddOpen} onClose={() => {
+      setPeriodAddOpen(false);
+      updateData();
+    }} />
+  </Container >);
+}
 
 export default PlanTime;

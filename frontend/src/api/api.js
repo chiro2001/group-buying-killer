@@ -14,6 +14,9 @@ class API {
       add_timetable_node: "add/timetable_node",
       get_timetable_period: "get/timetable_period",
       add_timetable_period: "add/timetable_period",
+      get_shop_info: "get/shop_info",
+      get_reserve_date: 'get/reserve_date',
+      get_reserve_table: 'get/reserve_table',
       logout: "logout",
       has_login: 'has_login',
     }
@@ -46,7 +49,16 @@ class API {
     if (js.code !== 200) {
       console.warn("Request responsed with code", js.code, 'message:', js.message, 'data:', js.data);
     }
-    console.log('resp', js);
+    if (!(js.data.timetable_node || js.data.timetable_period))
+      console.log('resp', js);
+    // 过长的json可能不自动转换
+    if (typeof (js) === 'string') {
+      try {
+        js = JSON.parse(js);
+      } catch (e) {
+        console.warn(e);
+      }
+    }
     return js;
   }
   async test() {
@@ -72,6 +84,16 @@ class API {
   }
   async add_timetable_period(period) {
     return await this.request(this.url.add_timetable_period, period, 'POST');
+  }
+  async get_shop_info() {
+    return (await this.request(this.url.get_shop_info)).data.shop_info;
+  }
+  async get_reserve_date() {
+    return (await this.request(this.url.get_reserve_date)).data.reserve_date;
+  }
+  async get_reserve_table(date) {
+    // console.log('date', date);
+    return (await this.request(this.url.get_reserve_table, { date: date })).data.reserve_table;
   }
 }
 
