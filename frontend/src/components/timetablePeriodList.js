@@ -18,7 +18,7 @@ const useStyles = makeStyles((theme) => ({
 
 function TimetablePeriodList(props) {
   const classes = useStyles();
-  const { period, onClose } = props;
+  const { period, onClose, roomItemNow } = props;
   const [selectedStartDate, handleDateStartChange] = React.useState(period.time_start ? period.time_start : new Date());
   const [selectedEndDate, handleDateEndChange] = React.useState(period.time_end ? period.time_end : new Date());
   const [selectAvailableStartDate, handleAvailableStrartDateChange] = React.useState(period.available_start ? period.available_start : 0);

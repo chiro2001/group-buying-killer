@@ -13,11 +13,11 @@ function Launch() {
         <TableRow>
           <TableCell align="center">任务种类数</TableCell>
           <TableCell align="center">按照时间点调整</TableCell>
-          <TableCell align="center">按照时间点调整</TableCell>
+          <TableCell align="center">按照时间段调整</TableCell>
           <TableCell align="center">按照库存量调整</TableCell>
         </TableRow>
         <TableRow>
-          <TableCell align="center">{0}种</TableCell>
+          <TableCell align="center">{3}种</TableCell>
           <TableCell align="center">{timetableNodes.length}个任务</TableCell>
           <TableCell align="center">{timetablePeriods.length}个任务</TableCell>
           <TableCell align="center">{0}个任务</TableCell>

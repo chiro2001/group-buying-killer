@@ -62,7 +62,7 @@ class API {
     return js;
   }
   async test() {
-    return (await this.request(this.url.test)).data.test;
+    return (await this.request(this.url.test)).data;
   }
   async logout() {
     return (await this.request(this.url.logout)).code;

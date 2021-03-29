@@ -19,7 +19,7 @@ const useStyles = makeStyles((theme) => ({
 
 function TimetableNodeAddDialog(props) {
   const classes = useStyles();
-  const { onClose, open, config } = props;
+  const { onClose, open, config, roomItemNow } = props;
 
   const handleClose = () => {
     if (onClose)
@@ -29,9 +29,8 @@ function TimetableNodeAddDialog(props) {
   return (
     <Dialog onClose={handleClose} open={open} fullWidth>
       <DialogTitle>添加一个时间点</DialogTitle>
-      <Divider></Divider>
       <DialogContent>
-        <TimetableNodeList config={config} onClose={n => {
+        <TimetableNodeList config={config} roomItemNow={roomItemNow} onClose={n => {
           console.log(n);
           onClose();
         }} node={{}} />
@@ -44,6 +43,7 @@ TimetableNodeAddDialog.propTypes = {
   onClose: PropTypes.func,
   open: PropTypes.bool.isRequired,
   config: PropTypes.object.isRequired,
+  roomItemNow: PropTypes.object
 };
 
 export default TimetableNodeAddDialog;

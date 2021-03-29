@@ -9,6 +9,7 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import PropTypes from 'prop-types';
 import { DateTimePicker } from '@material-ui/pickers';
 import { parseTimePoint, parseTimePeriod, sleep } from '../utils/utils'
+import RoomItemList from './roomItemList';
 
 const useStyles = makeStyles((theme) => ({
   nested: {
@@ -18,16 +19,23 @@ const useStyles = makeStyles((theme) => ({
 
 function TimetableNodeList(props) {
   const classes = useStyles();
-  const { node, onClose } = props;
+  const { node, onClose, roomItemNow } = props;
   const [selectedDate, handleDateChange] = React.useState(node.time_ ? node.time_ : new Date());
   const [selectAvailableStartDate, handleAvailableStrartDateChange] = React.useState(node.available_start ? node.available_start : 0);
   const [selectAvailableEndDate, handleAvailableEndDateChange] = React.useState(node.available_end ? node.available_end : 0);
   const [selectAvailableStartDateOn, setSelectAvailableStartDateOn] = React.useState(selectAvailableStartDate === 0 ? false : true);
   const [selectAvailableEndDateOn, setSelectAvailableEndDateOn] = React.useState(selectAvailableEndDate === 0 ? false : true);
+  const [roomItemListOpen, setRoomItemListOpen] = React.useState(false);
   const inputPrice = React.useRef();
   const [valuePrice, setValuePrice] = React.useState(node.price);
   return (
     <List component="div" disablePadding className={classes.nested}>
+      <ListItem button onClick={() => { setRoomItemListOpen(!roomItemListOpen); }}>
+        <ListItemText primary="对应房间项目" />
+      </ListItem>
+      <Collapse in={roomItemListOpen} timeout="auto" unmountOnExit className={classes.nested}>
+        <RoomItemList roomItemNow={roomItemNow} />
+      </Collapse>
       <ListItem>
         <ListItemText primary="调整至" />
         <ListItemSecondaryAction>

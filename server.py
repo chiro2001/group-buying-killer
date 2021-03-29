@@ -14,14 +14,14 @@ from gbk.config import config
 from gbk.scheduler import scheduler
 
 # 代理到当前hot-update
-app_file = ProxyMiddleware(app_file, {
-    '/running': {
-        "target": "http://localhost:3000/"
-    },
-    '/static': {
-        "target": "http://localhost:3000/"
-    }
-})
+# app_file = ProxyMiddleware(app_file, {
+#     '/running': {
+#         "target": "http://localhost:3000/"
+#     },
+#     '/static': {
+#         "target": "http://localhost:3000/"
+#     }
+# })
 
 # API性能测试
 # app_api.wsgi_app = ProfilerMiddleware(app_api, profile_dir="./tmp")
@@ -45,8 +45,8 @@ if __name__ == '__main__':
     t.start()
     config.thread = t
     # app.run("0.0.0.0", port=int(os.environ.get('PORT', '8000')), debug=False)
-    # run_simple('0.0.0.0', int(os.environ.get('PORT', '8000')), dm, use_reloader=True)
-    run_simple('0.0.0.0', int(os.environ.get('PORT', '8000')), dm, use_reloader=False)
+    run_simple('0.0.0.0', int(os.environ.get('PORT', '8000')), dm, use_reloader=True)
+    # run_simple('0.0.0.0', int(os.environ.get('PORT', '8000')), dm, use_reloader=False)
     # app_api.root_path = '/api/v1/'
     # run_simple('0.0.0.0', int(os.environ.get('PORT', '8000')), app_api, use_reloader=False)
     # app_api.run("0.0.0.0", port=int(os.environ.get('PORT', '8000')), debug=False)

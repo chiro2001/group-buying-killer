@@ -27,7 +27,11 @@ class Connect extends React.Component {
   render() {
     let { config } = this.props;
     return (<Container size="xs">
-      <Typography variant="body1">请在下面选择一个可能的IP地址，然后扫码连接。</Typography>
+      <Typography variant="body1">请先使手机与电脑在同一内网状态下，如连接同一个WiFi，然后在下面选择一个可能的IP地址，使用移动设备扫码连接。</Typography>
+      <Typography variant="body1">温馨提示：</Typography>
+      <Typography variant="body1">1. 请先关闭电脑防火墙或对本程序设置防火墙特例，或者添加放行端口({window.location.port})。
+      <Typography variant="body1">2. 诸如<code>192.168.*</code>开头的IP地址可能性比较大。</Typography>
+      </Typography>
       <List>
         {this.state.ips.map(ip =>
           <ListItem button key={ip} onClick={() => {
@@ -38,7 +42,7 @@ class Connect extends React.Component {
         )}
       </List>
       <QRCode value={this.state.url} size={this.state.qrcodeWidth} />
-      <Typography variant="body1">或者打开：<LinkText href={this.state.url}>{this.state.url}</LinkText></Typography>
+      <Typography variant="body1">或者使用手机浏览器打开：<LinkText href={this.state.url}>{this.state.url}</LinkText></Typography>
     </Container >)
   }
 };

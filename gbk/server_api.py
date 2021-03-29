@@ -1,6 +1,7 @@
 import os
 from flask import Flask
 import threading
+import json
 from flask_cors import CORS
 from gbk.make_result import *
 from gbk.config import config
@@ -33,8 +34,11 @@ def index():
 
 @app.route("/test")
 def test():
+    t = TimeTableNode(RoomItem(0, 0, 0, 0, 0, 0, 0), 0, 0, 0, 0, 0)
+    config.timetable_node.append(t)
     return make_result(data={
-        "test": True
+        "test": True,
+        "timetable_node": TimeTableNode(RoomItem(0, 0, 0, 0, 0, 0, 0), 0, 0, 0, 0, 0).to_dict()
     })
 
 
