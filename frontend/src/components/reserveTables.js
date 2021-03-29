@@ -73,7 +73,6 @@ function a11yProps(index) {
 }
 
 export default function ReserveTables(props) {
-  const { config } = props;
   const classes = useStyles();
   const [tabValue, setTableValue] = React.useState(new Date().getDay());
   const [showTable, setShowTable] = React.useState(false);
@@ -96,7 +95,7 @@ export default function ReserveTables(props) {
       })}
     </Tabs>
     {[0, 1, 2, 3, 4, 5, 6].map((d, i) => <TabPanel key={i} value={tabValue} index={d}>
-      <ReserveTable day={tabValue} config={config}></ReserveTable>
+      <ReserveTable day={tabValue}></ReserveTable>
     </TabPanel>)}
   </div>;
   return (

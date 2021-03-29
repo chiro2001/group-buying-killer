@@ -45,7 +45,7 @@ function TimetableNode(props) {
         </ListItemSecondaryAction>
       </ListItem>
       <Collapse in={open} timeout="auto" unmountOnExit>
-        <TimetableNodeList node={node} onClose={node => {
+        <TimetableNodeList roomItemNow={node.roomItem} node={node} onClose={node => {
           console.log('onClose', node, onClose);
           setOpen(false);
           if (onClose) onClose();

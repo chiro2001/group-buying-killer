@@ -120,6 +120,8 @@ class Config:
     def save(self):
         timetable_node = [t.to_dict() for t in self.timetable_node]
         self.data['timetable_node']['data'] = timetable_node
+        timetable_period = [t.to_dict() for t in self.timetable_period]
+        self.data['timetable_period']['data'] = timetable_period
         self.data['cookies'] = des_encrypt(Config.KEY, self.cookies)
         with open(os.path.join(Config.FILE_PATH, Config.FILE_NAME), "w") as f:
             json.dump(self.data, f)

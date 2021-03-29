@@ -44,7 +44,7 @@ function TimetablePeriod(props) {
         </ListItemSecondaryAction>
       </ListItem>
       <Collapse in={open} timeout="auto" unmountOnExit>
-        <TimetablePeriodList period={period} onClose={period => {
+        <TimetablePeriodList roomItemNow={period.roomItem} period={period} onClose={period => {
           console.log('onClose', period);
           if (onClose) onClose();
           setOpen(false);

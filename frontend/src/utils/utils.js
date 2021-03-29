@@ -69,3 +69,7 @@ Date.prototype.toDateString = function () {
 };
 
 // export function cutString(str, length=10)
+
+export function isIterator(obj) {
+  return obj != null && typeof obj[Symbol.iterator] === 'function';
+}

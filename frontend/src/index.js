@@ -13,8 +13,14 @@ import { sleep } from './utils/utils';
 async function cycleFunc(cycle = 1000) {
   const api = new API();
   while (true) {
-    await api.get_timetable_node().then(nodes => { store.dispatch(setTimetableNodes(nodes)); });
-    await api.get_timetable_period().then(periods => { store.dispatch(setTimetablePeriods(periods)); });
+    await api.get_timetable_node().then(nodes => {
+      if (nodes)
+        store.dispatch(setTimetableNodes(nodes));
+    });
+    await api.get_timetable_period().then(periods => {
+      if (periods)
+        store.dispatch(setTimetablePeriods(periods));
+    });
     await sleep(cycle);
   }
 }

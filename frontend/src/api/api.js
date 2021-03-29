@@ -1,9 +1,11 @@
-import { urlEncode } from "../utils/utils"
+import { setErrorInfo } from "../data/action";
+import store from "../data/store";
+import { isIterator, urlEncode } from "../utils/utils"
 
 class API {
   constructor(props) {
-    this.url_base = 'http://localhost:8000/api/v1/';
-    // this.url_base = '/api/v1/';
+    // this.url_base = 'http://localhost:8000/api/v1/';
+    this.url_base = '/api/v1/';
     // this.url_base = 'http://localhost:12000/api/v1/';
     // this.url_base = 'http://localhost:8000/';
     // this.url_base = 'http://localhost:8001/';
@@ -23,43 +25,70 @@ class API {
     this.request = this.request.bind(this);
     this.test = this.test.bind(this);
     this.get_ips = this.get_ips.bind(this);
+    this.default_error_info = {
+      code: 302,
+      message: "网络错误",
+      data: {},
+    };
   }
   async request(router, args, method = 'GET') {
     let js = {};
-    if (method === 'GET') {
-      js = await ((await fetch(this.url_base + router + (args ? "?" : "") + urlEncode(args), {
-        method: 'GET',
-        credentials: 'omit',
-        // credentials: 'include',
-        mode: 'cors'
-      })).json());
-    } else {
-      js = await (await fetch(this.url_base + router, {
-        body: JSON.stringify(args),
-        method: 'POST',
-        // 使用 include 会拖慢速度
-        // credentials: 'include',
-        credentials: 'omit',
-        mode: 'cors',
-        headers: {
-          'content-type': 'application/json',
-        },
-      })).json();
+    try {
+      if (method === 'GET') {
+        js = await ((await fetch(this.url_base + router + (args ? "?" : "") + urlEncode(args), {
+          method: 'GET',
+          credentials: 'omit',
+          // credentials: 'include',
+          mode: 'cors'
+        })).json());
+      } else {
+        js = await (await fetch(this.url_base + router, {
+          body: JSON.stringify(args),
+          method: 'POST',
+          // 使用 include 会拖慢速度
+          // credentials: 'include',
+          credentials: 'omit',
+          mode: 'cors',
+          headers: {
+            'content-type': 'application/json',
+          },
+        })).json();
+      }
+    } catch (e) {
+      console.log(e);
+      if (isIterator(store.getState().errorInfo)) {
+        let t = store.getState().errorInfo;
+        t.push(e);
+        setErrorInfo(t);
+      } else setErrorInfo([e,]);
+      throw e;
     }
     if (js.code !== 200) {
       console.warn("Request responsed with code", js.code, 'message:', js.message, 'data:', js.data);
+      setErrorInfo(js);
     }
-    if (!(js.data.timetable_node || js.data.timetable_period))
-      console.log('resp', js);
-    // 过长的json可能不自动转换
-    if (typeof (js) === 'string') {
-      try {
-        js = JSON.parse(js);
-      } catch (e) {
-        console.warn(e);
+    try {
+      // 忽略惯常消息
+      if (!(js.data.timetable_node || js.data.timetable_period))
+        console.log('resp', js);
+      // 过长的json可能不自动转换..?
+      if (typeof (js) === 'string') {
+        try {
+          js = JSON.parse(js);
+        } catch (e) {
+          console.warn(e);
+        }
       }
+      return js;
+    } catch (e) {
+      console.log(e);
+      if (isIterator(store.getState().errorInfo)) {
+        let t = store.getState().errorInfo;
+        t.push(e);
+        setErrorInfo(t);
+      } else setErrorInfo([e,]);
+      throw e;
     }
-    return js;
   }
   async test() {
     return (await this.request(this.url.test)).data;

@@ -39,8 +39,8 @@ class TimeTableNode:
 
     @staticmethod
     def from_json(js):
-        return TimeTableNode(RoomItem.from_json(js['roomItem']), js['periodId'], js['itemName'], js['price'],
-                             js['time_'], js['cycle'])
+        return TimeTableNode(RoomItem.from_json(js['roomItem']), js['periodId'], js.get('itemName', ''), js['price'],
+                             js['time_'], js.get('cycle', 0))
 
 
 # class TimeTablePeriod:
@@ -93,8 +93,9 @@ class TimeTablePeriod:
 
     @staticmethod
     def from_json(js):
-        return TimeTablePeriod(RoomItem.from_json(js['roomItem']), js['periodId'], js['itemName'], js['price'],
-                               js['time_start'], js['time_end'], js['cycle'])
+        return TimeTablePeriod(RoomItem.from_json(js['roomItem']), js['periodId'], js.get('itemName', ''), js['price'],
+                               js['time_start'], js['time_end'], js.get('cycle', 0), js.get('available_start', None),
+                               js.get('available_end', None))
 
 
 class RoomStockType:

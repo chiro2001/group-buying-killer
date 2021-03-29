@@ -119,7 +119,13 @@ def add_timetable_node():
     node = get_request_json(request)
     logger.info(node)
     config.lock.acquire()
-    config.timetable_node.append(TimeTableNode.from_json(node))
+    try:
+        config.timetable_node.append(TimeTableNode.from_json(node))
+    except KeyError as e:
+        logger.error(e)
+        return make_result(400, data={
+            'detail': get_trackback()
+        })
     config.lock.release()
     config.save()
     return make_result()
@@ -130,7 +136,13 @@ def add_timetable_period():
     period = get_request_json(request)
     logger.info(period)
     config.lock.acquire()
-    config.timetable_period.append(TimeTablePeriod.from_json(period))
+    try:
+        config.timetable_period.append(TimeTablePeriod.from_json(period))
+    except KeyError as e:
+        logger.error(e)
+        return make_result(400, data={
+            'detail': get_trackback()
+        })
     config.lock.release()
     config.save()
     return make_result()

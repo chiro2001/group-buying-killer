@@ -33,3 +33,9 @@ export function setTimetablePeriods(data) {
     dispatch({ type: "SET_TIMETABLE_PERIODS", data: data });
   };
 }
+
+export function setErrorInfo(data) {
+  return dispatch => {
+    dispatch({ type: "SET_ERROR_INFO", data: data });
+  };
+}

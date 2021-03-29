@@ -24,6 +24,12 @@ const useStyles = makeStyles({
     whiteSpace: 'nowrap',
     contentOverflow: 'ellipsis',
     maxWidth: 160
+  },
+  planButton: {
+    overflow: 'hidden',
+    whiteSpace: 'nowrap',
+    contentOverflow: 'ellipsis',
+    maxWidth: 160
   }
 });
 
@@ -46,7 +52,7 @@ let roomItemNow = {};
 
 function ReserveTable(props) {
   const classes = useStyles();
-  const { day, config, data } = props;
+  const { day, data } = props;
   const date = new Date().setDay(day).toDateString();
   const [dayData, setDayData] = React.useState(data ? data : store.getState().reserveTableData[date]);
   const [roomList, setRoomList] = React.useState(store.getState().reserveTableData[date] ? store.getState().reserveTableData[date].roomList : []);
@@ -96,25 +102,32 @@ function ReserveTable(props) {
             let planCount = 0;
             // 查找
             const { timetableNodes, timetablePeriods } = store.getState();
-            for (let node in timetableNodes) {
+            for (let node of timetableNodes) {
               if (!node.roomItem) continue;
               if (node.roomItem.itemId === roomItem.itemId) {
                 planCount++;
               }
             }
-            // if (!foundNode) return;
-            // console.log('found', foundNode);
-
-            // console.log("targets:", timetableNodes);
+            for (let period of timetablePeriods) {
+              if (!period.roomItem) continue;
+              if (period.roomItem.itemId === roomItem.itemId) {
+                planCount++;
+              } else {
+                console.log('irr', period, roomItem);
+              }
+            }
+            console.log('planCount', planCount);
             return (<Link key={data.periodId + name + roomItem.itemId + i + 'planLink'} onClick={() => {
               console.log('roomItem', roomItem);
-              // api.test().then(d => { console.log(d) });
-              // if (planCount === 0)
-              //   setAddPlanOpen(true);
-              // else setPlanManagerOpen(true);
+              console.log('data', data);
+              let parent = {};
+              for (const arg in data)
+                if (arg !== 'roomMapItemEntry')
+                  parent[arg] = data[arg];
+              roomItem.parent = parent;
               roomItemNow = roomItem;
               setPlanManagerOpen(true);
-            }} href="#!">计划{planCount > 0 ? (`(${planCount})`) : ''}</Link>);
+            }} href="#!" className={classes.planButton}>计划{planCount > 0 ? (`(${planCount})`) : ''}</Link>);
           })()
         }></MyTableCell>);
         // 临时下线
@@ -147,8 +160,8 @@ function ReserveTable(props) {
   }
 
   const PlanManager = function (props) {
-    const { open, itemId, onClose } = props;
-    return (<Dialog open={open} onClose={onClose}>
+    const { open, onClose } = props;
+    return (<Dialog fullWidth open={open} onClose={onClose}>
       <DialogTitle>管理计划</DialogTitle>
       <DialogContent>
         <PlanTime roomItemNow={roomItemNow} />

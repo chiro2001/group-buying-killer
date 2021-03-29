@@ -10,6 +10,7 @@ import PropTypes from 'prop-types';
 import { DateTimePicker } from '@material-ui/pickers';
 import { parseTimePoint, parseTimePeriod, sleep } from '../utils/utils'
 import RoomItemList from './roomItemList';
+import { API } from '../api/api';
 
 const useStyles = makeStyles((theme) => ({
   nested: {
@@ -20,14 +21,14 @@ const useStyles = makeStyles((theme) => ({
 function TimetableNodeList(props) {
   const classes = useStyles();
   const { node, onClose, roomItemNow } = props;
-  const [selectedDate, handleDateChange] = React.useState(node.time_ ? node.time_ : new Date());
+  const [selectedDate, handleDateChange] = React.useState(node.time_ ? new Date(node.time_) : new Date());
   const [selectAvailableStartDate, handleAvailableStrartDateChange] = React.useState(node.available_start ? node.available_start : 0);
   const [selectAvailableEndDate, handleAvailableEndDateChange] = React.useState(node.available_end ? node.available_end : 0);
   const [selectAvailableStartDateOn, setSelectAvailableStartDateOn] = React.useState(selectAvailableStartDate === 0 ? false : true);
   const [selectAvailableEndDateOn, setSelectAvailableEndDateOn] = React.useState(selectAvailableEndDate === 0 ? false : true);
   const [roomItemListOpen, setRoomItemListOpen] = React.useState(false);
-  const inputPrice = React.useRef();
-  const [valuePrice, setValuePrice] = React.useState(node.price);
+  const [valuePrice, setValuePrice] = React.useState(node.price ? ('' + node.price) : (roomItemNow ? ('' + roomItemNow.price) : '0'));
+  // console.log('NodeList: roomItenNow = ', roomItemNow);
   return (
     <List component="div" disablePadding className={classes.nested}>
       <ListItem button onClick={() => { setRoomItemListOpen(!roomItemListOpen); }}>
@@ -39,9 +40,7 @@ function TimetableNodeList(props) {
       <ListItem>
         <ListItemText primary="调整至" />
         <ListItemSecondaryAction>
-          <TextField label="输入价格" ref={inputPrice} onChange={(e) => {
-            // console.log(getTextFieldValue(inputPrice));
-            console.log(e.target.value);
+          <TextField label="输入价格" defaultValue={valuePrice} onChange={(e) => {
             setValuePrice(e.target.value);
           }} />
         </ListItemSecondaryAction>
@@ -61,7 +60,7 @@ function TimetableNodeList(props) {
               value={selectAvailableStartDate}
               onChange={handleAvailableStrartDateChange}
               onClose={async () => {
-                await sleep(600);
+                await sleep(1200);
                 selectAvailableStartDate === 0 ? setSelectAvailableStartDateOn(false) : setSelectAvailableStartDateOn(true);
               }} />}
         </ListItemSecondaryAction>
@@ -75,21 +74,28 @@ function TimetableNodeList(props) {
               value={selectAvailableEndDate}
               onChange={handleAvailableEndDateChange}
               onClose={async () => {
-                await sleep(600);
+                await sleep(1200);
+                console.log(selectAvailableEndDate);
                 selectAvailableEndDate === 0 ? setSelectAvailableEndDateOn(false) : setSelectAvailableEndDateOn(true);
               }} />}
         </ListItemSecondaryAction>
       </ListItem>
       <ListItem>
         <Button variant="contained" fullWidth onClick={() => {
-          let n = node;
-          if (!selectedDate._d)
-            n.time_ = selectedDate.getTime();
-          else
-            n.time_ = selectedDate._d.getTime();
-          n.available_start = selectAvailableStartDate;
-          n.available_end = selectAvailableEndDate;
+          let n = node ? node : {};
+          n.time_ = selectedDate._d ? selectedDate._d.getTime() : selectedDate.getTime();
+          n.available_start = selectAvailableStartDate._d ? selectAvailableStartDate._d.getTime() : selectAvailableStartDate;
+          n.available_end = selectAvailableEndDate._d ? selectAvailableEndDate._d.getTime() : selectAvailableEndDate;
+          if (n.available_start === 0) delete n.available_start;
+          if (n.available_end === 0) delete n.available_end;
           n.price = valuePrice;
+          n.roomItem = roomItemNow;
+          if (roomItemNow.parent)
+            for (const arg in roomItemNow.parent)
+              n[arg] = roomItemNow.parent[arg];
+          // 调用api
+          const api = new API();
+          api.add_timetable_node(n);
           if (onClose) {
             onClose(n);
           }

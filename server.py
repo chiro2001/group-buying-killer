@@ -1,6 +1,9 @@
 import os
 from flask import *
 import threading
+import logging
+import webbrowser
+
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.serving import run_simple
 from werkzeug.middleware.http_proxy import ProxyMiddleware
@@ -12,6 +15,11 @@ from gbk.server_api import app as app_api
 from gbk.file_server import app as app_file
 from gbk.config import config
 from gbk.scheduler import scheduler
+from gbk.utils import logger, get_ip_info
+
+# 只显示错误消息
+logger_werkzeug = logging.getLogger('werkzeug')
+logger_werkzeug.setLevel(logging.ERROR)
 
 # 代理到当前hot-update
 # app_file = ProxyMiddleware(app_file, {
@@ -44,9 +52,14 @@ if __name__ == '__main__':
     t.setDaemon(True)
     t.start()
     config.thread = t
+    port = int(os.environ.get("PORT", '8000'))
     # app.run("0.0.0.0", port=int(os.environ.get('PORT', '8000')), debug=False)
-    run_simple('0.0.0.0', int(os.environ.get('PORT', '8000')), dm, use_reloader=True)
-    # run_simple('0.0.0.0', int(os.environ.get('PORT', '8000')), dm, use_reloader=False)
+    # run_simple('0.0.0.0', int(os.environ.get('PORT', '8000')), dm, use_reloader=True)
+    logger.info(f'Your IPs: {get_ip_info()}')
+    logger.info('Opening browser...')
+    logger.info(f'Please visit http://localhost:{port}')
+    webbrowser.open(f'http://localhost:{port}')
+    run_simple('0.0.0.0', port, dm, use_reloader=False)
     # app_api.root_path = '/api/v1/'
     # run_simple('0.0.0.0', int(os.environ.get('PORT', '8000')), app_api, use_reloader=False)
     # app_api.run("0.0.0.0", port=int(os.environ.get('PORT', '8000')), debug=False)

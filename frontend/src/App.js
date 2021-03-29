@@ -33,9 +33,9 @@ import MomentUtils from '@date-io/moment';
 import moment from 'moment';
 import 'moment/locale/zh-cn'
 import store from './data/store'
-import { setConfig, setReserveTableData, setRoomStockData, setShopInfo } from "./data/action";
+import { setConfig, setErrorInfo, setReserveTableData, setRoomStockData, setShopInfo } from "./data/action";
 
-import { isMobileDevice, sleep } from "./utils/utils"
+import { isIterator, isMobileDevice, sleep } from "./utils/utils"
 import { API } from "./api/api"
 
 import ListItemLink from "./components/listItemLink"
@@ -48,6 +48,7 @@ import PlanStock from "./pages/planStock"
 import Connect from "./pages/connect"
 
 import './App.css';
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, ListItem } from '@material-ui/core';
 
 const drawerWidth = 240;
 moment.locale('zh-cn');
@@ -124,22 +125,40 @@ const useStyles = makeStyles((theme) => ({
 const api = new API();
 api.get_shop_info().then(shopInfo => {
   console.log('shopInfo', shopInfo);
-  store.dispatch(setShopInfo(shopInfo));
+  if (shopInfo) store.dispatch(setShopInfo(shopInfo));
+}).catch(e => {
+  store.dispatch(setErrorInfo(e));
 })
 
-// store.subscribe(() => {
-//   console.log('redux update to', store.getState());
-// });
+let subscribers = {};
+
+store.subscribe(() => {
+  let state = store.getState();
+  // console.log('redux update to', state);
+  for (let subFunc in subscribers) {
+    subscribers[subFunc](state);
+  }
+});
 
 export default function App() {
   const classes = useStyles();
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
   const [popupLogin, setPopupLogin] = React.useState(false);
+  const [errorDialogInfo, setErrorDialogInfo] = React.useState(false);
 
   // 拉大到800会打开，拉小到600关闭
   const triggerWidthOpen = 800;
   const triggerWidthClose = 600;
+
+  // 注册一个当网络错误的时候调用的钩子吧
+  subscribers['netError'] = function (state) {
+    if (state.errorInfo) {
+      setErrorDialogInfo(state.errorInfo);
+      // 清空错误信息
+      store.dispatch(setErrorInfo(null));
+    }
+  }
 
   // onMount & onUpdate
   React.useEffect(() => {
@@ -310,7 +329,32 @@ export default function App() {
           </MuiPickersUtilsProvider>
         </Router>
         <LoginDialog config={store.getState().config} open={popupLogin && store.getState().config.has_login} onClose={handleLoginClose}></LoginDialog>
+        <Dialog open={errorDialogInfo ? true : false} onClose={() => { setErrorDialogInfo(null); }}>
+          <DialogTitle>遇到错误</DialogTitle>
+          <DialogContent>
+            <Typography variant="body1">错误信息：</Typography>
+            <Box component="div">
+              <Box component="div">
+                {() => {
+                  if (isIterator(errorDialogInfo)) {
+                    return <List>
+                      {errorDialogInfo.map((d, i) => <ListItem key={i}>
+                        <code>{JSON.stringify(d) === '{}' ? d.toString() : JSON.stringify(d)}</code>
+                      </ListItem>)}
+                    </List>;
+                  } else {
+                    return <code>{JSON.stringify(errorDialogInfo) === '{}' ? errorDialogInfo.toString() : JSON.stringify(errorDialogInfo)}</code>;
+                  }
+                }}
+              </Box>
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button color="primary" onClick={() => { window.location.reload() }}>刷新</Button>
+            <Button color="primary" onClick={() => { setErrorDialogInfo(null); }}>取消</Button>
+          </DialogActions>
+        </Dialog>
       </ThemeProvider>
-    </div>
+    </div >
   );
 }

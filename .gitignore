@@ -118,3 +118,4 @@ dmypy.json
 kp.json
 gbk.json
 .idea/
+electron-build/

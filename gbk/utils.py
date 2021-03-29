@@ -7,6 +7,7 @@ import sys
 import time
 import datetime
 import re
+import traceback
 import psutil
 
 
@@ -112,3 +113,10 @@ def get_timestamp_date(timestamp) -> str:
 # YYYY-MM-DD 格式
 def get_date_today() -> str:
     return get_timestamp_date(datetime.datetime.today().timestamp() * 1000)
+
+
+def get_trackback():
+    traceback.print_exc()  # 打印异常信息
+    exc_type, exc_value, exc_traceback = sys.exc_info()
+    error = str(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))  # 将异常信息转为字符串
+    return error

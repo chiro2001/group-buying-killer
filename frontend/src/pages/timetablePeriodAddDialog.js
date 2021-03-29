@@ -19,7 +19,7 @@ const useStyles = makeStyles((theme) => ({
 
 function TimetablePeriodAddDialog(props) {
   const classes = useStyles();
-  const { onClose, open, config, roomItemNow } = props;
+  const { onClose, open, roomItemNow } = props;
 
   const handleClose = () => {
     if (onClose)
@@ -31,7 +31,7 @@ function TimetablePeriodAddDialog(props) {
       <DialogTitle>添加一个时间段</DialogTitle>
       <Divider></Divider>
       <DialogContent>
-        <TimetablePeriodList roomItemNow={roomItemNow} config={config} onClose={n => {
+        <TimetablePeriodList roomItemNow={roomItemNow} onClose={n => {
           console.log(n);
           onClose();
         }} period={{}} />
@@ -43,7 +43,6 @@ function TimetablePeriodAddDialog(props) {
 TimetablePeriodAddDialog.propTypes = {
   onClose: PropTypes.func,
   open: PropTypes.bool.isRequired,
-  config: PropTypes.object.isRequired,
 };
 
 export default TimetablePeriodAddDialog;

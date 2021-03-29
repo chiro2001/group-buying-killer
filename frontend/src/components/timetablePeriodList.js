@@ -9,6 +9,8 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import PropTypes from 'prop-types';
 import { DateTimePicker } from '@material-ui/pickers';
 import { parseTimePoint, parseTimePeriod, sleep } from '../utils/utils'
+import RoomItemList from './roomItemList';
+import { API } from '../api/api';
 
 const useStyles = makeStyles((theme) => ({
   nested: {
@@ -19,22 +21,27 @@ const useStyles = makeStyles((theme) => ({
 function TimetablePeriodList(props) {
   const classes = useStyles();
   const { period, onClose, roomItemNow } = props;
-  const [selectedStartDate, handleDateStartChange] = React.useState(period.time_start ? period.time_start : new Date());
-  const [selectedEndDate, handleDateEndChange] = React.useState(period.time_end ? period.time_end : new Date());
+  const [selectedStartDate, handleDateStartChange] = React.useState(period.time_start ? new Date(period.time_start) : new Date());
+  const [selectedEndDate, handleDateEndChange] = React.useState(period.time_end ? new Date(period.time_end) : new Date());
   const [selectAvailableStartDate, handleAvailableStrartDateChange] = React.useState(period.available_start ? period.available_start : 0);
   const [selectAvailableEndDate, handleAvailableEndDateChange] = React.useState(period.available_end ? period.available_end : 0);
   const [selectAvailableStartDateOn, setSelectAvailableStartDateOn] = React.useState(selectAvailableStartDate === 0 ? false : true);
   const [selectAvailableEndDateOn, setSelectAvailableEndDateOn] = React.useState(selectAvailableEndDate === 0 ? false : true);
-  const inputPrice = React.useRef();
-  const [valuePrice, setValuePrice] = React.useState(period.price);
+  const [roomItemListOpen, setRoomItemListOpen] = React.useState(false);
+  const [valuePrice, setValuePrice] = React.useState(period.price ? ('' + period.price) : (roomItemNow ? ('' + roomItemNow.price) : '0'));
+  // console.log('PeriodList: roomItenNow = ', roomItemNow);
   return (
     <List component="div" disablePadding className={classes.nested}>
+      <ListItem button onClick={() => { setRoomItemListOpen(!roomItemListOpen); }}>
+        <ListItemText primary="对应房间项目" />
+      </ListItem>
+      <Collapse in={roomItemListOpen} timeout="auto" unmountOnExit className={classes.nested}>
+        <RoomItemList roomItemNow={roomItemNow} />
+      </Collapse>
       <ListItem>
         <ListItemText primary="调整至" />
         <ListItemSecondaryAction>
-          <TextField label="输入价格" ref={inputPrice} onChange={(e) => {
-            // console.log(getTextFieldValue(inputPrice));
-            console.log(e.target.value);
+          <TextField label="输入价格" defaultValue={valuePrice} onChange={(e) => {
             setValuePrice(e.target.value);
           }} />
         </ListItemSecondaryAction>
@@ -81,9 +88,21 @@ function TimetablePeriodList(props) {
       </ListItem>
       <ListItem>
         <Button variant="contained" fullWidth onClick={() => {
-          let n = period;
-          n.time_ = valuePrice;
-          console.log('onClose', onClose);
+          let n = period ? period : {};
+          n.time_start = selectedStartDate._d ? selectedStartDate._d.getTime() : selectedStartDate.getTime();
+          n.time_end = selectedEndDate._d ? selectedEndDate._d.getTime() : selectedEndDate.getTime();
+          n.available_start = selectAvailableStartDate._d ? selectAvailableStartDate._d.getTime() : selectAvailableStartDate;
+          n.available_end = selectAvailableEndDate._d ? selectAvailableEndDate._d.getTime() : selectAvailableEndDate;
+          if (n.available_start === 0) delete n.available_start;
+          if (n.available_end === 0) delete n.available_end;
+          n.price = valuePrice;
+          n.roomItem = roomItemNow;
+          if (roomItemNow.parent)
+            for (const arg in roomItemNow.parent)
+              n[arg] = roomItemNow.parent[arg];
+          // 调用api
+          const api = new API();
+          api.add_timetable_period(n);
           if (onClose) {
             onClose(n);
           }

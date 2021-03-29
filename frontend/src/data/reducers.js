@@ -8,6 +8,7 @@ const defaultState = {
   timetableNodes: [],
   timetablePeriods: [],
   shopInfo: null,
+  errorInfo: null,
 }
 
 function config(state = defaultState.config, action) {
@@ -65,4 +66,13 @@ function timetablePeriods(state = defaultState.timetableNodes, action) {
   }
 }
 
-export default combineReducers({ config, reserveTableData, roomStockData, shopInfo, timetableNodes, timetablePeriods });
+function errorInfo(state = defaultState.errorInfo, action) {
+  switch (action.type) {
+    case "SET_ERROR_INFO":
+      return action.data;
+    default:
+      return state;
+  }
+}
+
+export default combineReducers({ config, reserveTableData, roomStockData, shopInfo, timetableNodes, timetablePeriods, errorInfo });
