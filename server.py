@@ -53,15 +53,16 @@ if __name__ == '__main__':
     t.start()
     config.thread = t
     port = int(os.environ.get("PORT", '8000'))
-    # app.run("0.0.0.0", port=int(os.environ.get('PORT', '8000')), debug=False)
-    # run_simple('0.0.0.0', int(os.environ.get('PORT', '8000')), dm, use_reloader=True)
+
+    mode = 'standalone_'
     logger.info(f'Your IPs: {get_ip_info()}')
-    logger.info('Opening browser...')
-    logger.info(f'Please visit http://localhost:{port}')
-    webbrowser.open(f'http://localhost:{port}')
+
+    # standalone 模式是指单独运行Python，Python负责后端响应
+    if mode == 'standalone':
+        logger.info('Opening browser...')
+        logger.info(f'Please visit http://localhost:{port}')
+        webbrowser.open(f'http://localhost:{port}')
+
     run_simple('0.0.0.0', port, dm, use_reloader=False)
-    # app_api.root_path = '/api/v1/'
-    # run_simple('0.0.0.0', int(os.environ.get('PORT', '8000')), app_api, use_reloader=False)
-    # app_api.run("0.0.0.0", port=int(os.environ.get('PORT', '8000')), debug=False)
-    # httpd = make_server('', int(os.environ.get('PORT', '8000')), app_api)
-    # httpd.serve_forever()
+
+

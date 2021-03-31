@@ -25,7 +25,11 @@ class Scheduler:
 
         self.running = False
         # 数据锁
-        self.lock = threading.Lock()
+        self.lock = threading.RLock()
+        # 每分钟获取一次的房间数据
+        self.room_stock_data = None
+        # 计数
+        self.count = 0
 
         # 注意调用方式
         _ = self.fetch_init_data
@@ -105,23 +109,45 @@ class Scheduler:
         while not self.has_login:
             time.sleep(0.31)
         _ = self.batch_inside
-        # while not self.has_login:
-        #     self.has_login = False
-        #     try:
-        #         self.batch_inside()
-        #         self.has_login = True
-        #     except GBKPermissionError as e:
-        #         login_main(enter_exit=False)
 
     @LoginTry
     def batch_inside(self):
         # logger.info('new batch')
         # 只判断到当前秒
-        time_stamp = int(time.time()) * 1000
+        self.lock.acquire()
+        self.count += 1
+        if self.count == 60 or self.room_stock_data is None:
+            self.room_stock_data = self.api.room_stock.get_room_stock()
+            logger.info(f'got room_stock_data: {self.room_stock_data}')
+            self.count = 0
+        self.lock.release()
+        time_stamp = int(time.time() * 1000)
+        to_remove = []
         for node in config.timetable_node:
             if node.is_on_turn(time_stamp):
                 logger.info(f"adjusting:{node.to_dict()}")
-                self.api.ktv.update_price(node.roomItem.itemId, node.roomItem.itemType, node.price)
+                self.api.ktv.update_price(node.roomItem.itemId, 1, node.get_target_price())
+                # 然后如果不available就删除
+                if not node.available:
+                    to_remove.append(node)
+        for period in config.timetable_period:
+            if period.is_on_turn(time_stamp):
+                logger.info(f"adjusting:{period.to_dict()}")
+                self.api.ktv.update_price(period.roomItem.itemId, 1, period.get_target_price())
+                # 然后如果不available就删除
+                if not period.available:
+                    to_remove.append(period)
+        # TODO: ROmmStockPlan生命周期
+        for stock in config.room_stock_plan:
+            if stock.is_on_turn(self.room_stock_data):
+                logger.info(f'adjusting:{stock.to_dict()}')
+                self.api.ktv.update_price(stock.roomItem.itemId, 1, stock.get_target_price())
+        for i in to_remove:
+            if type(i) is TimeTableNode:
+                config.timetable_node.remove(i)
+            elif type(i) is TimeTablePeriod:
+                config.timetable_period.remove(i)
+
 
         # TODO: 扫描房间状态判断是否调整
 

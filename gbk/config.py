@@ -15,6 +15,7 @@ class Config:
     FILE_PATH = '.'
     # DES 加密秘钥
     KEY = '_chiro#*'
+    AUTH_API = ''
 
     def __init__(self):
         self.data_default = {
@@ -23,6 +24,9 @@ class Config:
             "cookies": des_encrypt(Config.KEY,
                                    '''_lxsdk_cuid=17771fd8425c8-0f5b6f7abba2ce8-4c3f217f-ca800-17771fd8425c8; _lxsdk=17771fd8425c8-0f5b6f7abba2ce8-4c3f217f-ca800-17771fd8425c8; _hc.v=6594ea87-cd60-00b4-94e8-05bc93197b85.1612525177; mpmerchant_portal_shopid=581990543; __utma=1.458675775.1615809801.1615809801.1615809801.1; __utmz=1.1615809801.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); shopOperationSource=0; lAyRZMdTtVfwuYvIj2nqVfzEvT8%2B3iGnYufAYrCd6bg%3D=41543518; WjxCiWg4ruAfLN5GxTCpx%2Bjjf6%2B6Ejv%2FB1AkW7trW7UCCV20wDuXTJ9fB9yGrAdE="+onXqCpzbOmryCfr7G4/BQ=="; _lxsdk_s=17879613782-fd3-4ba-804%7C%7C77; edper=tovypiaGU6bWgmukoMiVMksae9kW9-N4LFFwmaS_0Uv6sVJYYloi_3P6rcJ_yG-Kg19b2XwK_2uRy_Nh-htHOQ; JSESSIONID=F8EF59EF9B3110AA640B25C428C4D287; merchantBookShopID=581990543; merchantCategoryID=2890; logan_session_token=sjm3v15mps8qqd855kr1; logan_custom_report='''),
             # "cookies": "",
+            # 授权码
+            'auth_key': '',
+            'plan_id': 10000,
             "timetable_node": {
                 "upgradable": False,
                 "data": []
@@ -53,6 +57,7 @@ class Config:
         self.cookies = ""
         self.lock = threading.RLock()
         self.thread = None
+        self.plan_id = self.data['plan_id']
         self.load()
 
     def load_data(self):
@@ -69,7 +74,7 @@ class Config:
             timetable_period = []
         self.timetable_period = timetable_period
         try:
-            room_stock_plan = [RoomStockPlanNode.from_json(t) for t in self.data['room_stock_plan']['data']]
+            room_stock_plan = [RoomStockPlan.from_json(t) for t in self.data['room_stock_plan']['data']]
         except KeyError:
             logger.warning('unable to load room_stock_plan!')
             room_stock_plan = []
@@ -79,6 +84,7 @@ class Config:
         except binascii.Error as e:
             logger.warning("unable to load cookie: %s" % e)
             self.cookies = ""
+        self.plan_id = self.data['plan_id']
 
     def load(self):
         try:
@@ -122,7 +128,10 @@ class Config:
         self.data['timetable_node']['data'] = timetable_node
         timetable_period = [t.to_dict() for t in self.timetable_period]
         self.data['timetable_period']['data'] = timetable_period
+        room_stock_plan = [t.to_dict() for t in self.room_stock_plan]
+        self.data['room_stock_plan']['data'] = room_stock_plan
         self.data['cookies'] = des_encrypt(Config.KEY, self.cookies)
+        self.data['plan_id'] = self.plan_id
         with open(os.path.join(Config.FILE_PATH, Config.FILE_NAME), "w") as f:
             json.dump(self.data, f)
         logger.debug(f'config saved to:  {os.path.abspath(os.path.join(Config.FILE_PATH, Config.FILE_NAME))} and data: {self.data}')

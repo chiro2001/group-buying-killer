@@ -26,7 +26,128 @@ def index():
         'apis': {
             '/': {
                 "description": 'Index and description of the API',
-                'args': []
+                'method': ['GET'],
+                'args': {},
+                'rets': {
+                    'apis': "Lists of API urls and args"
+                }
+            },
+            '/test': {
+                "description": 'Test whether ths API is reachable',
+                'method': ['GET'],
+                'args': {},
+                'rets': {
+                    'test': 'Always is true',
+                    'timetable_node': 'An instance of Object TimeTableNode',
+                    'timetable_period': 'An instance of Object TimeTablePeriod',
+                    'room_stock_plan': 'An instance of Object RoomStockPlan'
+                }
+            },
+            '/has_login': {
+                "description": 'Check teh state of login',
+                'method': ['GET'],
+                'args': {},
+                'rets': {
+                    'has_login': 'true if has login'
+                }
+            },
+            '/get/ips': {
+                "description": 'Get server ips',
+                'method': ['GET'],
+                'args': {},
+                'rets': {
+                    'ips': 'IPs of this server'
+                }
+            },
+            '/get/timetable_node': {
+                "description": 'get timetable nodes',
+                'method': ['GET'],
+                'args': {},
+                'rets': {
+                    'timetable_node': 'List of timetable nodes'
+                }
+            },
+            '/get/timetable_period': {
+                "description": 'get timetable periods',
+                'method': ['GET'],
+                'args': {},
+                'rets': {
+                    'timetable_period': 'List of timetable periods'
+                }
+            },
+            '/get/room_stock_plan': {
+                "description": 'get planned room stock plan',
+                'method': ['GET'],
+                'args': {},
+                'rets': {
+                    'timetable_node': 'List of room stock plan'
+                }
+            },
+            '/get/status': {
+                "description": 'Get running status',
+                'method': ['GET'],
+                'args': {},
+                'rets': {}  # 待定
+            },
+            '/get/shop_info': {
+                "description": 'Get shop info',
+                'method': ['GET'],
+                'args': {},
+                'rets': {
+                    'shop_info': 'Info of login shop'
+                }
+            },
+            '/get/reserve_date': {
+                "description": 'Get date info for reserve',
+                'method': ['GET'],
+                'args': {},
+                'rets': {
+                    'reserve_date': 'reserve date'
+                }
+            },
+            '/get/reserve_table': {
+                "description": 'Get reserve price table',
+                'method': ['GET'],
+                'args': {
+                    'date': {
+                        'type': 'optional',
+                        'format': 'YYYY-MM-DD date',
+                        "description": 'default date is today',
+                    }
+                },
+                'rets': {
+                    'reserve_table': 'reserve date'
+                }
+            },
+            '/set/timetable_node': {
+                "description": 'Add/update timetable node',
+                'method': ['POST'],
+                'args': {
+                    'node': {
+                        'type': 'required',
+                        'format': 'json',
+                        'description': 'If plan_id has set, will update timetable node; or will add new item'
+                    }
+                },
+                'rets': {}
+            },
+            '/set/timetable_period': {
+                "description": 'Add/update timetable period',
+                'method': ['POST'],
+                'args': {
+                    'period': {
+                        'type': 'required',
+                        'format': 'json',
+                        'description': 'If plan_id has set, will update timetable period; or will add new item'
+                    }
+                },
+                'rets': {}
+            },
+            '/logout': {
+                "description": 'Logout account',
+                'method': ['GET'],
+                'args': {},
+                'rets': {}
             }
         }
     })
@@ -38,7 +159,9 @@ def test():
     config.timetable_node.append(t)
     return make_result(data={
         "test": True,
-        "timetable_node": TimeTableNode(RoomItem(0, 0, 0, 0, 0, 0, 0), 0, 0, 0, 0, 0).to_dict()
+        "timetable_node": TimeTableNode(RoomItem(0, 0, 0, 0, 0, 0, 0), 0, 0, 0, 0, 0).to_dict(),
+        'timetable_period': TimeTablePeriod(RoomItem(0, 0, 0, 0, 0, 0, 0), 0, 0, 0, 0, 0, 0).to_dict(),
+        "room_stock_plan": RoomStockPlan(RoomItem(0, 0, 0, 0, 0, 0, 0), RoomStockPlan.PlanTypeGreater, 0, 0).to_dict()
     })
 
 
@@ -114,8 +237,8 @@ def get_reserve_table():
 
 # Bug: 在cors情况下post速度缓慢
 # Fix: 通过不传送cookie解决或者取消跨域
-@app.route("/add/timetable_node", methods=['POST'])
-def add_timetable_node():
+@app.route("/set/timetable_node", methods=['POST'])
+def set_timetable_node():
     node = get_request_json(request)
     logger.info(node)
     config.lock.acquire()
@@ -131,8 +254,8 @@ def add_timetable_node():
     return make_result()
 
 
-@app.route("/add/timetable_period", methods=['POST'])
-def add_timetable_period():
+@app.route("/set/timetable_period", methods=['POST'])
+def set_timetable_period():
     period = get_request_json(request)
     logger.info(period)
     config.lock.acquire()
