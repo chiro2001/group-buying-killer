@@ -15,7 +15,6 @@ class Login extends React.Component {
     this.api = new API();
   }
   render() {
-    let { config } = this.props;
     return (<Container size="sm">
       <Typography variant="body1">{this.state.has_login ? "点击“重新登录”会清除后台登录信息，是否继续？" : "请在稍后弹出的窗口中完成登录"}</Typography>
       <Button variant="contained" onClick={() => {

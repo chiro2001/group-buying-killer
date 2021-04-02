@@ -36,7 +36,7 @@ import store from './data/store'
 import { setConfig, setErrorInfo, setReserveTableData, setRoomStockData, setShopInfo } from "./data/action";
 
 import { isIterator, isMobileDevice, sleep } from "./utils/utils"
-import { API } from "./api/api"
+import { API, AuthAPI } from "./api/api"
 
 import ListItemLink from "./components/listItemLink"
 import LoginDialog from "./pages/loginDialog"
@@ -123,6 +123,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const api = new API();
+const authApi = new AuthAPI();
 api.get_shop_info().then(shopInfo => {
   console.log('shopInfo', shopInfo);
   if (shopInfo) store.dispatch(setShopInfo(shopInfo));
@@ -146,6 +147,7 @@ export default function App() {
   const [open, setOpen] = React.useState(false);
   const [popupLogin, setPopupLogin] = React.useState(false);
   const [errorDialogInfo, setErrorDialogInfo] = React.useState(false);
+  const [hasLogin, setHasLogin] = React.useState(false);
 
   // 拉大到800会打开，拉小到600关闭
   const triggerWidthOpen = 800;
@@ -201,7 +203,11 @@ export default function App() {
     if (window.innerWidth < 600 || window.location.pathname === '/') {
       setOpen(false);
     }
-
+    authApi.auth(store.getState().config.data.auth).then((check) => {
+      if (!check && window.location.pathname !== '/verify') {
+        window.location.pathname = '/verify';
+      }
+    });
   };
 
   return (
@@ -281,22 +287,22 @@ export default function App() {
                       >
                         <Switch>
                           <Route path={"/"} exact={true}>
-                            <Launch config={store.getState().config} />
+                            <Launch  />
                           </Route>
                           <Route path={"/plan/time"} exact={false}>
-                            <PlanTime config={store.getState().config} />
+                            <PlanTime  />
                           </Route>
                           <Route path={"/plan/stock"} exact={false}>
-                            <PlanStock config={store.getState().config} />
+                            <PlanStock  />
                           </Route>
                           <Route path={"/settings"} exact={false}>
-                            <Settings config={store.getState().config} />
+                            <Settings  />
                           </Route>
                           <Route path={"/verify"} exact={false}>
-                            <Verify config={store.getState().config} />
+                            <Verify  />
                           </Route>
                           <Route path={"/connect"} exact={false}>
-                            <Connect config={store.getState().config} />
+                            <Connect  />
                           </Route>
                         </Switch>
                       </CSSTransition>
@@ -307,28 +313,28 @@ export default function App() {
               {/* {'' + store.getState().shopInfo} */}
               <Switch>
                 <Route path={"/"} exact={true}>
-                  <Launch config={store.getState().config} />
+                  <Launch />
                 </Route>
                 <Route path={"/plan/time"} exact={false}>
-                  <PlanTime config={store.getState().config} />
+                  <PlanTime />
                 </Route>
                 <Route path={"/plan/stock"} exact={false}>
-                  <PlanStock config={store.getState().config} />
+                  <PlanStock />
                 </Route>
                 <Route path={"/settings"} exact={false}>
-                  <Settings config={store.getState().config} />
+                  <Settings />
                 </Route>
                 <Route path={"/verify"} exact={false}>
-                  <Verify config={store.getState().config} />
+                  <Verify />
                 </Route>
                 <Route path={"/connect"} exact={false}>
-                  <Connect config={store.getState().config} />
+                  <Connect />
                 </Route>
               </Switch>
             </main>
           </MuiPickersUtilsProvider>
         </Router>
-        <LoginDialog config={store.getState().config} open={popupLogin && store.getState().config.has_login} onClose={handleLoginClose}></LoginDialog>
+        <LoginDialog open={popupLogin && store.getState().config.has_login} onClose={handleLoginClose}></LoginDialog>
         <Dialog open={errorDialogInfo ? true : false} onClose={() => { setErrorDialogInfo(null); }}>
           <DialogTitle>遇到错误</DialogTitle>
           <DialogContent>

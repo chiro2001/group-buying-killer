@@ -2,18 +2,18 @@ import { setErrorInfo } from "../data/action";
 import store from "../data/store";
 import { isIterator, urlEncode } from "../utils/utils"
 
-const request = function (url_base, router, args, method = 'GET') {
+const request = async function (url_base, router, args, method = 'GET') {
   let js = {};
   try {
     if (method === 'GET') {
-      js = await((await fetch(url_base + router + (args ? "?" : "") + urlEncode(args), {
+      js = await ((await fetch(url_base + router + (args ? "?" : "") + urlEncode(args), {
         method: 'GET',
         credentials: 'omit',
         // credentials: 'include',
         mode: 'cors'
       })).json());
     } else {
-      js = await(await fetch(url_base + router, {
+      js = await (await fetch(url_base + router, {
         body: JSON.stringify(args),
         method: 'POST',
         // 使用 include 会拖慢速度
@@ -128,18 +128,24 @@ class API {
 
 class AuthAPI {
   constructor(props) {
-    this.url_base = 'https://service-kfp3xte1-1254016670.sh.apigw.tencentcs.com/release/';
+    // this.url_base = 'https://service-kfp3xte1-1254016670.sh.apigw.tencentcs.com/release/';
+    this.url_base = 'http://localhost:8081/';
     this.url = {
       regist: 'user/regist',
       login: 'user/login',
-      auth: 'auth',
-      delete: 'user/delete'
+      auth: 'user/auth',
+      delete: 'user/delete',
+      applyCaptcha: 'user/captcha/apply',
     };
     this.admin_url = 'http://gbk.chiro.work/';
   }
   async regist(user) {
-    await request(this.url_base, this.url.regist, user, 'POST')
+    return await request(this.url_base, this.url.regist, user, 'POST');
   }
+  async auth(auth) {
+    return await request(this.url_base, this.url.auth, { auth }, 'POST').code === 200;
+  }
+
 }
 
-export { API };
+export { API, AuthAPI };

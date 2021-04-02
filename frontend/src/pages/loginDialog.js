@@ -25,15 +25,12 @@ function LoginDialog(props) {
     if (onClose)
       onClose();
   };
-
-  const { config } = props;
-
   return (
     <Dialog onClose={handleClose} open={open}>
       <DialogTitle>账户登录</DialogTitle>
       <Divider></Divider>
       <DialogContent>
-        <Login config={config}></Login>
+        <Login></Login>
       </DialogContent>
     </Dialog>
   );
@@ -42,7 +39,6 @@ function LoginDialog(props) {
 LoginDialog.propTypes = {
   onClose: PropTypes.func,
   open: PropTypes.bool.isRequired,
-  config: PropTypes.object.isRequired,
 };
 
 export default LoginDialog;

@@ -5,22 +5,37 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import store from './data/store';
 import { Provider } from 'react-redux';
-import { API } from './api/api';
+import { API, AuthAPI } from './api/api';
 import { setTimetableNodes, setTimetablePeriods } from './data/action';
 import { sleep } from './utils/utils';
 
 // 循环执行函数
 async function cycleFunc(cycle = 1000) {
   const api = new API();
+  const authApi = new AuthAPI();
+  let authCount = 0;
   while (true) {
-    await api.get_timetable_node().then(nodes => {
-      if (nodes)
-        store.dispatch(setTimetableNodes(nodes));
-    });
-    await api.get_timetable_period().then(periods => {
-      if (periods)
-        store.dispatch(setTimetablePeriods(periods));
-    });
+    try {
+      await api.get_timetable_node().then(nodes => {
+        if (nodes)
+          store.dispatch(setTimetableNodes(nodes));
+      });
+      await api.get_timetable_period().then(periods => {
+        if (periods)
+          store.dispatch(setTimetablePeriods(periods));
+      });
+      if (authCount == 0) {
+        authApi.auth(store.getState().config.data.auth).then((check) => {
+          if (!check && window.location.pathname !== '/verify') {
+            window.location.pathname = '/verify';
+          }
+        });
+        authCount = 20;
+      }
+      authCount--;
+    } catch (e) {
+      console.error(e);
+    }
     await sleep(cycle);
   }
 }
