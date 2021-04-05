@@ -26,12 +26,17 @@ class Config {
       debug: true,
       version_frontend: 0.1,
       // 显示主题
-      theme_name: "dark",
+      // theme_name: "dark",
+      theme_name: "default",
       theme_avaliable: [
         'default',
         'dark'
       ],
       auth: "",
+      // 用户信息
+      user: {
+        phone: '',
+      }
     };
     this.data = this.data_default;
     this.theme = this.theme_avaliable["default"];
@@ -39,7 +44,6 @@ class Config {
     // 先声明已经登录，然后再检查登录状态
     this.has_login = true;
     this.api.has_login().then(state => { this.has_login = state; });
-    this.userData = null;
     this.load();
   }
 

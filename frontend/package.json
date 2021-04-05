@@ -85,7 +85,7 @@
   "homepage": ".",
   "scripts": {
     "start": "node scripts/start.js",
-    "build": "node scripts/build.js && rd /s /Q ..\\public && md ..\\public && xcopy /E build\\* ..\\public\\",
+    "build": "node scripts/build.js && rd /s /Q ..\\backend\\public && md ..\\backend\\public && xcopy /E build\\* ..\\backend\\public\\ && echo 构建完成。",
     "test": "node scripts/test.js"
   },
   "eslintConfig": {

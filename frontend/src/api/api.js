@@ -13,16 +13,21 @@ const request = async function (url_base, router, args, method = 'GET') {
         mode: 'cors'
       })).json());
     } else {
-      js = await (await fetch(url_base + router, {
-        body: JSON.stringify(args),
-        method: 'POST',
-        // 使用 include 会拖慢速度
-        // credentials: 'include',
-        credentials: 'omit',
-        mode: 'cors',
-        headers: {
-          'content-type': 'application/json',
-        },
+      js = await (await new Promise((resolve, reject) => {
+        fetch(url_base + router, {
+          body: JSON.stringify(args),
+          method: 'POST',
+          // 使用 include 会拖慢速度
+          // credentials: 'include',
+          credentials: 'omit',
+          mode: 'cors',
+          headers: {
+            'content-type': 'application/json',
+          },
+        }).then(data => {
+          console.log('then', data);
+          resolve(data);
+        })
       })).json();
     }
   } catch (e) {
@@ -140,12 +145,17 @@ class AuthAPI {
     this.admin_url = 'http://gbk.chiro.work/';
   }
   async regist(user) {
-    return await request(this.url_base, this.url.regist, user, 'POST');
+    return await request(this.url_base, this.url.regist, user, 'GET');
   }
   async auth(auth) {
-    return await request(this.url_base, this.url.auth, { auth }, 'POST').code === 200;
+    return await request(this.url_base, this.url.auth, { auth }, 'GET').code === 200;
   }
-
+  async login(phone, password) {
+    return await request(this.url_base, this.url.login, { phone, password }, 'GET');
+  }
+  async applyCaptcha(phone, password, captcha) {
+    return (await request(this.url_base, this.url.applyCaptcha, { phone, password, captcha }, 'GET'));
+  }
 }
 
 export { API, AuthAPI };
