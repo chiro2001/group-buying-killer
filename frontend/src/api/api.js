@@ -81,6 +81,8 @@ class API {
       set_timetable_node: "set/timetable_node",
       get_timetable_period: "get/timetable_period",
       set_timetable_period: "set/timetable_period",
+      get_room_stock_plan: "get/room_stock_plan",
+      set_room_stock_plan: "set/room_stock_plan",
       get_shop_info: "get/shop_info",
       get_reserve_date: 'get/reserve_date',
       get_reserve_table: 'get/reserve_table',
@@ -118,6 +120,12 @@ class API {
   }
   async set_timetable_period(period) {
     return await request(this.url_base, this.url.set_timetable_period, period, 'POST');
+  }
+  async get_room_stock_plan() {
+    return (await request(this.url_base, this.url.get_room_stock_plan)).data.room_stock_plan;
+  }
+  async set_room_stock_plan(stock) {
+    return await request(this.url_base, this.url.set_room_stock_plan, stock, 'POST');
   }
   async get_shop_info() {
     return (await request(this.url_base, this.url.get_shop_info)).data.shop_info;

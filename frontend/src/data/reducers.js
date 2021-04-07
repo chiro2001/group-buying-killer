@@ -7,6 +7,7 @@ const defaultState = {
   roomStockData: null,
   timetableNodes: [],
   timetablePeriods: [],
+  roomStockPlans: [],
   shopInfo: null,
   errorInfo: null,
 }
@@ -57,9 +58,18 @@ function timetableNodes(state = defaultState.timetableNodes, action) {
   }
 }
 
-function timetablePeriods(state = defaultState.timetableNodes, action) {
+function timetablePeriods(state = defaultState.timetablePeriods, action) {
   switch (action.type) {
     case "SET_TIMETABLE_PERIODS":
+      return action.data;
+    default:
+      return state;
+  }
+}
+
+function roomStockPlans(state = defaultState.roomStockPlans, action) {
+  switch (action.type) {
+    case "SET_ROOM_STOCK_PLANS":
       return action.data;
     default:
       return state;
@@ -75,4 +85,4 @@ function errorInfo(state = defaultState.errorInfo, action) {
   }
 }
 
-export default combineReducers({ config, reserveTableData, roomStockData, shopInfo, timetableNodes, timetablePeriods, errorInfo });
+export default combineReducers({ config, reserveTableData, roomStockData, shopInfo, timetableNodes, timetablePeriods, errorInfo, roomStockPlans });

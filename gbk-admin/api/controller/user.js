@@ -274,6 +274,7 @@ module.exports = {
     }
   },
   async applyCaptcha(phone, captcha) {
+    if (!captcha) return false;
     const captchaData = this.findCaptcha(captcha);
     if (!captchaData) return false;
     await this.setAuthTime(phone, captchaData.authUntil);

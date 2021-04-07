@@ -6,7 +6,7 @@ import reportWebVitals from './reportWebVitals';
 import store from './data/store';
 import { Provider } from 'react-redux';
 import { API, AuthAPI } from './api/api';
-import { setConfig, setTimetableNodes, setTimetablePeriods } from './data/action';
+import { setConfig, setRoomStockPlans, setTimetableNodes, setTimetablePeriods } from './data/action';
 import { sleep } from './utils/utils';
 
 // 循环执行函数
@@ -16,14 +16,20 @@ async function cycleFunc(cycle = 1000) {
   let authCount = 0;
   while (true) {
     try {
-      // await api.get_timetable_node().then(nodes => {
-      //   if (nodes)
-      //     store.dispatch(setTimetableNodes(nodes));
-      // });
-      // await api.get_timetable_period().then(periods => {
-      //   if (periods)
-      //     store.dispatch(setTimetablePeriods(periods));
-      // });
+      await api.get_timetable_node().then(nodes => {
+        if (nodes)
+          store.dispatch(setTimetableNodes(nodes));
+      });
+      await api.get_timetable_period().then(periods => {
+        if (periods)
+          store.dispatch(setTimetablePeriods(periods));
+      });
+      await api.get_room_stock_plan().then(stocks => {
+        if (stocks)
+          store.dispatch(setRoomStockPlans(stocks));
+      });
+      // 循环验证
+      /*
       if (authCount == 0) {
         if (window.location.pathname !== '/verify') {
           await authApi.auth(store.getState().config.data.auth).then((check) => {
@@ -40,6 +46,7 @@ async function cycleFunc(cycle = 1000) {
         } else authCount = 1;
       }
       authCount--;
+      */
     } catch (e) {
       console.error(e);
     }

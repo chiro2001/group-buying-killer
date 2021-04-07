@@ -27,6 +27,7 @@ function TimetableNodeList(props) {
   const [selectAvailableStartDateOn, setSelectAvailableStartDateOn] = React.useState(selectAvailableStartDate === 0 ? false : true);
   const [selectAvailableEndDateOn, setSelectAvailableEndDateOn] = React.useState(selectAvailableEndDate === 0 ? false : true);
   const [roomItemListOpen, setRoomItemListOpen] = React.useState(false);
+  const [frequency, setFrequency] = React.useState('0');
   const [valuePrice, setValuePrice] = React.useState(node.price ? ('' + node.price) : (roomItemNow ? ('' + roomItemNow.price) : '0'));
   // console.log('NodeList: roomItenNow = ', roomItemNow);
   return (
@@ -50,6 +51,17 @@ function TimetableNodeList(props) {
         <ListItemSecondaryAction>
           <DateTimePicker value={selectedDate} onChange={handleDateChange} />
         </ListItemSecondaryAction>
+      </ListItem>
+      <ListItem>
+        <ListItemText primary="设置周期" />
+        <ListItemSecondaryAction>
+          <TextField label="输入周期(单位:天, 0表示单次)" defaultValue={frequency} onChange={(e) => {
+            setFrequency(e.target.value);
+          }} />
+        </ListItemSecondaryAction>
+      </ListItem>
+      <ListItem>
+        <ListItemText primary="生效时间之外项目无效，不设置即全部生效" />
       </ListItem>
       <ListItem>
         <ListItemText primary="设置生效开始时间" />
@@ -95,7 +107,7 @@ function TimetableNodeList(props) {
               n[arg] = roomItemNow.parent[arg];
           // 调用api
           const api = new API();
-          api.add_timetable_node(n);
+          api.set_timetable_node(n);
           if (onClose) {
             onClose(n);
           }

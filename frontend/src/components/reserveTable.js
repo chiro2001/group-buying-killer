@@ -101,10 +101,16 @@ function ReserveTable(props) {
           (() => {
             let planCount = 0;
             // 查找
-            const { timetableNodes, timetablePeriods } = store.getState();
+            const { timetableNodes, timetablePeriods, roomStockPlans } = store.getState();
             for (let node of timetableNodes) {
               if (!node.roomItem) continue;
               if (node.roomItem.itemId === roomItem.itemId) {
+                planCount++;
+              }
+            }
+            for (let stock of roomStockPlans) {
+              if (!stock.roomItem) continue;
+              if (stock.roomItem.itemId === roomItem.itemId) {
                 planCount++;
               }
             }

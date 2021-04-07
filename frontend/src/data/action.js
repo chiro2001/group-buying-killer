@@ -28,6 +28,12 @@ export function setTimetableNodes(data) {
   };
 }
 
+export function setRoomStockPlans(data) {
+  return dispatch => {
+    dispatch({ type: "SET_ROOM_STOCK_PLANS", data: data });
+  };
+}
+
 export function setTimetablePeriods(data) {
   return dispatch => {
     dispatch({ type: "SET_TIMETABLE_PERIODS", data: data });
@@ -39,3 +45,4 @@ export function setErrorInfo(data) {
     dispatch({ type: "SET_ERROR_INFO", data: data });
   };
 }
+

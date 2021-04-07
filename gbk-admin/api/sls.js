@@ -111,6 +111,8 @@ app.get('/user/delete', async (req, res) => {
 
 app.get('/user/captcha/apply', async (req, res) => {
   const { auth, captcha, phone, password } = req.query;
+  // res.json(req.query);
+  // return;
   try {
     let user = null;
     if (auth) {
@@ -126,17 +128,20 @@ app.get('/user/captcha/apply', async (req, res) => {
       }
       user = await uc.getUserByPhone(phone);
     }
+    console.log('user', user);
     // 检查认证状态
-    if (!await uc.checkAvaliable(user.phone)) {
-      res.json(makeResponse(403, '认证已失效', { auth: null }));
-      return;
-    }
+    // if (!await uc.checkAvaliable(user.phone)) {
+    //   res.json(makeResponse(403, '认证已失效'));
+    //   return;
+    // }
     const result = await uc.applyCaptcha(user.phone, captcha);
+    console.log('result', result);
     if (!result) {
       res.json(makeResponse(403, '验证码错误'));
       return;
     }
     res.json(makeResponse(200));
+    return;
   } catch (e) {
     console.warn(e);
     res.json(makeResponse(e.code, e.toString()));

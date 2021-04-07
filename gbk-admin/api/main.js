@@ -9,7 +9,7 @@ var server = app.listen(8081, function () {
 })
 
 // 不知道为啥会超时
-server.setTimeout(500);
+// server.setTimeout(500);
 // server.keepAliveTimeout = 100;
 // server.on('timeout', function (a, b, c) {
 //   console.log('超时了');

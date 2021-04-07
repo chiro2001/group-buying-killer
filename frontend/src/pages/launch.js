@@ -11,7 +11,8 @@ class StateNow extends React.Component {
     this.unsubscribe = store.subscribe(() => {
       this.setState({
         timetableNodes: store.getState().timetableNodes,
-        timetablePeriods: store.getState().timetablePeriods
+        timetablePeriods: store.getState().timetablePeriods,
+        roomStockPlans: store.getState().roomStockPlans
       });
     });
   }
@@ -31,7 +32,7 @@ class StateNow extends React.Component {
           <TableCell align="center">{3}种</TableCell>
           <TableCell align="center">{this.state.timetableNodes.length}个任务</TableCell>
           <TableCell align="center">{this.state.timetablePeriods.length}个任务</TableCell>
-          <TableCell align="center">{0}个任务</TableCell>
+          <TableCell align="center">{this.state.roomStockPlans.length}个任务</TableCell>
         </TableRow>
       </TableBody>
     </Table>);

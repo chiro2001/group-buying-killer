@@ -203,11 +203,11 @@ export default function App() {
     if (window.innerWidth < 600 || window.location.pathname === '/') {
       setOpen(false);
     }
-    authApi.auth(store.getState().config.data.auth).then((check) => {
-      if (!check && window.location.pathname !== '/verify') {
-        window.location.pathname = '/verify';
-      }
-    });
+    // authApi.auth(store.getState().config.data.auth).then((check) => {
+    //   if (!check && window.location.pathname !== '/verify') {
+    //     window.location.pathname = '/verify';
+    //   }
+    // });
   };
 
   return (

@@ -4,6 +4,7 @@
   "description": "Fullstack with serverless db",
   "main": "index.js",
   "scripts": {
+    "api": "cd api && node main.js",
     "test": "jest ./tests/integration.test.js --testEnvironment node",
     "bootstrap": "node scripts/bootstrap.js",
     "deploy": "sls deploy --all",

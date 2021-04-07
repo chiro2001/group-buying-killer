@@ -1,5 +1,5 @@
 import React from 'react';
-import { TextField, List, ListItem, ListItemText, ListItemIcon, ListItemSecondaryAction, IconButton, Button } from '@material-ui/core';
+import { TextField, List, ListItem, ListItemText, ListItemIcon, ListItemSecondaryAction, IconButton, Button, FormControl, InputLabel, Select, MenuItem } from '@material-ui/core';
 import { makeStyles, useTheme, ThemeProvider } from '@material-ui/core/styles';
 import Collapse from '@material-ui/core/Collapse';
 import AlarmOnIcon from '@material-ui/icons/AlarmOn';
@@ -18,19 +18,21 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function TimetablePeriodList(props) {
+function RoomStockPlanList(props) {
   const classes = useStyles();
-  const { period, onClose, roomItemNow } = props;
-  const [selectedStartDate, handleDateStartChange] = React.useState(period.time_start ? new Date(period.time_start) : new Date());
-  const [selectedEndDate, handleDateEndChange] = React.useState(period.time_end ? new Date(period.time_end) : new Date());
-  const [selectAvailableStartDate, handleAvailableStrartDateChange] = React.useState(period.available_start ? period.available_start : 0);
-  const [selectAvailableEndDate, handleAvailableEndDateChange] = React.useState(period.available_end ? period.available_end : 0);
+  const { stock, onClose, roomItemNow } = props;
+  const [valueValue, setValueValue] = React.useState(stock.value || "");
+  const [planType, setPlanType] = React.useState(stock.planType || "lt");
+  const planTypeText = [
+    ['lt', '小于'], ['le', '小于等于'], ['gt', '大于'], ['ge', '大于等于'],
+  ];
+  const [selectAvailableStartDate, handleAvailableStrartDateChange] = React.useState(stock.available_start ? stock.available_start : 0);
+  const [selectAvailableEndDate, handleAvailableEndDateChange] = React.useState(stock.available_end ? stock.available_end : 0);
   const [selectAvailableStartDateOn, setSelectAvailableStartDateOn] = React.useState(selectAvailableStartDate === 0 ? false : true);
   const [selectAvailableEndDateOn, setSelectAvailableEndDateOn] = React.useState(selectAvailableEndDate === 0 ? false : true);
   const [roomItemListOpen, setRoomItemListOpen] = React.useState(false);
-  const [frequency, setFrequency] = React.useState('0');
-  const [valuePrice, setValuePrice] = React.useState(period.price ? ('' + period.price) : (roomItemNow ? ('' + roomItemNow.price) : '0'));
-  // console.log('PeriodList: roomItenNow = ', roomItemNow);
+  const [valuePrice, setValuePrice] = React.useState(stock.price ? ('' + stock.price) : (roomItemNow ? ('' + roomItemNow.price) : '0'));
+  console.log('StockList: roomItenNow = ', roomItemNow);
   return (
     <List component="div" disablePadding className={classes.nested}>
       <ListItem button onClick={() => { setRoomItemListOpen(!roomItemListOpen); }}>
@@ -48,22 +50,24 @@ function TimetablePeriodList(props) {
         </ListItemSecondaryAction>
       </ListItem>
       <ListItem>
-        <ListItemText primary="设置价格开始时间" />
+        <ListItemText primary="选择触发类型" />
         <ListItemSecondaryAction>
-          <DateTimePicker value={selectedStartDate} onChange={handleDateStartChange} />
+          <FormControl>
+            <InputLabel>触发类型</InputLabel>
+            <Select
+              value={planType}
+              onChange={(e) => { setPlanType(e.target.value); }}
+            >
+              {planTypeText.map((v, i) => <MenuItem key={i} value={v[0]}>{v[1]}</MenuItem>)}
+            </Select>
+          </FormControl>
         </ListItemSecondaryAction>
       </ListItem>
       <ListItem>
-        <ListItemText primary="设置价格结束时间" />
+        <ListItemText primary="库存值" />
         <ListItemSecondaryAction>
-          <DateTimePicker value={selectedEndDate} onChange={handleDateEndChange} />
-        </ListItemSecondaryAction>
-      </ListItem>
-      <ListItem>
-        <ListItemText primary="设置周期" />
-        <ListItemSecondaryAction>
-          <TextField label="输入周期(单位:天, 0表示单次)" defaultValue={frequency} onChange={(e) => {
-            setFrequency(e.target.value);
+          <TextField label="和触发类型配合" defaultValue={valueValue} onChange={(e) => {
+            setValueValue(e.target.value);
           }} />
         </ListItemSecondaryAction>
       </ListItem>
@@ -79,7 +83,7 @@ function TimetablePeriodList(props) {
               value={selectAvailableStartDate}
               onChange={handleAvailableStrartDateChange}
               onClose={async () => {
-                await sleep(600);
+                await sleep(1200);
                 selectAvailableStartDate === 0 ? setSelectAvailableStartDateOn(false) : setSelectAvailableStartDateOn(true);
               }} />}
         </ListItemSecondaryAction>
@@ -93,28 +97,29 @@ function TimetablePeriodList(props) {
               value={selectAvailableEndDate}
               onChange={handleAvailableEndDateChange}
               onClose={async () => {
-                await sleep(600);
+                await sleep(1200);
+                console.log(selectAvailableEndDate);
                 selectAvailableEndDate === 0 ? setSelectAvailableEndDateOn(false) : setSelectAvailableEndDateOn(true);
               }} />}
         </ListItemSecondaryAction>
       </ListItem>
       <ListItem>
         <Button variant="contained" fullWidth onClick={() => {
-          let n = period ? period : {};
-          n.time_start = selectedStartDate._d ? selectedStartDate._d.getTime() : selectedStartDate.getTime();
-          n.time_end = selectedEndDate._d ? selectedEndDate._d.getTime() : selectedEndDate.getTime();
+          let n = stock ? stock : {};
           n.available_start = selectAvailableStartDate._d ? selectAvailableStartDate._d.getTime() : selectAvailableStartDate;
           n.available_end = selectAvailableEndDate._d ? selectAvailableEndDate._d.getTime() : selectAvailableEndDate;
           if (n.available_start === 0) delete n.available_start;
           if (n.available_end === 0) delete n.available_end;
           n.price = valuePrice;
+          n.value = valueValue;
+          n.planType = planType;
           n.roomItem = roomItemNow;
           if (roomItemNow.parent)
             for (const arg in roomItemNow.parent)
               n[arg] = roomItemNow.parent[arg];
           // 调用api
           const api = new API();
-          api.set_timetable_period(n);
+          api.set_room_stock_plan(n);
           if (onClose) {
             onClose(n);
           }
@@ -124,9 +129,9 @@ function TimetablePeriodList(props) {
   );
 }
 
-TimetablePeriodList.propTypes = {
-  period: PropTypes.object,
+RoomStockPlanList.propTypes = {
+  stock: PropTypes.object,
   onClose: PropTypes.func
 };
 
-export default TimetablePeriodList;
+export default RoomStockPlanList;
