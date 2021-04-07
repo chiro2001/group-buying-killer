@@ -28,6 +28,7 @@ class Scheduler:
         self.lock = threading.RLock()
         # 每分钟获取一次的房间数据
         self.room_stock_data = None
+        self.
         # 计数
         self.count = 0
 
@@ -116,6 +117,7 @@ class Scheduler:
         # 只判断到当前秒
         self.lock.acquire()
         self.count += 1
+        # 每60秒更新一次room_stock_data
         if self.count == 60 or self.room_stock_data is None:
             self.room_stock_data = self.api.room_stock.get_room_stock()
             logger.info(f'got room_stock_data: {self.room_stock_data}')
@@ -138,22 +140,18 @@ class Scheduler:
                 if not period.available:
                     to_remove.append(period)
         for stock in config.room_stock_plan:
-            if stock.is_on_turn(stock):
-                logger.info(stock)
-                pass
-        # TODO: ROmmStockPlan生命周期
-        for stock in config.room_stock_plan:
             if stock.is_on_turn(self.room_stock_data):
                 logger.info(f'adjusting:{stock.to_dict()}')
                 self.api.ktv.update_price(stock.roomItem.itemId, 1, stock.get_target_price())
+                if not stock.available:
+                    to_remove.append(stock)
         for i in to_remove:
             if type(i) is TimeTableNode:
                 config.timetable_node.remove(i)
             elif type(i) is TimeTablePeriod:
                 config.timetable_period.remove(i)
-
-
-        # TODO: 扫描房间状态判断是否调整
+            elif type(i) is RoomStockPlan:
+                config.room_stock_plan.remove(i)
 
     def add_timetable_node(self, timetable_node: TimeTableNode):
         config.timetable_node.append(timetable_node)

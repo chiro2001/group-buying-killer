@@ -126,7 +126,7 @@ def index():
                     'node': {
                         'type': 'required',
                         'format': 'json',
-                        'description': 'If plan_id has set, will update timetable node; or will add new item'
+                        'description': 'If tid has set, will update timetable node; or will add new item'
                     }
                 },
                 'rets': {}
@@ -138,7 +138,19 @@ def index():
                     'period': {
                         'type': 'required',
                         'format': 'json',
-                        'description': 'If plan_id has set, will update timetable period; or will add new item'
+                        'description': 'If tid has set, will update timetable period; or will add new item'
+                    }
+                },
+                'rets': {}
+            },
+            '/set/room_stock_plan': {
+                "description": 'Add/update room stock plan',
+                'method': ['POST'],
+                'args': {
+                    'period': {
+                        'type': 'required',
+                        'format': 'json',
+                        'description': 'If tid has set, will update room stock plan; or will add new item'
                     }
                 },
                 'rets': {}
@@ -156,7 +168,7 @@ def index():
 @app.route("/test")
 def test():
     t = TimeTableNode(RoomItem(0, 0, 0, 0, 0, 0, 0), 0, 0, 0, 0, 0)
-    config.timetable_node.append(t)
+    # config.timetable_node.append(t)
     return make_result(data={
         "test": True,
         "timetable_node": TimeTableNode(RoomItem(0, 0, 0, 0, 0, 0, 0), 0, 0, 0, 0, 0).to_dict(),
@@ -239,11 +251,20 @@ def get_reserve_table():
 # Fix: 通过不传送cookie解决或者取消跨域
 @app.route("/set/timetable_node", methods=['POST'])
 def set_timetable_node():
-    node = get_request_json(request)
-    logger.info(node)
+    node_t = get_request_json(request)
+    logger.info(node_t)
+    node = TimeTableNode.from_json(node_t)
+    target = None
+    for i in range(len(config.timetable_node)):
+        if config.timetable_node[i].tid == node.tid:
+            target = i
+            break
+    if target is not None:
+        config.timetable_node[target] = node
+        return make_result()
     config.lock.acquire()
     try:
-        config.timetable_node.append(TimeTableNode.from_json(node))
+        config.timetable_node.append(node)
     except KeyError as e:
         logger.error(e)
         return make_result(400, data={
@@ -256,11 +277,46 @@ def set_timetable_node():
 
 @app.route("/set/timetable_period", methods=['POST'])
 def set_timetable_period():
-    period = get_request_json(request)
-    logger.info(period)
+    period_t = get_request_json(request)
+    logger.info(period_t)
+    period = TimeTablePeriod.from_json(period_t)
+    target = None
+    for i in range(len(config.timetable_period)):
+        if config.timetable_period[i].tid == period.tid:
+            target = i
+            break
+    if target is not None:
+        config.timetable_period[target] = period
+        return make_result()
     config.lock.acquire()
     try:
-        config.timetable_period.append(TimeTablePeriod.from_json(period))
+        config.timetable_period.append(period)
+    except KeyError as e:
+        logger.error(e)
+        return make_result(400, data={
+            'detail': get_trackback()
+        })
+    config.lock.release()
+    config.save()
+    return make_result()
+
+
+@app.route("/set/room_stock_plan", methods=['POST'])
+def set_room_stock_plan():
+    stock_t = get_request_json(request)
+    logger.info(stock_t)
+    stock = RoomStockPlan.from_json(stock_t)
+    target = None
+    for i in range(len(config.room_stock_plan)):
+        if config.room_stock_plan[i].tid == stock.tid:
+            target = i
+            break
+    if target is not None:
+        config.room_stock_plan[target] = stock
+        return make_result()
+    config.lock.acquire()
+    try:
+        config.room_stock_plan.append(stock)
     except KeyError as e:
         logger.error(e)
         return make_result(400, data={
