@@ -15,13 +15,16 @@ export default function RoomItemList(props) {
   const { roomItemNow, editable } = props;
   const [roomItem, setRoomItem] = React.useState(roomItemNow ? roomItemNow : {
     itemId: 0,
+    date: new Date().toDateString(),
+    periodId: '00:00-00:00',
     price: '0',
     foodDesc: '描述',
     singHours: 0,
-    stock: 0,
-    itemType: 0,
-    periodType: 'NaN~NaN'
+    roomType: '-',
   });
+  const weekDays = [
+    '日', '一', '二', '三', '四', '五', '六'
+  ];
   return (<List>
     <ListItem>
       <ListItemText primary={'ID'} />
@@ -40,6 +43,12 @@ export default function RoomItemList(props) {
       </ListItemSecondaryAction>
     </ListItem>
     <ListItem>
+      <ListItemText primary={'类型'} />
+      <ListItemSecondaryAction>
+        <Typography variant="body1">{roomItem.roomType}</Typography>
+      </ListItemSecondaryAction>
+    </ListItem>
+    <ListItem>
       <ListItemText primary={'描述'} />
       <ListItemSecondaryAction>
         <Typography variant="body1" className={classes.foodDesc}>{roomItem.foodDesc}</Typography>
@@ -52,15 +61,15 @@ export default function RoomItemList(props) {
       </ListItemSecondaryAction>
     </ListItem>
     <ListItem>
-      <ListItemText primary={'TYPE'} />
+      <ListItemText primary={'时段'} />
       <ListItemSecondaryAction>
-        <Typography variant="body1">{roomItem.itemType}</Typography>
+        <Typography variant="body1">{roomItem.periodId}</Typography>
       </ListItemSecondaryAction>
     </ListItem>
     <ListItem>
-      <ListItemText primary={'PeriodType'} />
+      <ListItemText primary={'星期'} />
       <ListItemSecondaryAction>
-        <Typography variant="body1">{roomItem.periodType}</Typography>
+        <Typography variant="body1">星期{weekDays[new Date(roomItem.date).getDay()]}</Typography>
       </ListItemSecondaryAction>
     </ListItem>
   </List>);

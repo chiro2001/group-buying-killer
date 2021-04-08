@@ -1,5 +1,5 @@
 import React from 'react';
-import { TextField, List, ListItem, ListItemText, ListItemIcon, ListItemSecondaryAction, IconButton, Button, FormControl, InputLabel, Select, MenuItem } from '@material-ui/core';
+import { TextField, List, ListItem, ListItemText, ListItemIcon, ListItemSecondaryAction, IconButton, Button, FormControl, InputLabel, Select, MenuItem, Typography } from '@material-ui/core';
 import { makeStyles, useTheme, ThemeProvider } from '@material-ui/core/styles';
 import Collapse from '@material-ui/core/Collapse';
 import AlarmOnIcon from '@material-ui/icons/AlarmOn';
@@ -32,7 +32,8 @@ function RoomStockPlanList(props) {
   const [selectAvailableEndDateOn, setSelectAvailableEndDateOn] = React.useState(selectAvailableEndDate === 0 ? false : true);
   const [roomItemListOpen, setRoomItemListOpen] = React.useState(false);
   const [valuePrice, setValuePrice] = React.useState(stock.price ? ('' + stock.price) : (roomItemNow ? ('' + roomItemNow.price) : '0'));
-  console.log('StockList: roomItenNow = ', roomItemNow);
+  const [errorMessage, setErrorMessage] = React.useState('');
+  // console.log('StockList: roomItenNow = ', roomItemNow);
   return (
     <List component="div" disablePadding className={classes.nested}>
       <ListItem button onClick={() => { setRoomItemListOpen(!roomItemListOpen); }}>
@@ -103,6 +104,10 @@ function RoomStockPlanList(props) {
               }} />}
         </ListItemSecondaryAction>
       </ListItem>
+      {errorMessage ? <ListItem>
+        {/* <ListItemText primary={errorMessage} color="error"></ListItemText> */}
+        <Typography color="error">{errorMessage}</Typography>
+      </ListItem> : undefined}
       <ListItem>
         <Button variant="contained" fullWidth onClick={() => {
           let n = stock ? stock : {};
@@ -110,6 +115,11 @@ function RoomStockPlanList(props) {
           n.available_end = selectAvailableEndDate._d ? selectAvailableEndDate._d.getTime() : selectAvailableEndDate;
           if (n.available_start === 0) delete n.available_start;
           if (n.available_end === 0) delete n.available_end;
+          console.log(n);
+          if ((n.available_start && !n.available_end) || (!n.available_start && n.available_end)) {
+            setErrorMessage('可用开始时间和结束时间不能只选择其中之一');
+            return;
+          }
           n.price = valuePrice;
           n.value = valueValue;
           n.planType = planType;

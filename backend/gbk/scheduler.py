@@ -5,7 +5,7 @@ import threading
 from gbk.api import API
 from gbk.config import config
 from gbk.beans import *
-from gbk.utils import logger
+from gbk.utils import logger, get_date_today,get_date_tomorrow
 from gbk.exceptions import *
 from gbk.login import main as login_main
 from gbk.login import test_login
@@ -28,7 +28,6 @@ class Scheduler:
         self.lock = threading.RLock()
         # 每分钟获取一次的房间数据
         self.room_stock_data = None
-        self.
         # 计数
         self.count = 0
 
@@ -117,41 +116,57 @@ class Scheduler:
         # 只判断到当前秒
         self.lock.acquire()
         self.count += 1
-        # 每60秒更新一次room_stock_data
-        if self.count == 60 or self.room_stock_data is None:
-            self.room_stock_data = self.api.room_stock.get_room_stock()
-            logger.info(f'got room_stock_data: {self.room_stock_data}')
+        # 每60秒更新一次数据
+        if self.count == 60:
+            # self.room_stock_data = self.api.room_stock.get_room_stock()
+            # logger.info(f'got room_stock_data: {self.room_stock_data}')
+            self.api.ktv.get_reserve_table()
+            self.api.ktv.get_reserve_date()
             self.count = 0
         self.lock.release()
         time_stamp = int(time.time() * 1000)
         to_remove = []
         for node in config.timetable_node:
             if node.is_on_turn(time_stamp):
-                logger.info(f"adjusting:{node.to_dict()}")
+                logger.info(f"adjusting: {node.to_dict()}")
                 self.api.ktv.update_price(node.roomItem.itemId, 1, node.get_target_price())
                 # 然后如果不available就删除
                 if not node.available:
                     to_remove.append(node)
         for period in config.timetable_period:
             if period.is_on_turn(time_stamp):
-                logger.info(f"adjusting:{period.to_dict()}")
+                logger.info(f"adjusting: {period.to_dict()}")
                 self.api.ktv.update_price(period.roomItem.itemId, 1, period.get_target_price())
                 # 然后如果不available就删除
                 if not period.available:
                     to_remove.append(period)
+                logger.info(f'period: {period.to_dict()}')
+            if period.will_revoke:
+                price = int(period.roomItem.price)
+                self.api.ktv.update_price(period.roomItem.itemId, 1, price)
         for stock in config.room_stock_plan:
-            if stock.is_on_turn(self.room_stock_data):
-                logger.info(f'adjusting:{stock.to_dict()}')
+            if stock.roomItem.date not in self.api.ktv.reserve_table:
+                self.api.ktv.get_reserve_table(date=stock.roomItem.date)
+            # 同时加载下一天的
+            if get_date_tomorrow(stock.roomItem.date) not in self.api.ktv.reserve_table:
+                self.api.ktv.get_reserve_table(date=get_date_tomorrow(stock.roomItem.date))
+            if stock.is_on_turn(self.api.ktv.reserve_table):
+                logger.info(f'adjusting: {stock.to_dict()}')
                 self.api.ktv.update_price(stock.roomItem.itemId, 1, stock.get_target_price())
                 if not stock.available:
                     to_remove.append(stock)
+            if stock.will_revoke:
+                price = int(stock.price) - int(stock.target.price)
+                self.api.ktv.update_price(stock.roomItem.itemId, 1, price)
         for i in to_remove:
+            logger.info(f"removing: {i.to_dict()}")
             if type(i) is TimeTableNode:
                 config.timetable_node.remove(i)
             elif type(i) is TimeTablePeriod:
                 config.timetable_period.remove(i)
             elif type(i) is RoomStockPlan:
                 config.room_stock_plan.remove(i)
+                i.revoke()
 
     def add_timetable_node(self, timetable_node: TimeTableNode):
         config.timetable_node.append(timetable_node)

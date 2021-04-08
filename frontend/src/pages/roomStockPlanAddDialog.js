@@ -32,7 +32,7 @@ function RoomStockPlanAddDialog(props) {
       <DialogTitle>添加一个库存管理</DialogTitle>
       <DialogContent>
         <RoomStockPlanList roomItemNow={roomItemNow} onClose={n => {
-          console.log(n);
+          console.log('add room stock plan', n);
           onClose();
         }} stock={{}} />
       </DialogContent>

@@ -261,6 +261,7 @@ def set_timetable_node():
             break
     if target is not None:
         config.timetable_node[target] = node
+        config.save()
         return make_result()
     config.lock.acquire()
     try:
@@ -287,6 +288,7 @@ def set_timetable_period():
             break
     if target is not None:
         config.timetable_period[target] = period
+        config.save()
         return make_result()
     config.lock.acquire()
     try:
@@ -313,6 +315,7 @@ def set_room_stock_plan():
             break
     if target is not None:
         config.room_stock_plan[target] = stock
+        config.save()
         return make_result()
     config.lock.acquire()
     try:
@@ -324,6 +327,64 @@ def set_room_stock_plan():
         })
     config.lock.release()
     config.save()
+    return make_result()
+
+
+def delete_tid(tid: int) -> bool:
+    for i in range(len(config.room_stock_plan)):
+        if config.room_stock_plan[i].tid == tid:
+            config.room_stock_plan.remove(config.room_stock_plan[i])
+            return True
+    for i in range(len(config.timetable_node)):
+        if config.timetable_node[i].tid == tid:
+            config.timetable_node.remove(config.timetable_node[i])
+            return True
+    for i in range(len(config.timetable_period)):
+        if config.timetable_period[i].tid == tid:
+            config.timetable_period.remove(config.timetable_period[i])
+            return True
+    return False
+
+
+@app.route("/delete/timetable_node", methods=['POST'])
+def delete_timetable_node():
+    tid_t = get_request_json(request)
+    if 'tid' not in tid_t:
+        return make_result(400)
+    tid = tid_t['tid']
+    if not delete_tid(tid):
+        return make_result(400, message=f'Cannot find tid: {tid}')
+    return make_result()
+
+
+@app.route("/delete/timetable_period", methods=['POST'])
+def delete_timetable_period():
+    tid_t = get_request_json(request)
+    if 'tid' not in tid_t:
+        return make_result(400)
+    tid = tid_t['tid']
+    if not delete_tid(tid):
+        return make_result(400, message=f'Cannot find tid: {tid}')
+    return make_result()
+
+
+@app.route("/delete/room_stock_plan", methods=['POST'])
+def delete_room_stock_plan():
+    tid_t = get_request_json(request)
+    if 'tid' not in tid_t:
+        return make_result(400)
+    tid = tid_t['tid']
+    if not delete_tid(tid):
+        return make_result(400, message=f'Cannot find tid: {tid}')
+    return make_result()
+
+
+@app.route('/delete/tid/<int:tid>')
+def delete_from_tid(tid: int):
+    if tid is None or tid == 0:
+        return make_result(400)
+    if not delete_tid(tid):
+        return make_result(400, message=f'Cannot find tid: {tid}')
     return make_result()
 
 

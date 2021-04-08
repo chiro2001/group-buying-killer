@@ -8,8 +8,8 @@ class Config {
     this.load = this.load.bind(this);
     this.save = this.save.bind(this);
     this.theme_avaliable = {
-      "default": createMuiTheme({}),
-      dark: createMuiTheme({
+      "默认主题": createMuiTheme({}),
+      '黑暗模式': createMuiTheme({
         palette: {
           type: "dark",
           primary: {
@@ -23,14 +23,14 @@ class Config {
     }
     // 在构造函数执行的时候加载保存的数据
     this.data_default = {
-      debug: true,
+      debug: false,
       version_frontend: 0.1,
       // 显示主题
-      // theme_name: "dark",
-      theme_name: "default",
+      // theme_name: "黑暗模式",
+      theme_name: "默认主题",
       theme_avaliable: [
-        'default',
-        'dark'
+        '默认主题',
+        '黑暗模式'
       ],
       auth: "",
       // 用户信息

@@ -1,4 +1,5 @@
 import time
+import json
 from gbk.utils import *
 import requests
 from gbk.config import config
@@ -87,12 +88,28 @@ class API:
             if self.shop_id == 0:
                 raise Exception("需要获取shopId")
             resp = self.request_func(self.url_get_reserve_table % (self.shop_id, timestamp))
-            self.reserve_table[get_timestamp_date(timestamp)] = resp['data']
-            return resp['data']
+            date = get_timestamp_date(timestamp)
+            # 用 JSON 实现深度拷贝（
+            temp = json.loads(json.dumps(resp['data']))
+            # 在此修改 roomItem
+            for i in range(len(resp['data']['periodList'])):
+                period = resp['data']['periodList'][i]
+                periodId = period['periodId']
+                for j in period['roomMapItemEntry']:
+                    roomList = period['roomMapItemEntry'][j]
+                    for k in range(len(roomList)):
+                        room = roomList[k]
+                        room['periodId'] = periodId
+                        room['date'] = date
+                        room['roomType'] = j
+                        temp['periodList'][i]['roomMapItemEntry'][j][k] = room
+            self.reserve_table[date] = temp
+            return temp
 
         def update_price(self, item_id: int, type_: int, price: str):
             if self.shop_id == 0:
                 raise Exception("需要获取shopId")
+            logger.warn(f'updating to price {price}')
             return self.request_func(self.url_update_price % (self.shop_id, item_id, type_, price))
 
     def __init__(self):

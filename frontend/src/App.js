@@ -49,6 +49,7 @@ import Connect from "./pages/connect"
 
 import './App.css';
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, ListItem } from '@material-ui/core';
+import { config } from 'webpack';
 
 const drawerWidth = 240;
 moment.locale('zh-cn');
@@ -136,6 +137,10 @@ let subscribers = {};
 store.subscribe(() => {
   let state = store.getState();
   // console.log('redux update to', state);
+  // 保存 config
+  if (state.config) {
+    config.save();
+  }
   for (let subFunc in subscribers) {
     subscribers[subFunc](state);
   }
@@ -154,8 +159,9 @@ export default function App() {
   const triggerWidthClose = 600;
 
   // 注册一个当网络错误的时候调用的钩子吧
-  subscribers['netError'] = function (state) {
+  subscribers['Error'] = function (state) {
     if (state.errorInfo) {
+      console.log('Error Hook: ', state.errorInfo);
       setErrorDialogInfo(state.errorInfo);
       // 清空错误信息
       store.dispatch(setErrorInfo(null));

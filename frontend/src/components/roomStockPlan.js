@@ -10,6 +10,7 @@ import PropTypes from 'prop-types';
 import { DateTimePicker } from '@material-ui/pickers';
 import { parseTimePoint, parseTimePeriod, sleep } from '../utils/utils';
 import RoomStockPlanList from './roomStockPlanList';
+import { API } from '../api/api';
 
 const useStyles = makeStyles((theme) => ({
   nested: {
@@ -19,6 +20,8 @@ const useStyles = makeStyles((theme) => ({
     // paddingRight: theme.spacing(4),
   }
 }));
+
+const api = new API();
 
 function RoomStockPlan(props) {
   const classes = useStyles();
@@ -39,7 +42,9 @@ function RoomStockPlan(props) {
           {open ? <ExpandLessIcon /> : <ExpandMoreIcon />}
         </div>
         <ListItemSecondaryAction>
-          <IconButton edge="end">
+          <IconButton edge="end" onClick={async () => {
+            if (stock.tid) await api.delete_tid(stock.tid);
+          }}>
             <DeleteIcon />
           </IconButton>
         </ListItemSecondaryAction>

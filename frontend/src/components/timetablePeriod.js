@@ -9,6 +9,7 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import PropTypes from 'prop-types';
 import { parseTimePoint, parseTimePeriod, sleep } from '../utils/utils'
 import TimetablePeriodList from './timetablePeriodList';
+import { API } from '../api/api';
 
 const useStyles = makeStyles((theme) => ({
   nested: {
@@ -18,6 +19,8 @@ const useStyles = makeStyles((theme) => ({
     // paddingRight: theme.spacing(4),
   }
 }));
+
+const api = new API();
 
 function TimetablePeriod(props) {
   const classes = useStyles();
@@ -38,7 +41,9 @@ function TimetablePeriod(props) {
           {open ? <ExpandLessIcon /> : <ExpandMoreIcon />}
         </div>
         <ListItemSecondaryAction>
-          <IconButton edge="end">
+          <IconButton edge="end" onClick={async () => {
+            if (period.tid) await api.delete_tid(period.tid);
+          }}>
             <DeleteIcon />
           </IconButton>
         </ListItemSecondaryAction>

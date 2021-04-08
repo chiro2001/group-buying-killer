@@ -119,13 +119,13 @@ function ReserveTable(props) {
               if (period.roomItem.itemId === roomItem.itemId) {
                 planCount++;
               } else {
-                console.log('irr', period, roomItem);
+                // console.log('irr', period, roomItem);
               }
             }
-            console.log('planCount', planCount);
+            // console.log('planCount', planCount);
             return (<Link key={data.periodId + name + roomItem.itemId + i + 'planLink'} onClick={() => {
-              console.log('roomItem', roomItem);
-              console.log('data', data);
+              // console.log('roomItem', roomItem);
+              // console.log('data', data);
               let parent = {};
               for (const arg in data)
                 if (arg !== 'roomMapItemEntry')

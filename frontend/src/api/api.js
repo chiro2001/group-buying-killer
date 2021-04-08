@@ -25,27 +25,28 @@ const request = async function (url_base, router, args, method = 'GET') {
             'content-type': 'application/json',
           },
         }).then(data => {
-          console.log('then', data);
+          // console.log('then', data);
           resolve(data);
         })
       })).json();
     }
   } catch (e) {
     console.log(e);
-    if (isIterator(store.getState().errorInfo)) {
-      let t = store.getState().errorInfo;
-      t.push(e);
-      setErrorInfo(t);
-    } else setErrorInfo([e,]);
+    // if (isIterator(store.getState().errorInfo)) {
+    //   let t = store.getState().errorInfo;
+    //   t.push(e);
+    //   setErrorInfo(t);
+    // } else setErrorInfo([e,]);
+    store.dispatch(setErrorInfo(e));
     throw e;
   }
   if (js.code !== 200) {
     console.warn("Request responsed with code", js.code, 'message:', js.message, 'data:', js.data);
-    setErrorInfo(js);
+    store.dispatch(setErrorInfo(js));
   }
   try {
     // 忽略惯常消息
-    if (!(js.data.timetable_node || js.data.timetable_period))
+    if (!(js.data.timetable_node || js.data.timetable_period || js.data.room_stock_plan))
       console.log('resp', js);
     // 过长的json可能不自动转换..?
     if (typeof (js) === 'string') {
@@ -53,16 +54,19 @@ const request = async function (url_base, router, args, method = 'GET') {
         js = JSON.parse(js);
       } catch (e) {
         console.warn(e);
+        store.dispatch(setErrorInfo(e));
+        return null;
       }
     }
     return js;
   } catch (e) {
     console.log(e);
-    if (isIterator(store.getState().errorInfo)) {
-      let t = store.getState().errorInfo;
-      t.push(e);
-      setErrorInfo(t);
-    } else setErrorInfo([e,]);
+    // if (isIterator(store.getState().errorInfo)) {
+    //   let t = store.getState().errorInfo;
+    //   t.push(e);
+    //   setErrorInfo(t);
+    // } else setErrorInfo([e,]);
+    store.dispatch(setErrorInfo(e));
     throw e;
   }
 };
@@ -79,10 +83,14 @@ class API {
       get_ips: 'get/ips',
       get_timetable_node: "get/timetable_node",
       set_timetable_node: "set/timetable_node",
+      delete_timetable_node: "delete/timetable_node",
       get_timetable_period: "get/timetable_period",
       set_timetable_period: "set/timetable_period",
+      delete_timetable_period: "delete/timetable_period",
       get_room_stock_plan: "get/room_stock_plan",
       set_room_stock_plan: "set/room_stock_plan",
+      delete_room_stock_plan: "delete/room_stock_plan",
+      delete_tid: "delete/tid",
       get_shop_info: "get/shop_info",
       get_reserve_date: 'get/reserve_date',
       get_reserve_table: 'get/reserve_table',
@@ -127,6 +135,10 @@ class API {
   async set_room_stock_plan(stock) {
     return await request(this.url_base, this.url.set_room_stock_plan, stock, 'POST');
   }
+  async delete_tid(tid) {
+    return await request(this.url_base, this.url.delete_tid + '/' + tid);
+  }
+  
   async get_shop_info() {
     return (await request(this.url_base, this.url.get_shop_info)).data.shop_info;
   }
