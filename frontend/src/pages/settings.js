@@ -18,6 +18,7 @@ function Settings(props) {
               let c = store.getState().config;
               c.data.theme_name = e.target.value;
               c.theme = c.theme_avaliable[c.data.theme_name];
+              c.save();
               store.dispatch(setConfig(c));
               setTimeout(() => { window.location.reload(); }, 200);
             }}>

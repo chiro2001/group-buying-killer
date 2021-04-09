@@ -49,7 +49,6 @@ import Connect from "./pages/connect"
 
 import './App.css';
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, ListItem } from '@material-ui/core';
-import { config } from 'webpack';
 
 const drawerWidth = 240;
 moment.locale('zh-cn');
@@ -134,13 +133,17 @@ api.get_shop_info().then(shopInfo => {
 
 let subscribers = {};
 
+// let config_last_data = null;
+
 store.subscribe(() => {
   let state = store.getState();
   // console.log('redux update to', state);
   // 保存 config
-  if (state.config) {
-    config.save();
-  }
+  // if (state.config) {
+  //   if (state.config.data !== config_last_data)
+  //   state.config.save();
+  //   config_last_data = state.config.data;
+  // }
   for (let subFunc in subscribers) {
     subscribers[subFunc](state);
   }

@@ -39,7 +39,7 @@ class Config {
       }
     };
     this.data = this.data_default;
-    this.theme = this.theme_avaliable["default"];
+    this.theme = this.theme_avaliable["默认主题"];
     this.api = new API();
     // 先声明已经登录，然后再检查登录状态
     this.has_login = true;
