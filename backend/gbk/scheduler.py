@@ -20,7 +20,10 @@ class Scheduler:
         self.api = API()
         self.solution_id = 0
         self.shop_id = 0
-        self.has_login = test_login(config.cookies)
+        try:
+            self.has_login = test_login(config.cookies)
+        except (GBKLoginError, GBKPermissionError) as e:
+            self.has_login = False
 
         self.running = False
         # 数据锁
@@ -32,6 +35,9 @@ class Scheduler:
 
         # 注意调用方式
         _ = self.fetch_init_data
+
+    def re_login(self):
+        login_main(enter_exit=False, re_login=True)
 
     class LoginTry(object):
         def __init__(self, func):
@@ -45,8 +51,11 @@ class Scheduler:
                 rets = self.func(instance)
                 instance.has_login = True
                 return rets
-            except GBKPermissionError as e:
+            except GBKLoginError as e:
                 login_main(enter_exit=False)
+            except GBKPermissionError as e:
+                # 重新登录
+                login_main(enter_exit=False, re_login=True)
             while not instance.has_login:
                 try:
                     logger.warning('instance.has_login: %s' % instance.has_login)
@@ -124,8 +133,11 @@ class Scheduler:
         if self.count == 60:
             # self.room_stock_data = self.api.room_stock.get_room_stock()
             # logger.info(f'got room_stock_data: {self.room_stock_data}')
-            self.api.ktv.get_reserve_table()
-            self.api.ktv.get_reserve_date()
+            try:
+                self.api.ktv.get_reserve_table()
+                self.api.ktv.get_reserve_date()
+            except GBKShopIdError:
+                raise GBKPermissionError("无权访问")
             self.count = 0
         self.lock.release()
         time_stamp = int(time.time() * 1000)

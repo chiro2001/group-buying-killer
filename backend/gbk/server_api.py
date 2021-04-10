@@ -179,8 +179,12 @@ def test():
 
 @app.route("/has_login")
 def has_login():
+    try:
+        has_login_ = test_login(config.cookies)
+    except (GBKLoginError, GBKPermissionError):
+        has_login_ = False
     return make_result(data={
-        "has_login": test_login(config.cookies)
+        "has_login": has_login_
     })
 
 
@@ -406,6 +410,7 @@ def logout():
     config.cookies = ""
     config.save()
     logger.debug("data: %s" % json.dumps(config.data))
+    scheduler.re_login()
     # t = threading.Thread(target=restart_program, args=(1, ))
     # t.setDaemon(True)
     # t.start()

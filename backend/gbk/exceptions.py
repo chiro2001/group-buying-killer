@@ -14,6 +14,10 @@ class GBKPermissionError(GBKBaseError):
     pass
 
 
+class GBKLoginError(GBKBaseError):
+    pass
+
+
 class GBKShopIdError(GBKBaseError):
     pass
 

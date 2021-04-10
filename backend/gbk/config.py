@@ -24,8 +24,9 @@ class Config:
             "cookies": des_encrypt(Config.KEY,
                                    '''_lxsdk_cuid=17771fd8425c8-0f5b6f7abba2ce8-4c3f217f-ca800-17771fd8425c8; _lxsdk=17771fd8425c8-0f5b6f7abba2ce8-4c3f217f-ca800-17771fd8425c8; _hc.v=6594ea87-cd60-00b4-94e8-05bc93197b85.1612525177; mpmerchant_portal_shopid=581990543; __utma=1.458675775.1615809801.1615809801.1615809801.1; __utmz=1.1615809801.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); shopOperationSource=0; JSESSIONID=4E271EEB03FE606AD64ACCAB6F838EBD; merchantBookShopID=581990543; merchantCategoryID=2890; logan_session_token=syc8jiwdcfsnj6wzgtep; logan_custom_report=; _lxsdk_s=178b7410b70-721-ffb-bac%7C%7C82; edper=GpwgUYjS9BdDMGQRWOJtB0LE8X_LlofXWamMVrvmBylIYy6QNm6ASvdu9vFha-OV5B5ihWn-HOEmf20HLNxA_A'''),
             # "cookies": "",
-            # 授权码
+            # (未使用)授权码
             'auth_key': '',
+            # (未使用) 任务id
             'plan_id': 10000,
             "timetable_node": {
                 "upgradable": False,

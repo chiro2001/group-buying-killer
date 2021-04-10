@@ -56,6 +56,7 @@ def get_logger(name=__name__):
 
 
 logger = get_logger(__name__)
+logger.setLevel(logging.INFO)
 
 
 def get_net_info():
@@ -127,3 +128,33 @@ def get_trackback():
     exc_type, exc_value, exc_traceback = sys.exc_info()
     error = str(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))  # 将异常信息转为字符串
     return error
+
+
+g_path_chrome = [
+    "chrome.exe",
+    ".\\chrome\\chrome.exe",
+    "..\\dist\\chrome\\chrome.exe",
+    "..\\..\\dist\\chrome\\chrome.exe",
+]
+g_path_chrome_driver = [
+    "chromedriver.exe",
+    ".\\chrome\\chromedriver.exe",
+    "..\\dist\\chrome\\chromedriver.exe",
+    "..\\..\\dist\\chrome\\chromedriver.exe",
+]
+
+
+def find_chrome_path():
+    path_chrome = "chrome"
+    for path in g_path_chrome:
+        if os.path.exists(path) and os.path.isfile(path):
+            path_chrome = path
+    return os.path.abspath(path_chrome)
+
+
+def find_chrome_driver_path():
+    path_chrome_driver = "chromedriver"
+    for path in g_path_chrome_driver:
+        if os.path.exists(path) and os.path.isfile(path):
+            path_chrome_driver = path
+    return os.path.abspath(path_chrome_driver)

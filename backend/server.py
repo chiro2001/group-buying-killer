@@ -15,7 +15,8 @@ from gbk.server_api import app as app_api
 from gbk.file_server import app as app_file
 from gbk.config import config
 from gbk.scheduler import scheduler
-from gbk.utils import logger, get_ip_info
+from gbk.utils import logger, get_ip_info, find_chrome_path, find_chrome_driver_path
+from gbk.login import browser_init
 
 # 只显示错误消息
 logger_werkzeug = logging.getLogger('werkzeug')
@@ -54,15 +55,22 @@ if __name__ == '__main__':
     config.thread = t
     port = int(os.environ.get("PORT", '8000'))
 
-    mode = 'standalone_'
+    mode = 'standalone'
     logger.info(f'Your IPs: {get_ip_info()}')
+    browser = None
 
     # standalone 模式是指单独运行Python，Python负责后端响应
     if mode == 'standalone':
         logger.info('Opening browser...')
-        logger.info(f'Please visit http://localhost:{port}')
-        webbrowser.open(f'http://localhost:{port}')
+        url = f"http://localhost:{port}"
+        logger.info(f'Please visit {url}')
+        # webbrowser.open(f'http://localhost:{port}')
+        # chrome_path = find_chrome_path()
+        # os.system(f"{chrome_path} {url}")
+        logger.info(os.path.abspath(os.curdir))
+        logger.info(os.path.abspath(find_chrome_driver_path()))
+        browser = browser_init()
+        browser.get(url)
+        browser.implicitly_wait(3)
 
     run_simple('0.0.0.0', port, dm, use_reloader=False)
-
-
