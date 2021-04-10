@@ -25,20 +25,24 @@ class TimeTableNode:
             logger.info("Trigger: %s" % self.to_dict())
             self.update(time_stamp)
             return True
+        self.update(time_stamp)
         return False
 
     def update(self, time_stamp: int):
-        if self.cycle == 0:
-            self.available = False
-            return False
+        if fmt_time(time_stamp) == fmt_time(self.time_):
+            if self.cycle == 0:
+                self.available = False
+                return False
+            while fmt_time(self.time_) <= fmt_time(time_stamp):
+                self.time_ += self.cycle
         if self.available_start is not None and self.available_end is not None:
             if not (self.available_start - 1000 <= time_stamp <= self.available_end):
                 self.available = False
                 return False
-        while self.time_ <= time_stamp:
-            self.time_ += self.cycle
-            if self.cycle > 0:
-                self.cycle -= 1
+        if self.available_end is not None:
+            if not time_stamp <= self.available_end:
+                self.available = False
+                return False
 
     # 获取设置的价格
     # 直接是数字的话，表示绝对价格
@@ -103,20 +107,24 @@ class TimeTablePeriod:
             self.will_revoke = True
             self.update(time_stamp)
             return False
+        self.update(time_stamp)
         return False
 
     def update(self, time_stamp: int):
         if fmt_time(time_stamp) == fmt_time(self.time_end):
             if self.cycle == 0:
                 self.available = False
-            if self.available_start is not None and self.available_end is not None:
-                if not (self.available_start - 1000 <= time_stamp <= self.available_end):
-                    self.available = False
-            while self.time_start <= time_stamp:
+            while fmt_time(self.time_start) <= fmt_time(time_stamp):
                 self.time_start += self.cycle
                 self.time_end += self.cycle
-                if self.cycle > 0:
-                    self.cycle -= 1
+        if self.available_start is not None and self.available_end is not None:
+            if not (self.available_start - 1000 <= time_stamp <= self.available_end):
+                self.available = False
+                return False
+        if self.available_end is not None:
+            if not time_stamp <= self.available_end:
+                self.available = False
+                return False
 
     # 获取设置的价格
     # 直接是数字的话，表示绝对价格
@@ -215,7 +223,7 @@ class RoomStockPlan:
         # logger.info(json.dumps(room_stock_data))
         # logger.info(json.dumps(self.to_dict()))
         if not self.available:
-            self.update(time_stamp=time_stamp)
+            # self.update(time_stamp=time_stamp)
             return False
         if self.working:
             self.update(time_stamp=time_stamp)
@@ -240,18 +248,22 @@ class RoomStockPlan:
         self.target.price = int(self.price) - int(self.target.price)
         if self.planType == RoomStockPlan.PlanTypeLess:
             if self.value > target.stock:
+                self.working = False
                 self.update(time_stamp=time_stamp)
                 return True
         elif self.planType == RoomStockPlan.PlanTypeLessOrEqual:
             if self.value >= target.stock:
+                self.working = False
                 self.update(time_stamp=time_stamp)
                 return True
         elif self.planType == RoomStockPlan.PlanTypeGreater:
             if self.value < target.stock:
+                self.working = False
                 self.update(time_stamp=time_stamp)
                 return True
         elif self.planType == RoomStockPlan.PlanTypeGreaterOrEqual:
             if self.value <= target.stock:
+                self.working = False
                 self.update(time_stamp=time_stamp)
                 return True
         else:
@@ -261,10 +273,6 @@ class RoomStockPlan:
         return False
 
     def update(self, time_stamp=None):
-        if time_stamp is not None:
-            if self.available_start is not None and self.available_end is not None:
-                if not (self.available_start - 1000 <= time_stamp <= self.available_end):
-                    self.available = False
         if self.target is None:
             return
         if self.working:
@@ -283,6 +291,16 @@ class RoomStockPlan:
             # 结束的时候恢复原来状态
             if not self.working:
                 self.will_revoke = True
+                return
+        if time_stamp is not None:
+            if self.available_start is not None and self.available_end is not None:
+                if not (self.available_start - 1000 <= time_stamp <= self.available_end):
+                    self.available = False
+                    return
+            if self.available_end is not None:
+                if not time_stamp <= self.available_end:
+                    self.available = False
+                    return False
     
     # # 恢复状态
     # def revoke(self):
@@ -325,4 +343,6 @@ class RoomStockPlan:
     def from_json(js):
         return RoomStockPlan(RoomItem.from_json(js['roomItem']), js['planType'], js['value'], js['price'],
                              js.get('available', True), js.get('available_start', None),
-                             js.get('available_end', None), js.get('working', False), js.get('tid', None))
+                             js.get('available_end', None),
+                             js.get('working', False),
+                             js.get('tid', None))

@@ -253,7 +253,10 @@ def get_reserve_table():
 def set_timetable_node():
     node_t = get_request_json(request)
     logger.info(node_t)
-    node = TimeTableNode.from_json(node_t)
+    try:
+        node = TimeTableNode.from_json(node_t)
+    except (KeyError, ValueError) as e:
+        return make_result(400, message=str(e))
     target = None
     for i in range(len(config.timetable_node)):
         if config.timetable_node[i].tid == node.tid:
@@ -280,7 +283,10 @@ def set_timetable_node():
 def set_timetable_period():
     period_t = get_request_json(request)
     logger.info(period_t)
-    period = TimeTablePeriod.from_json(period_t)
+    try:
+        period = TimeTablePeriod.from_json(period_t)
+    except (KeyError, ValueError) as e:
+        return make_result(400, message=str(e))
     target = None
     for i in range(len(config.timetable_period)):
         if config.timetable_period[i].tid == period.tid:
@@ -307,15 +313,21 @@ def set_timetable_period():
 def set_room_stock_plan():
     stock_t = get_request_json(request)
     logger.info(stock_t)
-    stock = RoomStockPlan.from_json(stock_t)
+    try:
+        stock = RoomStockPlan.from_json(stock_t)
+    except (KeyError, ValueError) as e:
+        return make_result(400, message=str(e))
     target = None
     for i in range(len(config.room_stock_plan)):
         if config.room_stock_plan[i].tid == stock.tid:
             target = i
             break
     if target is not None:
+        stock.working = config.room_stock_plan[target].working
+        config.lock.acquire()
         config.room_stock_plan[target] = stock
         config.save()
+        config.lock.release()
         return make_result()
     config.lock.acquire()
     try:

@@ -1,5 +1,5 @@
 import React from 'react';
-import { TextField, List, ListItem, ListItemText, ListItemIcon, ListItemSecondaryAction, IconButton, Button, FormControl, InputLabel, Select, MenuItem, Typography } from '@material-ui/core';
+import { Switch, TextField, List, ListItem, ListItemText, ListItemIcon, ListItemSecondaryAction, IconButton, Button, FormControl, InputLabel, Select, MenuItem, Typography } from '@material-ui/core';
 import { makeStyles, useTheme, ThemeProvider } from '@material-ui/core/styles';
 import Collapse from '@material-ui/core/Collapse';
 import AlarmOnIcon from '@material-ui/icons/AlarmOn';
@@ -76,34 +76,39 @@ function RoomStockPlanList(props) {
         <ListItemText primary="生效时间之外项目无效，不设置即全部生效" />
       </ListItem>
       <ListItem>
-        <ListItemText primary="设置生效开始时间" />
+        <ListItemText primary="启用生效开始时间" />
         <ListItemSecondaryAction>
-          {!selectAvailableStartDateOn ?
-            <Button onClick={() => { setSelectAvailableStartDateOn(true); }}>点击设置</Button>
-            : <DateTimePicker
-              value={selectAvailableStartDate}
-              onChange={handleAvailableStrartDateChange}
-              onClose={async () => {
-                await sleep(1200);
-                selectAvailableStartDate === 0 ? setSelectAvailableStartDateOn(false) : setSelectAvailableStartDateOn(true);
-              }} />}
+          <Switch checked={selectAvailableStartDateOn} onChange={e => {
+            if (e.target.checked) handleAvailableStartDateChange(0);
+            setSelectAvailableStartDateOn(e.target.checked);
+          }}></Switch>
         </ListItemSecondaryAction>
       </ListItem>
+      {selectAvailableStartDateOn ? <ListItem className={classes.nested}>
+        <ListItemText primary="设置时间"></ListItemText>
+        <ListItemSecondaryAction>
+          <DateTimePicker
+            value={selectAvailableStartDate}
+            onChange={handleAvailableStartDateChange} />
+        </ListItemSecondaryAction>
+      </ListItem> : undefined}
       <ListItem>
-        <ListItemText primary="设置生效结束时间" />
+        <ListItemText primary="启用生效结束时间" />
         <ListItemSecondaryAction>
-          {!selectAvailableEndDateOn ?
-            <Button onClick={() => { setSelectAvailableEndDateOn(true); }}>点击设置</Button>
-            : <DateTimePicker
-              value={selectAvailableEndDate}
-              onChange={handleAvailableEndDateChange}
-              onClose={async () => {
-                await sleep(1200);
-                console.log(selectAvailableEndDate);
-                selectAvailableEndDate === 0 ? setSelectAvailableEndDateOn(false) : setSelectAvailableEndDateOn(true);
-              }} />}
+          <Switch checked={selectAvailableEndDateOn} onChange={e => {
+            if (e.target.checked) handleAvailableEndDateChange(0);
+            setSelectAvailableEndDateOn(e.target.checked)
+          }}></Switch>
         </ListItemSecondaryAction>
       </ListItem>
+      {selectAvailableEndDateOn ? <ListItem className={classes.nested}>
+        <ListItemText primary="设置时间"></ListItemText>
+        <ListItemSecondaryAction>
+          <DateTimePicker
+            value={selectAvailableEndDate}
+            onChange={handleAvailableEndDateChange} />
+        </ListItemSecondaryAction>
+      </ListItem> : undefined}
       {errorMessage ? <ListItem>
         {/* <ListItemText primary={errorMessage} color="error"></ListItemText> */}
         <Typography color="error">{errorMessage}</Typography>
@@ -113,17 +118,19 @@ function RoomStockPlanList(props) {
           let n = stock ? stock : {};
           n.available_start = selectAvailableStartDate._d ? selectAvailableStartDate._d.getTime() : selectAvailableStartDate;
           n.available_end = selectAvailableEndDate._d ? selectAvailableEndDate._d.getTime() : selectAvailableEndDate;
-          if (n.available_start === 0) delete n.available_start;
-          if (n.available_end === 0) delete n.available_end;
+          if (n.available_start === 0) n.available_start = new Date().getTime();
+          if (n.available_end === 0) n.available_end = new Date().getTime();
+          if (!selectAvailableStartDateOn) delete n.available_start;
+          if (!selectAvailableEndDateOn) delete n.available_end;
           console.log(n);
-          if ((n.available_start && !n.available_end) || (!n.available_start && n.available_end)) {
-            setErrorMessage('可用开始时间和结束时间不能只选择其中之一');
-            return;
-          }
           n.price = valuePrice;
           n.value = valueValue;
           n.planType = planType;
           n.roomItem = roomItemNow;
+          if (!valueValue) {
+            setErrorMessage("请设置正确的数值");
+            return;
+          }
           if (roomItemNow.parent)
             for (const arg in roomItemNow.parent)
               n[arg] = roomItemNow.parent[arg];

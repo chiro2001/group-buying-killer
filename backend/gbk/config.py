@@ -19,10 +19,10 @@ class Config:
 
     def __init__(self):
         self.data_default = {
-            "debug": True,
+            "debug": False,
             "version": 0.1,
             "cookies": des_encrypt(Config.KEY,
-                                   '''_lxsdk_cuid=17771fd8425c8-0f5b6f7abba2ce8-4c3f217f-ca800-17771fd8425c8; _lxsdk=17771fd8425c8-0f5b6f7abba2ce8-4c3f217f-ca800-17771fd8425c8; _hc.v=6594ea87-cd60-00b4-94e8-05bc93197b85.1612525177; mpmerchant_portal_shopid=581990543; __utma=1.458675775.1615809801.1615809801.1615809801.1; __utmz=1.1615809801.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); shopOperationSource=0; lAyRZMdTtVfwuYvIj2nqVfzEvT8%2B3iGnYufAYrCd6bg%3D=41543518; WjxCiWg4ruAfLN5GxTCpx%2Bjjf6%2B6Ejv%2FB1AkW7trW7UCCV20wDuXTJ9fB9yGrAdE="+onXqCpzbOmryCfr7G4/BQ=="; _lxsdk_s=17879613782-fd3-4ba-804%7C%7C77; edper=tovypiaGU6bWgmukoMiVMksae9kW9-N4LFFwmaS_0Uv6sVJYYloi_3P6rcJ_yG-Kg19b2XwK_2uRy_Nh-htHOQ; JSESSIONID=F8EF59EF9B3110AA640B25C428C4D287; merchantBookShopID=581990543; merchantCategoryID=2890; logan_session_token=sjm3v15mps8qqd855kr1; logan_custom_report='''),
+                                   '''_lxsdk_cuid=17771fd8425c8-0f5b6f7abba2ce8-4c3f217f-ca800-17771fd8425c8; _lxsdk=17771fd8425c8-0f5b6f7abba2ce8-4c3f217f-ca800-17771fd8425c8; _hc.v=6594ea87-cd60-00b4-94e8-05bc93197b85.1612525177; mpmerchant_portal_shopid=581990543; __utma=1.458675775.1615809801.1615809801.1615809801.1; __utmz=1.1615809801.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); shopOperationSource=0; JSESSIONID=4E271EEB03FE606AD64ACCAB6F838EBD; merchantBookShopID=581990543; merchantCategoryID=2890; logan_session_token=syc8jiwdcfsnj6wzgtep; logan_custom_report=; _lxsdk_s=178b7410b70-721-ffb-bac%7C%7C82; edper=GpwgUYjS9BdDMGQRWOJtB0LE8X_LlofXWamMVrvmBylIYy6QNm6ASvdu9vFha-OV5B5ihWn-HOEmf20HLNxA_A'''),
             # "cookies": "",
             # 授权码
             'auth_key': '',

@@ -30,8 +30,11 @@ function RoomStockPlan(props) {
   const handleClick = () => {
     setOpen(!open);
   };
+  const planTypeName = {
+    'lt': "小于", "le": "小于等于", 'gt': '大于', 'ge': '大约等于'
+  };
   const getSecondaryText = () => {
-    return ``
+    return `${stock.roomItem.roomType}/库存${planTypeName[stock.planType]}${stock.value}/调整至:${stock.price}/下次调整:${parseTimePoint(stock.time_)}/周期:${stock.cycle > 0 ? parseTimePeriod(stock.cycle) : "单次"}/${(stock.avaliable !== false) ? "可用" : "不可用"}`
   };
   return (
     <div>

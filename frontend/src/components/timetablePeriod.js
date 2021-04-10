@@ -30,7 +30,7 @@ function TimetablePeriod(props) {
     setOpen(!open);
   };
   const getSecondaryText = () => {
-    return `${period.periodId}/调整至:${period.price}/下次调整:${parseTimePoint(period.time_start)}/下次调整结束:${parseTimePoint(period.time_end)}/周期:${period.cycle > 0 ? parseTimePeriod(period.cycle) : "单次"}/${period.avaliable ? "可用" : "不可用"}`
+    return `${period.periodId}/${period.roomItem.roomType}/调整至:${period.price}/下次调整:${parseTimePoint(period.time_start)}/下次调整结束:${parseTimePoint(period.time_end)}/周期:${period.cycle > 0 ? parseTimePeriod(period.cycle) : "单次"}/${period.avaliable ? "可用" : "不可用"}`
   };
   return (
     <div>

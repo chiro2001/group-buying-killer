@@ -18,9 +18,8 @@ class Scheduler:
 
     def __init__(self):
         self.api = API()
-        self.solution_id = 1834526
-        self.api.ktv.set_shop_id(581990543)
-        self.api.room_stock.set_shop_id(581990543)
+        self.solution_id = 0
+        self.shop_id = 0
         self.has_login = test_login(config.cookies)
 
         self.running = False
@@ -73,8 +72,13 @@ class Scheduler:
 
     @LoginTry
     def fetch_init_data(self):
+        logger.info('Loading solution_id')
+        self.solution_id = self.api.solution.get_solution_id()
         logger.info('Loading shop_info')
-        logger.debug(self.api.ktv.get_shop_id(self.solution_id))
+        self.shop_id = self.api.ktv.get_shop_id(self.solution_id)
+        self.api.ktv.set_shop_id(self.shop_id)
+        self.api.room_stock.set_shop_id(self.shop_id)
+        logger.debug(f'shop_id: {self.shop_id}')
         # with open(os.path.join(config.FILE_PATH, "shop_info.json"), 'w') as f:
         #     json.dump(self.api.ktv.shop_info, f)
         logger.info('Loading reserve_date...')
@@ -130,16 +134,16 @@ class Scheduler:
             if node.is_on_turn(time_stamp):
                 logger.info(f"adjusting: {node.to_dict()}")
                 self.api.ktv.update_price(node.roomItem.itemId, 1, node.get_target_price())
-                # 然后如果不available就删除
-                if not node.available:
-                    to_remove.append(node)
+            # 然后如果不available就删除
+            if not node.available:
+                to_remove.append(node)
         for period in config.timetable_period:
             if period.is_on_turn(time_stamp):
                 logger.info(f"adjusting: {period.to_dict()}")
                 self.api.ktv.update_price(period.roomItem.itemId, 1, period.get_target_price())
-                # 然后如果不available就删除
-                if not period.available:
-                    to_remove.append(period)
+            # 然后如果不available就删除
+            if not period.available:
+                to_remove.append(period)
                 logger.info(f'period: {period.to_dict()}')
             if period.will_revoke:
                 price = int(period.roomItem.price)
@@ -153,20 +157,19 @@ class Scheduler:
             if stock.is_on_turn(self.api.ktv.reserve_table):
                 logger.info(f'adjusting: {stock.to_dict()}')
                 self.api.ktv.update_price(stock.roomItem.itemId, 1, stock.get_target_price())
-                if not stock.available:
-                    to_remove.append(stock)
+            if not stock.available:
+                to_remove.append(stock)
             if stock.will_revoke:
                 price = int(stock.price) - int(stock.target.price)
                 self.api.ktv.update_price(stock.roomItem.itemId, 1, price)
         for i in to_remove:
-            logger.info(f"removing: {i.to_dict()}")
+            logger.info(f"removing: {i.__class__.__name__}: {i.to_dict()}")
             if type(i) is TimeTableNode:
                 config.timetable_node.remove(i)
             elif type(i) is TimeTablePeriod:
                 config.timetable_period.remove(i)
             elif type(i) is RoomStockPlan:
                 config.room_stock_plan.remove(i)
-                i.revoke()
 
     def add_timetable_node(self, timetable_node: TimeTableNode):
         config.timetable_node.append(timetable_node)

@@ -1,5 +1,5 @@
 import React from 'react';
-import { TextField, List, ListItem, ListItemText, ListItemIcon, ListItemSecondaryAction, IconButton, Button } from '@material-ui/core';
+import { Switch, TextField, List, ListItem, ListItemText, ListItemIcon, ListItemSecondaryAction, IconButton, Button } from '@material-ui/core';
 import { makeStyles, useTheme, ThemeProvider } from '@material-ui/core/styles';
 import Collapse from '@material-ui/core/Collapse';
 import AlarmOnIcon from '@material-ui/icons/AlarmOn';
@@ -23,12 +23,12 @@ function TimetablePeriodList(props) {
   const { period, onClose, roomItemNow } = props;
   const [selectedStartDate, handleDateStartChange] = React.useState(period.time_start ? new Date(period.time_start) : new Date());
   const [selectedEndDate, handleDateEndChange] = React.useState(period.time_end ? new Date(period.time_end) : new Date());
-  const [selectAvailableStartDate, handleAvailableStrartDateChange] = React.useState(period.available_start ? period.available_start : 0);
+  const [selectAvailableStartDate, handleAvailableStartDateChange] = React.useState(period.available_start ? period.available_start : 0);
   const [selectAvailableEndDate, handleAvailableEndDateChange] = React.useState(period.available_end ? period.available_end : 0);
   const [selectAvailableStartDateOn, setSelectAvailableStartDateOn] = React.useState(selectAvailableStartDate === 0 ? false : true);
   const [selectAvailableEndDateOn, setSelectAvailableEndDateOn] = React.useState(selectAvailableEndDate === 0 ? false : true);
   const [roomItemListOpen, setRoomItemListOpen] = React.useState(false);
-  const [frequency, setFrequency] = React.useState('0');
+  const [frequency, setFrequency] = React.useState(period.cycle ? parseInt(period.cycle / (1000 * 60 * 60 * 24)) : "0");
   const [valuePrice, setValuePrice] = React.useState(period.price ? ('' + period.price) : (roomItemNow ? ('' + roomItemNow.price) : '0'));
   // console.log('PeriodList: roomItenNow = ', roomItemNow);
   return (
@@ -71,33 +71,39 @@ function TimetablePeriodList(props) {
         <ListItemText primary="生效时间之外项目无效，不设置即全部生效" />
       </ListItem>
       <ListItem>
-        <ListItemText primary="设置生效开始时间" />
+        <ListItemText primary="启用生效开始时间" />
         <ListItemSecondaryAction>
-          {!selectAvailableStartDateOn ?
-            <Button onClick={() => { setSelectAvailableStartDateOn(true); }}>点击设置</Button>
-            : <DateTimePicker
-              value={selectAvailableStartDate}
-              onChange={handleAvailableStrartDateChange}
-              onClose={async () => {
-                await sleep(600);
-                selectAvailableStartDate === 0 ? setSelectAvailableStartDateOn(false) : setSelectAvailableStartDateOn(true);
-              }} />}
+          <Switch checked={selectAvailableStartDateOn} onChange={e => {
+            if (e.target.checked) handleAvailableStartDateChange(0);
+            setSelectAvailableStartDateOn(e.target.checked);
+          }}></Switch>
         </ListItemSecondaryAction>
       </ListItem>
+      {selectAvailableStartDateOn ? <ListItem className={classes.nested}>
+        <ListItemText primary="设置时间"></ListItemText>
+        <ListItemSecondaryAction>
+          <DateTimePicker
+            value={selectAvailableStartDate}
+            onChange={handleAvailableStartDateChange} />
+        </ListItemSecondaryAction>
+      </ListItem> : undefined}
       <ListItem>
-        <ListItemText primary="设置生效结束时间" />
+        <ListItemText primary="启用生效结束时间" />
         <ListItemSecondaryAction>
-          {!selectAvailableEndDateOn ?
-            <Button onClick={() => { setSelectAvailableEndDateOn(true); }}>点击设置</Button>
-            : <DateTimePicker
-              value={selectAvailableEndDate}
-              onChange={handleAvailableEndDateChange}
-              onClose={async () => {
-                await sleep(600);
-                selectAvailableEndDate === 0 ? setSelectAvailableEndDateOn(false) : setSelectAvailableEndDateOn(true);
-              }} />}
+          <Switch checked={selectAvailableEndDateOn} onChange={e => {
+            if (e.target.checked) handleAvailableEndDateChange(0);
+            setSelectAvailableEndDateOn(e.target.checked)
+          }}></Switch>
         </ListItemSecondaryAction>
       </ListItem>
+      {selectAvailableEndDateOn ? <ListItem className={classes.nested}>
+        <ListItemText primary="设置时间"></ListItemText>
+        <ListItemSecondaryAction>
+          <DateTimePicker
+            value={selectAvailableEndDate}
+            onChange={handleAvailableEndDateChange} />
+        </ListItemSecondaryAction>
+      </ListItem> : undefined}
       <ListItem>
         <Button variant="contained" fullWidth onClick={() => {
           let n = period ? period : {};
@@ -105,8 +111,11 @@ function TimetablePeriodList(props) {
           n.time_end = selectedEndDate._d ? selectedEndDate._d.getTime() : selectedEndDate.getTime();
           n.available_start = selectAvailableStartDate._d ? selectAvailableStartDate._d.getTime() : selectAvailableStartDate;
           n.available_end = selectAvailableEndDate._d ? selectAvailableEndDate._d.getTime() : selectAvailableEndDate;
-          if (n.available_start === 0) delete n.available_start;
-          if (n.available_end === 0) delete n.available_end;
+          if (n.available_start === 0) n.available_start = new Date().getTime();
+          if (n.available_end === 0) n.available_end = new Date().getTime();
+          if (!selectAvailableStartDateOn) delete n.available_start;
+          if (!selectAvailableEndDateOn) delete n.available_end;
+          n.cycle = parseInt(frequency) * 1000 * 60 * 60 * 24;
           n.price = valuePrice;
           n.roomItem = roomItemNow;
           if (roomItemNow.parent)

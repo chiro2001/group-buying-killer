@@ -38,7 +38,7 @@ export function urlEncode2(obj) {
 }
 
 export function parseTimePoint(time) {
-  return moment().format('LLLL', time);
+  return moment(time).format('LLLL');
 }
 
 export function parseTimePeriod(time) {

@@ -2,6 +2,7 @@ import time
 import json
 from gbk.utils import *
 import requests
+from lxml import etree
 from gbk.config import config
 from gbk.exceptions import *
 
@@ -10,6 +11,39 @@ from gbk.exceptions import *
 
 
 class API:
+    class Shop:
+        url = 'https://e.dianping.com/merchant/portal/common/cityshop'
+
+        def __init__(self, request_func):
+            self.request_func = request_func
+            self.shop_id = None
+
+        def get_shop_id(self):
+            js = self.request_func(self.url)
+            self.shop_id = js['data']['currentShopId']
+            return self.shop_id
+
+    class Solution:
+        url = 'https://e.dianping.com/fun/ktv/solutionlist'
+
+        def __init__(self, request_func):
+            self.request_func = request_func
+
+        def get_solution_id(self):
+            resp = self.request_func(self.url)
+            if resp is None:
+                raise GBKPermissionError("需要登录")
+            # print(resp)
+            try:
+                html = etree.HTML(resp)
+                data = html.xpath('/html/body/div[1]/div/div/table/tbody/tr/td[4]/a')[0]
+                href = data.attrib['href']
+                solution_id = int(href.split('=')[-1])
+                return solution_id
+            except Exception as e:
+                logger.warning(e)
+                raise GBKError("未知错误")
+
     class RoomsStock:
         url_base = 'https://e.dianping.com/ktv/api/'
         url_load_price_table = url_base + 'loadpricetable.wbc?shopid=%s'  # 参数：shopid
@@ -86,7 +120,7 @@ class API:
             else:
                 timestamp = int(time.time() * 1000)
             if self.shop_id == 0:
-                raise Exception("需要获取shopId")
+                raise GBKShopIdError("需要获取shopId")
             resp = self.request_func(self.url_get_reserve_table % (self.shop_id, timestamp))
             date = get_timestamp_date(timestamp)
             # 用 JSON 实现深度拷贝（
@@ -108,16 +142,27 @@ class API:
 
         def update_price(self, item_id: int, type_: int, price: str):
             if self.shop_id == 0:
-                raise Exception("需要获取shopId")
+                raise GBKShopIdError("需要获取shopId")
             logger.warn(f'updating to price {price}')
             return self.request_func(self.url_update_price % (self.shop_id, item_id, type_, price))
 
     def __init__(self):
         self.ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:86.0) Gecko/20100101 Firefox/86.0"
-        self.ktv = API.KTV(self.request)
-        self.room_stock = API.RoomsStock(self.request)
+        self.solution = API.Solution(self.request_no_302)
+        self.ktv = API.KTV(self.request_json)
+        self.room_stock = API.RoomsStock(self.request_json)
 
-    def request(self, url: str):
+    def request_no_302(self, url: str):
+        resp = requests.get(url, headers={
+            "User-Agent": self.ua,
+            "Cookie": config.cookies
+        }, allow_redirects=False)
+        if resp.status_code != 200:
+            return None
+        text = resp.content.decode('utf8', errors='ignore')
+        return text
+
+    def request_json(self, url: str):
         # resp = requests.get(url, headers={
         #     "User-Agent": self.ua,
         #     "Cookie": config.cookies
@@ -135,3 +180,8 @@ class API:
             logger.warning(js)
             raise GBKPermissionError(js)
         return js
+
+
+if __name__ == '__main__':
+    _a = API()
+    print(_a.solution.get_solution_id())

@@ -31,7 +31,7 @@ function TimetableNode(props) {
     setOpen(!open);
   };
   const getSecondaryText = () => {
-    return `${node.periodId}/调整至:${node.price}/下次调整:${parseTimePoint(node.time_)}/周期:${node.cycle > 0 ? parseTimePeriod(node.cycle) : "单次"}/${node.avaliable ? "可用" : "不可用"}`
+    return `${node.periodId}/${node.roomItem.roomType}/调整至:${node.price}/下次调整:${parseTimePoint(node.time_)}/周期:${node.cycle > 0 ? parseTimePeriod(node.cycle) : "单次"}/${(node.avaliable !== false) ? "可用" : "不可用"}`
   };
   return (
     <div>
