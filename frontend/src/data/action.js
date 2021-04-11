@@ -46,3 +46,9 @@ export function setErrorInfo(data) {
   };
 }
 
+export function setMessage(data) {
+  return dispatch => {
+    dispatch({ type: "SET_MESSAGE", data: data });
+  };
+}
+

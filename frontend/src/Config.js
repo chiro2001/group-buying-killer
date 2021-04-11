@@ -80,7 +80,9 @@ class Config {
 
   save() {
     console.log("Config: saving config...");
-    localStorage.setItem(this.ITEM_NAME, JSON.stringify(this.data));
+    const s = JSON.stringify(this.data);
+    localStorage.setItem(this.ITEM_NAME, s);
+    return s;
   }
 };
 

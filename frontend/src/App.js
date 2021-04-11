@@ -17,6 +17,7 @@ import AccountCircleIcon from '@material-ui/icons/AccountCircle';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import AlarmIcon from '@material-ui/icons/Alarm';
 import SettingsIcon from '@material-ui/icons/Settings';
+import CloseIcon from '@material-ui/icons/Close';
 import StorageIcon from '@material-ui/icons/Storage';
 import VerifiedUserIcon from '@material-ui/icons/VerifiedUser';
 import PhonelinkIcon from '@material-ui/icons/Phonelink';
@@ -33,7 +34,7 @@ import MomentUtils from '@date-io/moment';
 import moment from 'moment';
 import 'moment/locale/zh-cn'
 import store from './data/store'
-import { setConfig, setErrorInfo, setReserveTableData, setRoomStockData, setShopInfo } from "./data/action";
+import { setConfig, setErrorInfo, setMessage, setReserveTableData, setRoomStockData, setShopInfo } from "./data/action";
 
 import { isIterator, isMobileDevice, sleep } from "./utils/utils"
 import { API, AuthAPI } from "./api/api"
@@ -48,7 +49,7 @@ import PlanStock from "./pages/planStock"
 import Connect from "./pages/connect"
 
 import './App.css';
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, ListItem } from '@material-ui/core';
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, ListItem, Snackbar } from '@material-ui/core';
 
 const drawerWidth = 240;
 moment.locale('zh-cn');
@@ -155,13 +156,14 @@ export default function App() {
   const [open, setOpen] = React.useState(false);
   const [popupLogin, setPopupLogin] = React.useState(false);
   const [errorDialogInfo, setErrorDialogInfo] = React.useState(false);
+  const [myMessage, setMyMessage] = React.useState(null);
   const [hasLogin, setHasLogin] = React.useState(false);
 
   // 拉大到800会打开，拉小到600关闭
   const triggerWidthOpen = 800;
   const triggerWidthClose = 600;
 
-  // 注册一个当网络错误的时候调用的钩子吧
+  // 注册一个当遇到错误的时候调用的钩子吧，用来显示错误信息
   subscribers['Error'] = function (state) {
     if (state.errorInfo) {
       console.log('Error Hook: ', state.errorInfo);
@@ -169,7 +171,15 @@ export default function App() {
       // 清空错误信息
       store.dispatch(setErrorInfo(null));
     }
-  }
+  };
+  // 注册一个消息钩子
+  subscribers['Message'] = function (state) {
+    if (state.message) {
+      console.log('message: ', state.message);
+      setMyMessage(state.message);
+      store.dispatch(setMessage(null));
+    }
+  };
 
   // onMount & onUpdate
   React.useEffect(() => {
@@ -369,6 +379,23 @@ export default function App() {
             <Button color="primary" onClick={() => { setErrorDialogInfo(null); }}>取消</Button>
           </DialogActions>
         </Dialog>
+        <Snackbar
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}
+          open={myMessage !== null}
+          autoHideDuration={6000}
+          // onClose={(e) => { console.log(e); }}
+          message={myMessage}
+          action={
+            <React.Fragment>
+              <IconButton size="small" aria-label="close" color="inherit" onClick={() => setMyMessage(null)}>
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </React.Fragment>
+          }
+        />
       </ThemeProvider>
     </div >
   );

@@ -118,7 +118,10 @@ export default function ReserveTables(props) {
       <Dialog fullScreen={fullShow} onClose={() => { setShowTable(false); }} open={showTable}>
         <DialogTitle>
           <Box component="span">周{['日', '一', '二', '三', '四', '五', '六'][tabValue]}({new Date().setDay(tabValue).toDateString()})数据</Box>
-          {fullShow ? <IconButton edge="end" style={{ float: 'right' }} onClick={() => { setFullShow(false); }}><FullscreenExitIcon /></IconButton> : <IconButton style={{ float: 'right' }} variant="contained" onClick={() => {
+          {fullShow ? <IconButton edge="end" style={{ float: 'right' }} onClick={() => {
+            setFullShow(false);
+            setShowTable(false);
+          }}><FullscreenExitIcon /></IconButton> : <IconButton style={{ float: 'right' }} variant="contained" onClick={() => {
             setShowTable(true);
             setFullShow(true);
           }}><FullscreenIcon /></IconButton>}</DialogTitle>

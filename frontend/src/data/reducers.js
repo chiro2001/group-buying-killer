@@ -10,6 +10,7 @@ const defaultState = {
   roomStockPlans: [],
   shopInfo: null,
   errorInfo: null,
+  message: null,
 }
 
 function config(state = defaultState.config, action) {
@@ -85,4 +86,13 @@ function errorInfo(state = defaultState.errorInfo, action) {
   }
 }
 
-export default combineReducers({ config, reserveTableData, roomStockData, shopInfo, timetableNodes, timetablePeriods, errorInfo, roomStockPlans });
+function message(state = defaultState.message, action) {
+  switch (action.type) {
+    case "SET_MESSAGE":
+      return action.data;
+    default:
+      return state;
+  }
+}
+
+export default combineReducers({ config, reserveTableData, roomStockData, shopInfo, timetableNodes, timetablePeriods, errorInfo, roomStockPlans, message });

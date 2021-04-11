@@ -54,7 +54,8 @@ function ReserveTable(props) {
   const classes = useStyles();
   const { day, data } = props;
   const date = new Date().setDay(day).toDateString();
-  const [dayData, setDayData] = React.useState(data ? data : store.getState().reserveTableData[date]);
+  // const [dayData, setDayData] = React.useState(data ? data : store.getState().reserveTableData[date]);
+  const [dayData, setDayData] = React.useState(data);
   const [roomList, setRoomList] = React.useState(store.getState().reserveTableData[date] ? store.getState().reserveTableData[date].roomList : []);
   const [addPlanOpen, setAddPlanOpen] = React.useState(false);
   const [planManagerOpen, setPlanManagerOpen] = React.useState(false);
@@ -197,6 +198,12 @@ function ReserveTable(props) {
       if (reserveTableData) {
         setDayData(reserveTableData);
         setRoomList(reserveTableData.roomList);
+        // 也是要请求一遍的
+        api.get_reserve_table(date).then(reserveTableData_ => {
+          let t_ = store.getState().reserveTableData;
+          t_[date] = reserveTableData_;
+          store.dispatch(setReserveTableData(t_));
+        });
       } else {
         // console.warn('got empty reserveTableData', dayData, store.getState().reserveTableData, date, JSON.stringify(store.getState().reserveTableData[date]));
       }
