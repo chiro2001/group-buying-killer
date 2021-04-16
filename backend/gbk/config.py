@@ -49,6 +49,10 @@ class Config:
                 "static_path": "./public",
                 "index": "index.html",
                 "routers": ["settings", "verify", "plan/time", "plan/stock", "connect"]
+            },
+            "config_frontend": {
+                "upgradable": False,
+                "data": None
             }
         }
         self.data = self.data_default

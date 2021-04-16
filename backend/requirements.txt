@@ -5,3 +5,4 @@ selenium
 flask_cors
 colorlog
 psutil
+pymongo

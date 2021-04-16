@@ -91,9 +91,14 @@ function Settings(props) {
         </ListItemSecondaryAction>
       </ListItem>
       <ListItem>
-        <ListItemText primary="数据同步(不可用)"></ListItemText>
+        <ListItemText primary="设置数据同步"></ListItemText>
         <ListItemSecondaryAction>
-          <Switch disabled checked={false}></Switch>
+          <Switch defaultChecked={store.getState().config.data.settings_async} onChange={e => {
+            let c = store.getState().config;
+            c.data.settings_async = e.target.checked;
+            c.save();
+            store.dispatch(setConfig(c));
+          }}></Switch>
         </ListItemSecondaryAction>
       </ListItem>
       <ListItem button onClick={() => setResetSettingsOpen(true)}>
@@ -103,7 +108,9 @@ function Settings(props) {
         <ListItemText primary="删除所有数据"></ListItemText>
       </ListItem>
       <ListSubheader>更新</ListSubheader>
-      <ListItem button>
+      <ListItem button onClick={() => {
+        store.dispatch(setMessage("暂无"));
+      }}>
         <ListItemText primary="检查更新"></ListItemText>
       </ListItem>
       <ListItem>

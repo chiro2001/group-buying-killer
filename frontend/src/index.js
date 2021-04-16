@@ -6,7 +6,7 @@ import reportWebVitals from './reportWebVitals';
 import store from './data/store';
 import { Provider } from 'react-redux';
 import { API, AuthAPI } from './api/api';
-import { setConfig, setRoomStockPlans, setTimetableNodes, setTimetablePeriods } from './data/action';
+import { setConfig, setErrorInfo, setRoomStockPlans, setTimetableNodes, setTimetablePeriods } from './data/action';
 import { sleep } from './utils/utils';
 
 // 循环执行函数
@@ -54,6 +54,20 @@ async function cycleFunc(cycle = 1000) {
   }
 }
 
+// 开始执行的函数
+async function startFunc() {
+  const api = new API();
+  setTimeout(async () => {
+    let c = api.download_config();
+    if (!c.settings_async) return;
+    const config_frontend = await api.download_config();
+    if (!config_frontend) {
+      store.dispatch(setErrorInfo("同步设置失败"));
+    }
+    else store.dispatch(setConfig(config_frontend));
+  }, 600);
+}
+
 ReactDOM.render(
   // <React.StrictMode>
   <Provider store={store}>
@@ -63,7 +77,9 @@ ReactDOM.render(
   document.getElementById('root')
 );
 
-cycleFunc();
+startFunc().then(() => {
+  cycleFunc();
+});
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))

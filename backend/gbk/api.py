@@ -92,6 +92,7 @@ class API:
         url_get_reserve_date = url_base + 'queryreservedate.json'  # 参数：无
         url_get_reserve_table = url_base + 'queryreservetable.json?shopid=%s&timestamp=%s'  # 参数：shopid，timestamp
         url_update_price = url_base + "updateprice.json?shopid=%s&itemid=%s&type=%s&price=%s"  # 参数：shopid, itemid, type, price
+        url_temporary_change_item_status = url_base + "temporarychangeitemstatus.json?itemid=%s&status=%s&timestamp=%s"  # 参数：itemid, status[1=恢复, 2=下架], timestamp
 
         def __init__(self, request_func):
             self.request_func = request_func

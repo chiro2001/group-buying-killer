@@ -49,6 +49,7 @@ const api = new API();
 
 let requestedDayData = null;
 let roomItemNow = {};
+let setUpdateTimer = null;
 
 function ReserveTable(props) {
   const classes = useStyles();
@@ -138,11 +139,11 @@ function ReserveTable(props) {
           })()
         }></MyTableCell>);
         // 临时下线
-        cells.push(<MyTableCell key={data.periodId + name + roomItem.itemId + i + 'off'} align="center" colSpan={1} content={
-          <Link key={data.periodId + name + roomItem.itemId + i + 'planLink'} onClick={() => {
-            console.log('roomItem', roomItem);
-          }} href="#!">下线</Link>
-        }></MyTableCell>);
+        // cells.push(<MyTableCell key={data.periodId + name + roomItem.itemId + i + 'off'} align="center" colSpan={1} content={
+        //   <Link key={data.periodId + name + roomItem.itemId + i + 'planLink'} onClick={() => {
+        //     console.log('roomItem', roomItem);
+        //   }} href="#!">下线</Link>
+        // }></MyTableCell>);
       }
       // console.log('cells', cells);
       rows.push(<TableRow key={data.periodId + i}>{cells}</TableRow>);
@@ -177,10 +178,17 @@ function ReserveTable(props) {
     </Dialog>);
   }
 
+  if (!setUpdateTimer) {
+    setUpdateTimer = true;
+    // 每分钟更新数据
+    setTimeout(() => {
+      if (!updateData) return;
+      updateData();
+    }, 60 * 1000);
+  }
 
-  // if (JSON.stringify(store.getState().reserveTableData[date]) === '{}') {
-  if (!dayData) {
-    // console.log('{}!');
+  const updateData = () => {
+    console.log('updating reserve table data!');
     if (!requestedDayData) {
       requestedDayData = true;
       api.get_reserve_table(date).then(reserveTableData => {
@@ -208,6 +216,10 @@ function ReserveTable(props) {
         // console.warn('got empty reserveTableData', dayData, store.getState().reserveTableData, date, JSON.stringify(store.getState().reserveTableData[date]));
       }
     }
+  };
+
+  if (!dayData) {
+    updateData();
     return (<Container>
       <LinearProgress></LinearProgress>
     </Container>);
@@ -217,7 +229,7 @@ function ReserveTable(props) {
     tableHeaderCells.push(<TableCell key={'a' + d + i} align="center" colSpan={2}>售卖内容</TableCell>);
     tableHeaderCells.push(<TableCell key={'b' + d + i} align="center" colSpan={1}>库存</TableCell>);
     tableHeaderCells.push(<TableCell key={'c' + d + i} align="center" colSpan={1}>计划</TableCell>);
-    tableHeaderCells.push(<TableCell key={'d' + d + i} align="center" colSpan={1}>临时下线</TableCell>);
+    // tableHeaderCells.push(<TableCell key={'d' + d + i} align="center" colSpan={1}>临时下线</TableCell>);
   });
   const tableHeader = <TableHead>
     <TableRow>

@@ -36,7 +36,9 @@ class Config {
       // 用户信息
       user: {
         phone: '',
-      }
+      },
+      // 设置同步
+      settings_async: true,
     };
     this.data = this.data_default;
     this.theme = this.theme_avaliable["默认主题"];

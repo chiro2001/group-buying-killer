@@ -121,7 +121,10 @@ class Scheduler:
         # 拿到时间信息之后再锁，防止信息被忽略
         while not self.has_login:
             time.sleep(0.31)
-        _ = self.batch_inside
+        try:
+            _ = self.batch_inside
+        except Exception as e:
+            logger.error(f"执行任务 batch 时遇到错误：{e}")
 
     @LoginTry
     def batch_inside(self):

@@ -94,6 +94,8 @@ class API {
       get_shop_info: "get/shop_info",
       get_reserve_date: 'get/reserve_date',
       get_reserve_table: 'get/reserve_table',
+      upload_config: "upload/config",
+      download_config: "download/config",
       logout: "logout",
       has_login: 'has_login',
     }
@@ -148,6 +150,12 @@ class API {
   async get_reserve_table(date) {
     // console.log('date', date);
     return (await request(this.url_base, this.url.get_reserve_table, { date: date })).data.reserve_table;
+  }
+  async upload_config() {
+    return (await request(this.url_base, this.url.upload_config, store.getState().config.data, 'POST'));
+  }
+  async download_config() {
+    return (await request(this.url_base, this.url.download_config)).data.config_frontend;
   }
 }
 

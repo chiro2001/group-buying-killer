@@ -1,3 +1,4 @@
+import sys
 import os
 import selenium.common
 from selenium import webdriver
@@ -14,7 +15,7 @@ import json
 def browser_init():
     path_chrome = find_chrome_path()
     path_chrome_driver = find_chrome_driver_path()
-    logger.info(f"path_chrome: {path_chrome}; path_chrome_driver: {path_chrome_driver}")
+    # logger.info(f"path_chrome: {path_chrome}; path_chrome_driver: {path_chrome_driver}")
     options = ChromeOptions()
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
@@ -31,7 +32,7 @@ def browser_init():
         logger.error(f"无法打开浏览器！{str(e)}")
         logger.error("按回车键退出")
         input()
-        exit(1)
+        sys.exit(1)
     # 防止被检测
     bro.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
         "source": """
@@ -78,7 +79,7 @@ def browser_login(browser, account=None, password=None, enter_exit=True):
             browser.get_cookies()
         except selenium.common.exceptions.WebDriverException:
             logger.error("浏览器被手动关闭")
-            exit(1)
+            sys.exit(1)
         time.sleep(3)
         timeout -= 3
     if timeout <= 0:
@@ -88,11 +89,11 @@ def browser_login(browser, account=None, password=None, enter_exit=True):
             input()
         else:
             logger.error("尝试登录超时")
-        exit(1)
+        sys.exit(1)
     cookies = browser.get_cookies()
-    logger.info('cookies: %s' % cookies)
+    logger.debug('cookies: %s' % cookies)
     cookies_str = '; '.join([f"{d['name']}={d['value']}" for d in cookies])
-    logger.info('cookies_str: %s' % cookies_str)
+    logger.debug('cookies_str: %s' % cookies_str)
     # test(cookies_str)
     return cookies_str
 
@@ -130,7 +131,7 @@ def main(enter_exit=True, re_login=False):
             if cnt == retry:
                 logger.error(f"尝试登录 {retry} 后失败，回车键退出")
                 input()
-                exit(1)
+                sys.exit(1)
             cnt += 1
         if enter_exit:
             input("完成，按回车键退出")

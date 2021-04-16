@@ -83,10 +83,10 @@
     "webpack-manifest-plugin": "2.2.0",
     "workbox-webpack-plugin": "5.1.4"
   },
-  "homepage": ".",
   "scripts": {
     "start": "node scripts/start.js",
-    "build": "node scripts/build.js && rd /s /Q ..\\backend\\public && md ..\\backend\\public && xcopy /E build\\* ..\\backend\\public\\ && echo 构建完成。",
+    "build": "node scripts/build.js",
+    "build_files": "node scripts/build.js && rd /s /Q ..\\backend\\public && md ..\\backend\\public && xcopy /E build\\* ..\\backend\\public\\ && echo 构建完成。",
     "test": "node scripts/test.js"
   },
   "eslintConfig": {

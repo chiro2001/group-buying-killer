@@ -24,4 +24,4 @@ def make_result(code=200, message=None, data=None):
     }
     if data is not None:
         result['data'] = data
-    return jsonify(result)
+    return jsonify(result), code

@@ -47,7 +47,7 @@ class PlanTime extends React.Component {
           });
         }}>增加</Button>}
       </ListSubheader>}>
-        {this.state.timetableNodes.map((node, i) => this.roomItemNow.itemId ? (node.roomItem.itemId === this.roomItemNow.itemId ? <TimetableNode key={i} node={node} /> : undefined) : <TimetableNode key={i} node={node} />)}
+        {this.state.timetableNodes.length == 0 ? <Typography variant="body1">（空列表）</Typography> : this.state.timetableNodes.map((node, i) => this.roomItemNow.itemId ? (node.roomItem.itemId === this.roomItemNow.itemId ? <TimetableNode key={i} node={node} /> : undefined) : <TimetableNode key={i} node={node} />)}
       </List>
       <List subheader={<ListSubheader component="div">
         按时间段管理
@@ -57,7 +57,7 @@ class PlanTime extends React.Component {
           });
         }}>增加</Button>}
       </ListSubheader>}>
-        {this.state.timetablePeriods.map((period, i) => this.roomItemNow.itemId ? (period.roomItem.itemId === this.roomItemNow.itemId ? <TimetablePeriod key={i} period={period} /> : undefined) : <TimetablePeriod key={i} period={period} />)}
+        {this.state.timetablePeriods.length == 0 ? <Typography variant="body1">（空列表）</Typography> : this.state.timetablePeriods.map((period, i) => this.roomItemNow.itemId ? (period.roomItem.itemId === this.roomItemNow.itemId ? <TimetablePeriod key={i} period={period} /> : undefined) : <TimetablePeriod key={i} period={period} />)}
       </List>
       <TimetableNodeAddDialog roomItemNow={this.roomItemNow} open={this.state.nodeAddOpen} onClose={() => {
         this.setState({

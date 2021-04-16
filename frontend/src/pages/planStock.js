@@ -42,7 +42,7 @@ class PlanStock extends React.Component {
           });
         }}>增加</Button>}
       </ListSubheader>}>
-        {this.state.roomStockPlan.map((stock, i) => this.roomItemNow.itemId ? (stock.roomItem.itemId === this.roomItemNow.itemId ? <RoomStockPlan key={i} stock={stock} /> : undefined) : <RoomStockPlan key={i} stock={stock} />)}
+        {this.state.roomStockPlan.length == 0 ? <Typography variant="body1">（空列表）</Typography> : this.state.roomStockPlan.map((stock, i) => this.roomItemNow.itemId ? (stock.roomItem.itemId === this.roomItemNow.itemId ? <RoomStockPlan key={i} stock={stock} /> : undefined) : <RoomStockPlan key={i} stock={stock} />)}
       </List>
       <RoomStockPlanAddDialog roomItemNow={this.roomItemNow} open={this.state.stockAddOpen} onClose={() => {
         this.setState({

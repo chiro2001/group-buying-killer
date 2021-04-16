@@ -32,22 +32,22 @@ import { Provider } from 'react-redux'
 import { MuiPickersUtilsProvider } from '@material-ui/pickers';
 import MomentUtils from '@date-io/moment';
 import moment from 'moment';
-import 'moment/locale/zh-cn'
-import store from './data/store'
+import 'moment/locale/zh-cn';
+import store from './data/store';
 import { setConfig, setErrorInfo, setMessage, setReserveTableData, setRoomStockData, setShopInfo } from "./data/action";
 
-import { isIterator, isMobileDevice, sleep } from "./utils/utils"
-import { API, AuthAPI } from "./api/api"
+import { isIterator, isMobileDevice, sleep } from "./utils/utils";
+import { API, AuthAPI } from "./api/api";
 
-import ListItemLink from "./components/listItemLink"
-import LoginDialog from "./pages/loginDialog"
-import Launch from "./pages/launch"
-import Settings from "./pages/settings"
-import Verify from "./pages/verify"
-import PlanTime from "./pages/planTime"
-import PlanStock from "./pages/planStock"
-import Connect from "./pages/connect"
-
+import ListItemLink from "./components/listItemLink";
+import LoginDialog from "./pages/loginDialog";
+import Launch from "./pages/launch";
+import Settings from "./pages/settings";
+import Verify from "./pages/verify";
+import PlanTime from "./pages/planTime";
+import PlanStock from "./pages/planStock";
+import Connect from "./pages/connect";
+import Config from "./Config";
 import './App.css';
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, ListItem, Snackbar } from '@material-ui/core';
 
@@ -134,21 +134,31 @@ api.get_shop_info().then(shopInfo => {
 
 let subscribers = {};
 
-// let config_last_data = null;
+let config_last_data = null;
 
-store.subscribe(() => {
+store.subscribe(async () => {
   let state = store.getState();
   // console.log('redux update to', state);
   // 保存 config
-  // if (state.config) {
-  //   if (state.config.data !== config_last_data)
-  //   state.config.save();
-  //   config_last_data = state.config.data;
-  // }
+  if (state.config.data) {
+    if (JSON.stringify(state.config.data) != JSON.stringify(config_last_data)) {
+      // console.log('Config will change:', state.config.data);
+      await api.upload_config();
+    } else {
+      // console.log('Not change:', state.config.data);
+    }
+    config_last_data = state.config.data;
+  }
   for (let subFunc in subscribers) {
     subscribers[subFunc](state);
   }
 });
+
+const getShopTitle = function () {
+  if (!store.getState().shopInfo.shopName) return null;
+  // console.log('getShopTitle', store.getState().shopInfo);
+  return `${store.getState().shopInfo.shopName} - ${store.getState().shopInfo.branchName}`
+}
 
 export default function App() {
   const classes = useStyles();
@@ -158,6 +168,8 @@ export default function App() {
   const [errorDialogInfo, setErrorDialogInfo] = React.useState(false);
   const [myMessage, setMyMessage] = React.useState(null);
   const [hasLogin, setHasLogin] = React.useState(false);
+  const titleDefault = "团购杀手 - KTV体验版";
+  const [title, setTitle] = React.useState(getShopTitle() || titleDefault);
 
   // 拉大到800会打开，拉小到600关闭
   const triggerWidthOpen = 800;
@@ -178,6 +190,14 @@ export default function App() {
       console.log('message: ', state.message);
       setMyMessage(state.message);
       store.dispatch(setMessage(null));
+    }
+  };
+  // 店信息钩子
+  subscribers['ShopInfo'] = function (state) {
+    if (state.shopInfo) {
+      if (title === titleDefault) {
+        setTitle(getShopTitle());
+      }
     }
   };
 
@@ -254,7 +274,7 @@ export default function App() {
                   <MenuIcon />
                 </IconButton>
                 <Typography variant="h6" noWrap className={classes.title}>
-                  团购杀手 - KTV体验版
+                  {title}
                 </Typography>
                 <IconButton
                   color="inherit"
@@ -289,7 +309,7 @@ export default function App() {
                 <ListItemLink to="/plan/time" primary="时间计划" icon={<AlarmIcon />} />
                 <ListItemLink to="/plan/stock" primary="库存计划" icon={<StorageIcon />} />
                 <ListItemLink to="/settings" primary="设置" icon={<SettingsIcon />} />
-                <ListItemLink to="/verify" primary="授权" icon={<VerifiedUserIcon />} />
+                {/* <ListItemLink to="/verify" primary="授权" icon={<VerifiedUserIcon />} /> */}
                 {isMobileDevice() ? null : <ListItemLink to="/connect" primary="移动设备" icon={<PhonelinkIcon />} />}
               </List>
             </Drawer>
@@ -361,7 +381,7 @@ export default function App() {
             <Box component="div">
               <Box component="div">
                 {() => {
-                  if (isIterator(errorDialogInfo)) {
+                  if (isIterator(errorDialogInfo) && typeof (errorDialogInfo) !== 'string') {
                     return <List>
                       {errorDialogInfo.map((d, i) => <ListItem key={i}>
                         <code>{JSON.stringify(d) === '{}' ? d.toString() : JSON.stringify(d)}</code>

@@ -404,6 +404,24 @@ def delete_from_tid(tid: int):
     return make_result()
 
 
+@app.route("/upload/config", methods=['POST'])
+def upload_config():
+    config_ = get_request_json(request)
+    if 'version_frontend' not in config_:
+        return make_result(400)
+    config.data['config_frontend']['data'] = config_
+    return make_result()
+
+
+@app.route("/download/config")
+def download_config():
+    if 'config_frontend' not in config.data or config.data['config_frontend']['data'] is None:
+        return make_result(400)
+    return make_result(data={
+        'config_frontend': config.data['config_frontend']['data']
+    })
+
+
 @app.route("/logout")
 def logout():
     logger.info(f'cookie before now: {config.cookies}')
@@ -421,14 +439,14 @@ def logout():
 @app.errorhandler(404)
 def handler_404(error):
     logger.error(f"{error}")
-    return make_result(404), 404
+    return make_result(404)
 
 
 # 统一错误处理信息
 @app.errorhandler(500)
 def handler_500(error):
     logger.error(f"{error}")
-    return make_result(500), 500
+    return make_result(500)
 
 
 if __name__ == '__main__':
