@@ -6,3 +6,5 @@ flask_cors
 colorlog
 psutil
 pymongo
+lxml
+pyinstaller

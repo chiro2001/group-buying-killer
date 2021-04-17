@@ -21,7 +21,7 @@ cd ..\install
 @REM cd install
 python build.py
 
-D:\Tools\NSIS\makensis.exe /V4 /P4 build_target.nsi
+.\NSIS\makensis.exe /V4 /P4 build_target.nsi
 cd ..
 
 echo 构建完成。
