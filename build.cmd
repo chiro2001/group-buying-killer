@@ -13,6 +13,8 @@ cd ..
 
 cd backend
 pyinstaller server.spec --clean --noconfirm
+echo 后端打包完成。
+
 rd /s /Q ..\install\dist
 md ..\install\dist
 xcopy /E dist\server\* ..\install\dist\ >nul

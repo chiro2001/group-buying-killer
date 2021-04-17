@@ -73,7 +73,7 @@ const request = async function (url_base, router, args, method = 'GET') {
 
 class API {
   constructor(props) {
-    this.url_base = 'http://localhost:8000/api/v1/';
+    this.url_base = `http://localhost:${window.location.port}/api/v1/`;
     // this.url_base = '/api/v1/';
     // this.url_base = 'http://localhost:12000/api/v1/';
     // this.url_base = 'http://localhost:8000/';
@@ -161,8 +161,9 @@ class API {
 
 class AuthAPI {
   constructor(props) {
-    // this.url_base = 'https://service-kfp3xte1-1254016670.sh.apigw.tencentcs.com/release/';
-    this.url_base = 'http://localhost:8081/';
+    this.url_base_remote = 'https://service-kfp3xte1-1254016670.sh.apigw.tencentcs.com/release/';
+    this.url_base_local = 'http://localhost:8081/';
+    this.url_base = window.location.port === 80 ? this.url_base_remote : this.url_base_local;
     this.url = {
       regist: 'user/regist',
       login: 'user/login',

@@ -12,6 +12,18 @@ from werkzeug.serving import run_simple
 # from werkzeug.middleware.profiler import ProfilerMiddleware
 # from wsgiref.simple_server import make_server
 
+import ctypes
+
+def is_admin():
+    try:
+        return ctypes.windll.shell32.IsUserAnAdmin()
+    except:
+        return False
+if not is_admin():
+    ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, __file__, None, 1)
+    sys.exit(1)
+
+
 error_info = '遇到错误，请重新启动程序！如果错误影响使用，请联系开发人员！\n错误信息：%s\n'
 
 from gbk.utils import logger, get_ip_info, find_chrome_path, find_chrome_driver_path
@@ -73,7 +85,7 @@ if __name__ == '__main__':
     t.start()
     config.thread = t
 
-    port = int(os.environ.get("PORT", '8000'))
+    port = int(os.environ.get("PORT", '8962'))
     # mode = 'standalone'
     mode = 'chrome'
     url = f"http://localhost:{port}"
@@ -86,7 +98,7 @@ if __name__ == '__main__':
             webbrowser.open(url)
         elif mode == 'chrome':
             logger.info('正在打开内部浏览器...')
-            logger.info(f'Please visit {url}')
+            logger.info(f'如果内部浏览器无法打开或者不想用内部浏览器，可以使用其他浏览器打开: {url}')
             logger.debug(os.path.abspath(os.curdir))
             logger.debug(os.path.abspath(find_chrome_driver_path()))
             try:
@@ -97,6 +109,7 @@ if __name__ == '__main__':
                 logger.error(f'打开浏览器错误: {e}')
                 logger.info(f'尝试调用外部浏览器打开: {url}')
                 webbrowser.open(url)
+        logger.info("关闭本命令行窗口即结束程序运行。")
         run_simple('0.0.0.0', port, dm, use_reloader=False)
     except Exception as e:
         error_report.report_it(e)

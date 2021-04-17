@@ -56,9 +56,14 @@ def main():
     files = find("dist", replace="", dir_only=False)
     for file in files:
         delete_files.append(f'  delete "$INSTDIR\\{file[1]}"')
-        if len(os.path.dirname(file[1])) > 0:
-            delete_file_dirs.append(f'  rmDir "{os.path.dirname(file[1])}"')
+        tmp = os.path.dirname(file[1])
+        while len(tmp) > 0:
+            delete_file_dirs.append(f'  rmDir "$INSTDIR\\{tmp}"')
+            tmp = os.path.dirname(tmp)
+        # if len(os.path.dirname(file[1])) > 0:
+        #     delete_file_dirs.append(f'  rmDir "{os.path.dirname(file[1])}"')
     delete_file_dirs = list(set(delete_file_dirs))
+    delete_file_dirs.sort(reverse=True)
 
     with open(template, 'r', encoding='gbk') as f:
         file_data = f.read()
