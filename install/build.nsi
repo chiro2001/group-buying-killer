@@ -61,7 +61,7 @@ section "install"
 	setOutPath $INSTDIR
 	# Files added here should be removed by the uninstaller (see section "uninstall")
 	file "logo.ico"
-	{{add_files}}
+{{add_files}}
 	# Add any other files for the install directory (license files, app data, etc) here
  
 	# Uninstaller - See function un.onInit and section "uninstall" for configuration
@@ -112,12 +112,13 @@ section "uninstall"
  
 	# Remove files
 	delete "$INSTDIR\logo.ico"
-	{{delete_files}}
+{{delete_files}}
  
 	# Always delete uninstaller as the last action
 	delete "$INSTDIR\uninstall.exe"
  
 	# Try to remove the install directory - this will only happen if it is empty
+	{{delete_file_dirs}}
 	rmDir "$INSTDIR"
  
 	# Remove uninstaller information from the registry
