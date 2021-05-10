@@ -73,8 +73,8 @@ const request = async function (url_base, router, args, method = 'GET') {
 
 class API {
   constructor(props) {
-    // this.url_base = `http://localhost:${window.location.port}/api/v1/`;
-    this.url_base = `http://localhost:${8962}/api/v1/`;
+    this.url_base = `http://localhost:${window.location.port}/api/v1/`;
+    // this.url_base = `http://localhost:${8962}/api/v1/`;
     // this.url_base = '/api/v1/';
     // this.url_base = 'http://localhost:12000/api/v1/';
     // this.url_base = 'http://localhost:8000/';
