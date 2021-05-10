@@ -93,8 +93,8 @@ if __name__ == '__main__':
     config.thread = t
 
     port = int(os.environ.get("PORT", '8962'))
-    mode = 'standalone'
-    # mode = 'chrome'
+    # mode = 'standalone'
+    mode = 'chrome'
     url = f"http://localhost:{port}"
 
     try:
