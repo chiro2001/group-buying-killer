@@ -5,6 +5,50 @@ import time
 tid_cnt = int(time.time())
 
 
+class RoomItem:
+    def __init__(self, itemId, price, foodDesc, singHours, stock, itemType, periodType, roomType, periodId=None,
+                 date=None):
+        self.itemId, self.price, self.foodDesc, self.singHours, self.stock, self.itemType, self.periodType, self.periodId, self.date, self.roomType = \
+            itemId, price, foodDesc, singHours, stock, itemType, periodType, periodId, date, roomType
+
+    @staticmethod
+    def from_json(js):
+        return RoomItem(js['itemId'], js['price'], js['foodDesc'], js['singHours'], js['stock'],
+                        js['itemType'], js['periodType'], js['roomType'], js.get('periodId', None),
+                        js.get('date', None))
+
+    def to_json(self):
+        return self.__dict__()
+
+
+class AvailablePeriod:
+    def __init__(self, start: int = None, end: int = None):
+        self.start, self.end = start, end
+
+
+class Cycle:
+    TYPE_ONCE = 'once'
+    TYPE_CYCLE = 'cycle'
+
+    def __init__(self, cycle_type: str = TYPE_ONCE, cycle_time: int = None):
+        self.cycle_type, self.cycle_time = cycle_type, cycle_time
+
+
+class Action:
+    pass
+
+
+class ActionPriceAdjust(Action):
+    def __init__(self, roomItem, periodId, itemName, price):
+        pass
+
+
+class Item:
+    def __init__(self, action: Action, cycle: Cycle, available: bool = True, available_time: AvailablePeriod = None):
+        self.name = 'ItemDefault'
+        self.action, self.available, self.avaliable_time, self.cycle = action, available, available_time, cycle
+
+
 # cycle 等于0表示仅单次
 # cycle 每一次减一
 # cycle == -1 表示永久存在
@@ -177,17 +221,6 @@ class RoomStockType:
                              js['saleCount'], js['remainCount'], js['acceptOrder'])
 
 
-class RoomItem:
-    def __init__(self, itemId, price, foodDesc, singHours, stock, itemType, periodType, roomType, periodId=None, date=None):
-        self.itemId, self.price, self.foodDesc, self.singHours, self.stock, self.itemType, self.periodType, self.periodId, self.date, self.roomType = \
-            itemId, price, foodDesc, singHours, stock, itemType, periodType, periodId, date, roomType
-
-    @staticmethod
-    def from_json(js):
-        return RoomItem(js['itemId'], js['price'], js['foodDesc'], js['singHours'], js['stock'],
-                        js['itemType'], js['periodType'], js['roomType'], js.get('periodId', None), js.get('date', None))
-
-
 class RoomStockPlan:
     PlanTypeLess = 'lt'
     PlanTypeLessOrEqual = 'le'
@@ -301,7 +334,7 @@ class RoomStockPlan:
                 if not time_stamp <= self.available_end:
                     self.available = False
                     return False
-    
+
     # # 恢复状态
     # def revoke(self):
     #     # 差价 = 需要调整到的价格 - 当前价格

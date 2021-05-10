@@ -14,22 +14,26 @@ from werkzeug.serving import run_simple
 
 import ctypes
 
+
 def is_admin():
     try:
         return ctypes.windll.shell32.IsUserAnAdmin()
     except:
         return False
+
+
 if not is_admin():
     ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, __file__, None, 1)
     sys.exit(1)
 
-
 error_info = '遇到错误，请重新启动程序！如果错误影响使用，请联系开发人员！\n错误信息：%s\n'
 
 from gbk.utils import logger, get_ip_info, find_chrome_path, find_chrome_driver_path
+
 try:
     logger.info('加载设置...')
     from gbk.config import config
+
     logger.info('加载错误汇报服务...')
     from gbk import error_report
 except Exception as e:
@@ -40,10 +44,13 @@ except Exception as e:
 try:
     logger.info('导入API服务器...')
     from gbk.server_api import app as app_api
+
     logger.info('导入文件服务器...')
     from gbk.file_server import app as app_file
+
     logger.info('导入任务管理器...')
     from gbk.scheduler import scheduler
+
     logger.info('导入浏览器登录程序...')
     from gbk.login import browser_init
 except Exception as e:
@@ -86,8 +93,8 @@ if __name__ == '__main__':
     config.thread = t
 
     port = int(os.environ.get("PORT", '8962'))
-    # mode = 'standalone'
-    mode = 'chrome'
+    mode = 'standalone'
+    # mode = 'chrome'
     url = f"http://localhost:{port}"
 
     try:
