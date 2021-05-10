@@ -11,6 +11,8 @@ from gbk.exceptions import *
 from gbk.login import test_login
 from gbk.scheduler import scheduler
 
+from KTV_flow_models.load_models import predict
+
 app = Flask(__name__)
 # 设置可跨域访问
 CORS(app, supports_credentials=True)
@@ -433,6 +435,18 @@ def logout():
     # t.setDaemon(True)
     # t.start()
     return make_result()
+
+
+@app.route('/predicts', methods=['POST'])
+def predict_data():
+    data = get_request_json(request)
+    # print(data)
+    columns = ['小包最低价', '小包最高价', '中包最低价', '中包最高价', '大包最低价', '大包最高价']
+    for c in columns:
+        if c not in data:
+            return make_result(400, message="param %s required" % c)
+    res = predict(data)
+    return make_result(data=res)
 
 
 # 统一错误处理信息
