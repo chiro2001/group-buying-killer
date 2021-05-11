@@ -8,3 +8,6 @@ psutil
 pymongo
 lxml
 pyinstaller
+apscheduler
+flask-restful
+itsdangerous

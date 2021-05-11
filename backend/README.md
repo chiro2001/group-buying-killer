@@ -22,5 +22,24 @@
 
 1. 通常方式运行：`python server.py`即可。
 2. 测试美团登录功能：`python login.py`
-3. 如果环境变量中没有`PORT`值，将默认使用`8000`端口，否则使用`PORT`端口。c
+3. 如果环境变量中没有`PORT`值，将默认使用`8000`端口，否则使用`PORT`端口。
 
+### 重构v0.2
+
+- [ ] 更改工程架构
+  - [x] 文件整理
+  - [ ] 构建结构
+    - [ ] data beans
+    - [x] config
+    - [ ] database
+    - [x] file server
+    - [ ] scheduler
+    - [ ] api
+      - [x] main api
+      - [ ] 
+- [ ] 更换规划器为`APSchedule`
+  - [x] 测试
+  - [ ] 融合
+- [ ] 任务触发的动作可更换
+- [ ] 优化任务结构
+- [ ] 增加用户系统
