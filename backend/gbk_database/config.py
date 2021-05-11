@@ -17,16 +17,18 @@ class Constants:
     JWT_HEADER_TYPE = ""
     JWT_HEADER_NAME = "Authorization"
     JWT_LOCATIONS = ['headers', ]
-    JWT_MESSAGE_401 = "Authorization required in head"
+    JWT_MESSAGE_401 = f"Authorization required in {', '.join([location for location in JWT_LOCATIONS])}"
     JWT_ACCESS_TIME = 60 * 5
+    # JWT_ACCESS_TIME = 1
     JWT_REFRESH_TIME = 60 * 60 * 24 * 30
+    # JWT_REFRESH_TIME = 1
     # Database
     DATABASE_URI = secrets.SECRET_MONGO_URI
     DATABASE_NAME = DATABASE_URI.split('/')[-1]
     DATABASE_COL_NAME = 'config'
     # Email
     EMAIL_SENDER = "LanceLiang2018@163.com"
-    EMAIL_SMTP_PASSWORD = "1352040930smtp"
+    EMAIL_SMTP_PASSWORD = secrets.SECRET_EMAIL_SMTP_PASSWORD
     EMAIL_ERROR_TITLE = "chiblog errors"
     EMAIL_SMTP_SSL = 'smtp.163.com'
     EMAIL_SMTP_PORT = 465
@@ -47,7 +49,7 @@ class Constants:
         }
     }
     # API config
-    API_PATH = '/api/v1'
+    API_PATH = '/api/v2'
     # Running config
     RUN_LISTENING = "0.0.0.0"
     RUN_PORT = int(os.environ.get("PORT", 8080))

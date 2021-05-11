@@ -2,7 +2,7 @@ import sys
 import os
 import json
 from utils.logger import logger
-from config import Constants
+from gbk_database.config import Constants
 from utils.email_sender import send_email
 
 
@@ -15,7 +15,7 @@ def send_report(report):
                    text=str(report),
                    title_from=Constants.EMAIL_ERROR_TITLE,
                    title_to=f'Dear {Constants.OWNER}',
-                   subject=f"chiblog v{Constants.VERSION}的新bug report")
+                   subject=f"gbk v{Constants.VERSION}的新bug report")
     except Exception as e:
         logger.error('错误信息邮件发送失败！ %s' % e)
 
@@ -42,7 +42,7 @@ def report_it(e):
     logger.info('发送bug报告邮件成功')
     try:
         logger.info('尝试把bug发送到远程数据库...')
-        from database.database import DataBase
+        from gbk_database.database import DataBase
         _db = DataBase()
         _db.error_report(error)
     except Exception as e2:

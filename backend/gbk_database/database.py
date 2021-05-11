@@ -7,7 +7,7 @@ from gbk_session.database import Session
 
 class DataBase:
     COLLECTIONS = [
-        'user', 'user_uid', 'gbk_bug', 'session'
+        'user', 'user_uid', 'gbk_bug', 'session', 'session_disabled_token'
     ]
 
     def __init__(self):
@@ -29,17 +29,18 @@ class DataBase:
             logger.info(f'Dropping {col}')
             self.db[col].drop()
         self.init_parts()
-        self.user.insert(Constants.USERS_OWNER)
+        uid = self.user.insert(Constants.USERS_OWNER)
+        self.session.insert(uid=uid, password=Constants.USERS_OWNER_PASSWORD)
 
     def connect_init(self):
         if len(Constants.DATABASE_URI) > 0:
             self.client = pymongo.MongoClient(Constants.DATABASE_URI)
         else:
             self.client = pymongo.MongoClient()
-        self.db = self.client.chiro
+        self.db = self.client[Constants.DATABASE_NAME]
 
     def error_report(self, error):
-        self.db.chiblog_bug.insert_one({'time': time.asctime(), 'error': error})
+        self.db.gbk_bug.insert_one({'time': time.asctime(), 'error': error})
 
 
 mongo = None

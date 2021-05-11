@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "start": "node test_kwt.js"
+  },
+  "dependencies": {
+    "node-fetch": "^2.6.1"
+  }
+}

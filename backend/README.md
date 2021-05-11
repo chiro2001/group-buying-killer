@@ -36,6 +36,9 @@
     - [ ] scheduler
     - [ ] api
       - [x] main api
+      - [x] user
+      - [x] session
+      - [x] password
       - [ ] 
 - [ ] 更换规划器为`APSchedule`
   - [x] 测试
@@ -43,3 +46,19 @@
 - [ ] 任务触发的动作可更换
 - [ ] 优化任务结构
 - [ ] 增加用户系统
+
+#### API 表
+
+`prefix: /api/v1`
+
+1. `/` GET：API信息以及文档链接
+2. 用户部分
+   1. `/user` 
+      1. POST：注册
+      2. DELETE：删除用户
+   2. `/user/<uid>` GET：获取用户信息
+   3. `/user_info` POST：更新用户信息
+   4. `/session`
+      1. POST：登录
+      2. GET：更新`access_token`
+      3. DELETE：注销登录

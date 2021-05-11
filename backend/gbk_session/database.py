@@ -1,10 +1,15 @@
 from gbk_database.tools import *
+import datetime
+from utils.logger import logger
 
 
 class Session:
     def __init__(self, d):
         self.d = d
         self.col: pymongo.collection.Collection = d.session
+        self.col_disabled_token: pymongo.collection.Collection = d.session_disabled_token
+        # 创建TTL索引，根据两个有限时间确定自动删除时间（会不会太长？）
+        self.col_disabled_token.create_index([("time", pymongo.ASCENDING)], expireAfterSeconds=0)
 
     def get_by_uid(self, uid: int) -> dict or None:
         return find_one(self.col, {'uid': uid})
@@ -43,3 +48,22 @@ class Session:
 
     def remove(self, uid: int):
         self.col.delete_one({'uid': uid})
+
+    def disable_token(self, access_token: str = None, refresh_token: str = None):
+        if access_token is not None:
+            self.col_disabled_token.insert_one({
+                'token': access_token,
+                'time': datetime.datetime.utcnow() + datetime.timedelta(seconds=Constants.JWT_ACCESS_TIME)
+            })
+        if refresh_token is not None:
+            self.col_disabled_token.insert_one({
+                'token': refresh_token,
+                'time': datetime.datetime.utcnow() + datetime.timedelta(seconds=Constants.JWT_REFRESH_TIME)
+            })
+
+    def token_available(self, token: str) -> bool:
+        result = self.col_disabled_token.find_one({'token': token})
+        logger.warning(f'token: ...{token[-5:]} {"available" if result is None else "disabled"}')
+        if result is None:
+            return True
+        return False

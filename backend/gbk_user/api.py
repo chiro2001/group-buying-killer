@@ -44,19 +44,20 @@ class User(Resource):
         db.session.insert(uid, password)
         return make_result(data={'uid': uid})
 
-
-class UserUid(Resource):
-    def get(self, uid: int):
+    @auth_required_method
+    def delete(self, uid: int):
         """
-        获取 uid 对应用户信息
+        删除自己用户
         :param uid: uid
         :return:
         """
-        user = db.user.get_by_uid(uid)
-        return make_result(data={'user': user})
+        db.user.delete_user(uid)
+        return make_result()
 
+
+class UserInfo(Resource):
     @auth_required_method
-    def put(self, uid: int):
+    def post(self, uid: int):
         """
         更新用户信息
         :param uid: uid
@@ -69,80 +70,13 @@ class UserUid(Resource):
             return make_result(400)
         return make_result()
 
-    @auth_required_method
-    def delete(self, uid: int):
+
+class UserUid(Resource):
+    def get(self, uid: int):
         """
-        删除自己用户
+        获取 uid 对应用户信息
         :param uid: uid
         :return:
         """
-        db.user.delete_user(uid)
-        return make_result()
-
-
-class Session(Resource):
-    args_login = reqparse.RequestParser() \
-        .add_argument("username", type=str, required=True, location=["json", ]) \
-        .add_argument("password", type=str, required=True, location=["json", ])
-    args_update = reqparse.RequestParser() \
-        .add_argument("refresh_token", type=str, required=True, location=["json", ])
-    args_update_password = reqparse.RequestParser() \
-        .add_argument("password")
-
-    # Login
-    @args_required_method(args_login)
-    def post(self):
-        args = self.args_login.parse_args()
-        username, password = args.get('username'), args.get('password')
-        user = db.user.find_by_username(username=username)
-        if user is None:
-            return make_result(403)
-        uid = user.get('uid')
-        result = db.session.check_password(uid=uid, password=password)
-        if not result:
-            return make_result(403)
-        db.session.update_login(uid)
-        token_payload = {'uid': uid}
-        access_token = create_access_token(token_payload)
-        refresh_token = create_refresh_token(token_payload)
-        return make_result(data={'access_token': access_token, 'refresh_token': refresh_token})
-
-    # 更新密码
-    @args_required_method(args_update_password)
-    def put(self, uid: int):
-        password = self.args_update_password.parse_args().get('password')
-        if not db.session.update_one(uid, password):
-            return make_result(400)
-        return make_result()
-
-    @args_required_method(args_update)
-    def get(self):
-        """
-        更新 access_token
-        :return:
-        """
-        refresh_token = self.args_update.parse_args().get('refresh_token')
-        try:
-            data = Statics.tjw_refresh_token.loads(refresh_token)
-        except (BadSignature, BadData, BadHeader, BadPayload) as e:
-            return make_result(422, message=f"Bad token: {e}")
-        except BadTimeSignature:
-            return make_result(424)
-        uid = data.get('uid')
-        payload = {
-            'uid': uid
-        }
-        access_token = create_access_token(payload)
-        refresh_token_new = create_refresh_token(payload)
-        return make_result(data={
-            'access_token': access_token,
-            'refresh_token': refresh_token_new
-        })
-
-    @auth_required_method
-    def delete(self, uid: int):
-        """
-        注销
-        :return:
-        """
-        return make_result()
+        user = db.user.get_by_uid(uid)
+        return make_result(data={'user': user})

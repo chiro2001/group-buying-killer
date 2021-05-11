@@ -8,8 +8,8 @@ from gbk_proxy.file_static import app as app_file
 from gbk_api.main_api import app as app_api
 
 # 只显示错误消息
-logger_werkzeug = logging.getLogger('werkzeug')
-logger_werkzeug.setLevel(logging.ERROR)
+# logger_werkzeug = logging.getLogger('werkzeug')
+# logger_werkzeug.setLevel(logging.ERROR)
 
 api_prefix = config.data.get('api_prefix', '/api/v2')
 

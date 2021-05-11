@@ -11,9 +11,7 @@ class Session(Resource):
         .add_argument("username", type=str, required=True, location=["json", ]) \
         .add_argument("password", type=str, required=True, location=["json", ])
     args_update = reqparse.RequestParser() \
-        .add_argument("refresh_token", type=str, required=True, location=["json", ])
-    args_update_password = reqparse.RequestParser() \
-        .add_argument("password")
+        .add_argument("Refresh", type=str, required=True, location=Constants.JWT_LOCATIONS)
 
     # Login
     @args_required_method(args_login)
@@ -33,21 +31,13 @@ class Session(Resource):
         refresh_token = create_refresh_token(token_payload)
         return make_result(data={'access_token': access_token, 'refresh_token': refresh_token})
 
-    # 更新密码
-    @args_required_method(args_update_password)
-    def put(self, uid: int):
-        password = self.args_update_password.parse_args().get('password')
-        if not db.session.update_one(uid, password):
-            return make_result(400)
-        return make_result()
-
     @args_required_method(args_update)
     def get(self):
         """
         更新 access_token
         :return:
         """
-        refresh_token = self.args_update.parse_args().get('refresh_token')
+        refresh_token = self.args_update.parse_args(http_error_code=401).get('Refresh')
         try:
             data = Statics.tjw_refresh_token.loads(refresh_token)
         except (BadSignature, BadData, BadHeader, BadPayload) as e:
@@ -66,9 +56,34 @@ class Session(Resource):
         })
 
     @auth_required_method
-    def delete(self, uid: int):
+    def delete(self, access_token: str):
         """
         注销
         :return:
         """
+        # logger.warning('access_token: ' + access_token)
+        refresh_token = self.args_update.parse_args(http_error_code=401).get('Refresh')
+        # logger.warning('refresh_token: ' + refresh_token)
+        try:
+            Statics.tjw_refresh_token.loads(refresh_token)
+        except (BadSignature, BadData, BadHeader, BadPayload) as e:
+            return make_result(422, message=f"Bad token: {e}")
+        except BadTimeSignature:
+            return make_result(424)
+        db.session.disable_token(access_token=access_token, refresh_token=refresh_token)
+        return make_result()
+
+
+class Password(Resource):
+    # 更新密码
+    args_update_password = reqparse.RequestParser() \
+        .add_argument("password")
+
+    @args_required_method(args_update_password)
+    @auth_required_method
+    def post(self, uid: int):
+        password = self.args_update_password.parse_args().get('password')
+        if not db.session.update_one({'uid': uid, 'password': password}):
+            return make_result(400)
+        logger.error(f'update password done: uid={uid}, password={password}')
         return make_result()

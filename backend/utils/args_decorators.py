@@ -10,8 +10,8 @@ def args_required_method(parser):
             if 'Resource.dispatch_request' in str(fn) or \
                     ('__args_not_required__' in dir(fn) and fn.__args_not_required__ is True) or \
                     ('__inner__' in dir(fn) and (
-                            "Resource.dispatch_request" in str(fn.__inner__) or "__args_not_required__" in str(
-                        fn.__inner__))):
+                            "Resource.dispatch_request" in str(fn.__inner__) or
+                            "__args_not_required__" in str(fn.__inner__))):
                 return fn(*args, **kwargs)
             args_ = parser.parse_args()
             logger.info(f'args: {args_}')
