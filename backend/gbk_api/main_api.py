@@ -1,4 +1,5 @@
-from flask import Flask
+import json
+from flask import Flask, Response
 from flask_cors import CORS
 from flask_restful import Resource, Api
 from utils.logger import logger
@@ -28,6 +29,7 @@ class MainAPI(Resource):
 class DropData(Resource):
     def get(self):
         db.rebase()
+        return make_result()
 
 
 app = Flask(__name__)
@@ -39,6 +41,19 @@ api.add_resource(UserInfo, "/user_info")
 api.add_resource(Session, "/session")
 api.add_resource(Password, '/password')
 api.add_resource(DropData, '/drop_data')
+
+
+@app.after_request
+def api_after(res: Response):
+    try:
+        js = json.loads(res.data)
+        js['code'] = res.status_code
+        res.data = json.dumps(js).encode()
+    except Exception as e:
+        logger.error(e)
+    # print(res.data)
+    return res
+
 
 if __name__ == '__main__':
     app.run()

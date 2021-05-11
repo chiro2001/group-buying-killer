@@ -55,11 +55,13 @@ class API {
       console.error(e);
       return { code: resp.status, error: resp.statusText };
     }
-    js = js || {};
-    if (!js.code) {
-      js.code = resp.status;
+    console.log('raw js:', js);
+    if (!js) {
+      // console.log(await resp.json());
+      js = {};
       js.message = resp.statusText;
     }
+    if (js.code === undefined) js.code = resp.status;
     if (js.code === 422) {
       if (this.refresh_token === '') {
         // 过期勒

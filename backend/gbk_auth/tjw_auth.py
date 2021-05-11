@@ -21,7 +21,7 @@ def create_refresh_token(identity: dict = None) -> str:
     return Statics.tjw_refresh_token.dumps(identity).decode()
 
 
-auth_reqparse = reqparse.RequestParser()
+auth_reqparse = reqparse.RequestParser(bundle_errors=True)
 auth_reqparse.add_argument(Constants.JWT_HEADER_NAME, type=str, required=True, location=Constants.JWT_LOCATIONS,
                            help=Constants.JWT_MESSAGE_401)
 
@@ -54,8 +54,8 @@ def auth_required_method(fn):
                         "Resource.dispatch_request" in str(fn.__inner__) or
                         "__auth_not_required__" in str(fn.__inner__))):
             return fn(*args, **kwargs)
-        args_ = auth_reqparse.parse_args()
-        logger.info(f"  auth args: {args_}, {fn.__inner__ if '__inner__' in dir(fn) else '(no inner)'}")
+        args_ = auth_reqparse.parse_args(http_error_code=401)
+        # logger.info(f"  auth args: {args_}, {fn.__inner__ if '__inner__' in dir(fn) else '(no inner)'}")
         auth = args_.get(Constants.JWT_HEADER_NAME, None)
         if auth is None:
             return make_result(401)
@@ -69,7 +69,7 @@ def auth_required_method(fn):
             return make_result(422, message=f"Bad token: {e}")
         except BadTimeSignature:
             return make_result(423)
-        logger.info(f"data: {data}")
+        # logger.info(f"data: {data}")
         fn_data = inspect.getfullargspec(fn)
         if 'uid' in fn_data.args:
             kwargs['uid'] = data.get('uid')

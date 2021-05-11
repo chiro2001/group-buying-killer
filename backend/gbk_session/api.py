@@ -85,5 +85,5 @@ class Password(Resource):
         password = self.args_update_password.parse_args().get('password')
         if not db.session.update_one({'uid': uid, 'password': password}):
             return make_result(400)
-        logger.error(f'update password done: uid={uid}, password={password}')
+        # logger.error(f'update password done: uid={uid}, password={password}')
         return make_result()

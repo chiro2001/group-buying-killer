@@ -63,7 +63,7 @@ class Session:
 
     def token_available(self, token: str) -> bool:
         result = self.col_disabled_token.find_one({'token': token})
-        logger.warning(f'token: ...{token[-5:]} {"available" if result is None else "disabled"}')
+        # logger.warning(f'token: ...{token[-5:]} {"available" if result is None else "disabled"}')
         if result is None:
             return True
         return False
