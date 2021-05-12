@@ -32,3 +32,8 @@ def make_result(code=200, message=None, data=None):
         result['data'] = data
     result = json.loads(json_dumps_format(result))
     return result, code
+
+
+def limit_list(li: list, offset: int = None, limit: int = None):
+    return li[offset if offset is not None else 0: offset + (
+        limit if limit is not None else Constants.FIND_LIMIT) if offset is not None else 0]

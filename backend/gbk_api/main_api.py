@@ -10,6 +10,7 @@ from gbk_database.database import db
 
 from gbk_user.api import *
 from gbk_session.api import *
+from gbk_scheduler.task_api import *
 
 
 class MainAPI(Resource):
@@ -42,6 +43,7 @@ api.add_resource(UserInfo, "/user_info")
 api.add_resource(Session, "/session")
 api.add_resource(Password, '/password')
 api.add_resource(DropData, '/drop_data')
+api.add_resource(TaskManagerAPI, '/task')
 if Constants.RUN_WITH_PREDICTS:
     if Constants.RUN_IGNORE_TF_WARNINGS:
         os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'

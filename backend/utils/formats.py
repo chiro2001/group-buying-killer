@@ -24,13 +24,13 @@ def json_dumps_format(data: dict):
     return json.dumps(data, cls=DateTimeEncoder, ensure_ascii=False, indent=2)
 
 
-def pymongo_data_encode(data):
+def task_data_encode(data):
     if isinstance(data, list):
         for i in range(len(data)):
-            data[i] = pymongo_data_encode(data[i])
+            data[i] = task_data_encode(data[i])
     elif isinstance(data, dict):
         for k in data:
-            data[k] = pymongo_data_encode(data[k])
+            data[k] = task_data_encode(data[k])
     elif isinstance(data, tzinfo.DstTzInfo):
         # data = f"timezone|{str(data.__repr__())}"
         data = f"timezone|{str(data)}"
@@ -43,14 +43,14 @@ def pymongo_data_encode(data):
 pymongo_timedelta_tz = pytz.timezone('Asia/Shanghai')
 
 
-def pymongo_data_decode(data):
+def task_data_decode(data):
     global pymongo_timedelta_tz
     if isinstance(data, list):
         for i in range(len(data)):
-            data[i] = pymongo_data_decode(data[i])
+            data[i] = task_data_decode(data[i])
     elif isinstance(data, dict):
         for k in data:
-            data[k] = pymongo_data_decode(data[k])
+            data[k] = task_data_decode(data[k])
     elif isinstance(data, str):
         if data.startswith('timezone|'):
             # print('timezone: ', data)

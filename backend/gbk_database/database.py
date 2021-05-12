@@ -9,7 +9,7 @@ from gbk_sync.database import SyncDB
 
 class DataBase:
     COLLECTIONS = [
-        'user', 'user_uid', 'gbk_bug', 'session', 'session_disabled_token', 'task_manager'
+        'user', 'user_uid', 'gbk_bug', 'session', 'session_disabled_token', 'task_manager', 'task_tid'
     ]
 
     def __init__(self):

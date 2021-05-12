@@ -92,18 +92,19 @@ def tree_delete_path(tree, path: str) -> (dict, bool):
     return tree, True
 
 
-# if __name__ == '__main__':
-#     t = {}
-#     tree_update_path(t, "path1/path2/")
-#     print(t)
-#     tree_update_path(t, "path1/path2/ds")
-#     print(t)
-#     tree_update_path(t, "path3/path2/ds")
-#     print(t)
-#     t, res = tree_delete_path(t, "/")
-#     print(t, res)
-
 class BaseDB:
     def __init__(self, d, col_name: str):
         self.d = d
         self.col: pymongo.collection.Collection = d[col_name]
+
+
+def init_sequence_id(col: pymongo.collection.Collection, id_name: str, default_value: int = 0):
+    insert_id_if_not_exist(col, id_name, default_value)
+
+
+def get_next_id(col: pymongo.collection.Collection, id_name: str):
+    ret = col.find_one_and_update({"_id": id_name},
+                                  {"$inc": {"sequence_value": 1}},
+                                  new=True)
+    new_id = ret["sequence_value"]
+    return new_id

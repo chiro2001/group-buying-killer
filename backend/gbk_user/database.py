@@ -5,14 +5,10 @@ import gbk_exceptions
 class UserDB(BaseDB):
     def __init__(self, d):
         super().__init__(d, 'user')
-        insert_id_if_not_exist(self.d.user_uid, "cnt_uid", 0)
+        init_sequence_id(self.d.user_uid, "cnt_uid", 0)
 
     def get_next_uid(self):
-        ret = self.d.user_uid.find_one_and_update({"_id": "cnt_uid"},
-                                                  {"$inc": {"sequence_value": 1}},
-                                                  new=True)
-        new_uid = ret["sequence_value"]
-        return new_uid
+        return get_next_id(self.d.user_uid, "cnd_uid")
 
     def insert(self, user: dict) -> int:
         user_data = self.find_by_username(user.get('username'))
