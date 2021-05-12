@@ -102,3 +102,8 @@ def tree_delete_path(tree, path: str) -> (dict, bool):
 #     print(t)
 #     t, res = tree_delete_path(t, "/")
 #     print(t, res)
+
+class BaseDB:
+    def __init__(self, d, col_name: str):
+        self.d = d
+        self.col: pymongo.collection.Collection = d[col_name]

@@ -1,3 +1,4 @@
+import os
 import json
 from flask import Flask, Response
 from flask_cors import CORS
@@ -41,6 +42,13 @@ api.add_resource(UserInfo, "/user_info")
 api.add_resource(Session, "/session")
 api.add_resource(Password, '/password')
 api.add_resource(DropData, '/drop_data')
+if Constants.RUN_WITH_PREDICTS:
+    if Constants.RUN_IGNORE_TF_WARNINGS:
+        os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+    logger.info('Loading Tensorflow...')
+    from gbk_predicts.api import Predicts
+
+    api.add_resource(Predicts, '/predicts')
 
 
 @app.after_request

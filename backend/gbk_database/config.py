@@ -59,6 +59,9 @@ class Constants:
     RUN_PORT = int(os.environ.get("PORT", 8080))
     RUN_USE_RELOAD = False
     RUN_REBASE = True
+    # RUN_WITH_PREDICTS = True
+    RUN_WITH_PREDICTS = False
+    RUN_IGNORE_TF_WARNINGS = True
     # Schedule
     SCHEDULE_JOBSTORES = {
         # 'default': MongoDBJobStore(

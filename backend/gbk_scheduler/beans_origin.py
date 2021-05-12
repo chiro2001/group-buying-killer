@@ -7,8 +7,8 @@ class RoomItem:
     @staticmethod
     def from_json(js):
         return RoomItem(js['itemId'], js['price'], js['foodDesc'], js['singHours'], js['stock'],
-                        js['itemType'], js['periodType'], js['roomType'], js.get_raw('periodId', None),
-                        js.get_raw('date', None))
+                        js['itemType'], js['periodType'], js['roomType'], js.get('periodId', None),
+                        js.get('date', None))
 
     def to_json(self):
         return self.__dict__()

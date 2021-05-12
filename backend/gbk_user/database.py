@@ -2,10 +2,9 @@ from gbk_database.tools import *
 import gbk_exceptions
 
 
-class User:
+class UserDB(BaseDB):
     def __init__(self, d):
-        self.d = d
-        self.col: pymongo.collection.Collection = self.d.user
+        super().__init__(d, 'user')
         insert_id_if_not_exist(self.d.user_uid, "cnt_uid", 0)
 
     def get_next_uid(self):

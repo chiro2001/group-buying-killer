@@ -1,9 +1,10 @@
 import time
 from utils.logger import logger
 from gbk_database.tools import *
-from gbk_user.database import User
-from gbk_session.database import Session
-from gbk_scheduler.task_database import TaskManagerDatabase
+from gbk_user.database import UserDB
+from gbk_session.database import SessionDB
+from gbk_scheduler.task_database import TaskManagerDB
+from gbk_sync.database import SyncDB
 
 
 class DataBase:
@@ -15,17 +16,19 @@ class DataBase:
         self.client = None
         self.db = None
         self.connect_init()
-        self.user: User = None
-        self.session: Session = None
-        self.task_manager: TaskManagerDatabase = None
+        self.user: UserDB = None
+        self.session: SessionDB = None
+        self.task_manager: TaskManagerDB = None
+        self.sync: SyncDB = None
         self.init_parts()
         if Constants.RUN_REBASE:
             self.rebase()
 
     def init_parts(self):
-        self.user = User(self.db)
-        self.session = Session(self.db)
-        self.task_manager = TaskManagerDatabase(self.db)
+        self.user = UserDB(self.db)
+        self.session = SessionDB(self.db)
+        self.task_manager = TaskManagerDB(self.db)
+        self.sync = SyncDB(self.db)
 
     def rebase(self):
         for col in DataBase.COLLECTIONS:

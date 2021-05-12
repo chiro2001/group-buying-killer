@@ -1,10 +1,9 @@
 from gbk_database.tools import *
 
 
-class TaskManagerDatabase:
+class TaskManagerDB(BaseDB):
     def __init__(self, d):
-        self.d = d
-        self.col: pymongo.collection.Collection = d.task_manager
+        super().__init__(d, 'task_manager')
         now = self.get_raw()
         if now is None:
             self.col.insert_one({'data': {}, 'finder': True})

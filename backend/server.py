@@ -17,11 +17,7 @@ from gbk_scheduler.task import scheduler, Task, ActionSimpleRun, task_manager
 api_prefix = config.data.get('api_prefix', '/api/v2')
 
 # 中间件
-dm = DispatcherMiddleware(app_file,
-                          {
-                              api_prefix: app_api
-                          }
-                          )
+dm = DispatcherMiddleware(app_file, {api_prefix: app_api})
 
 if __name__ == '__main__':
     host, port = Constants.RUN_LISTENING, Constants.RUN_PORT

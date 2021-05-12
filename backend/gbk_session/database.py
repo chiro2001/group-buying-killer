@@ -1,12 +1,11 @@
 from gbk_database.tools import *
 import datetime
-from utils.logger import logger
+# from utils.logger import logger
 
 
-class Session:
+class SessionDB(BaseDB):
     def __init__(self, d):
-        self.d = d
-        self.col: pymongo.collection.Collection = d.session
+        super().__init__(d, 'session')
         self.col_disabled_token: pymongo.collection.Collection = d.session_disabled_token
         # 创建TTL索引，根据两个有限时间确定自动删除时间（会不会太长？）
         self.col_disabled_token.create_index([("time", pymongo.ASCENDING)], expireAfterSeconds=0)
@@ -18,7 +17,7 @@ class Session:
         user_data = find_one(self.col, {'uid': uid, 'password': password})
         if user_data is None:
             return False
-        if user_data.get_raw('password') != password:
+        if user_data.get('password') != password:
             return False
         return True
 
