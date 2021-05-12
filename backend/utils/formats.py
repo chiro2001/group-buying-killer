@@ -1,5 +1,8 @@
 import json
 import datetime
+from pytz import tzinfo
+import pytz
+import tzlocal
 
 
 class DateTimeEncoder(json.JSONEncoder):
@@ -10,8 +13,68 @@ class DateTimeEncoder(json.JSONEncoder):
         elif isinstance(obj, datetime.date):
             # return obj.strftime('%Y-%m-%d')
             return obj.isoformat()
+        elif isinstance(obj, tzinfo.DstTzInfo):
+            return str(obj)
+        elif isinstance(obj, datetime.timedelta):
+            return str(obj)
         return json.JSONEncoder.default(self, obj)
 
 
 def json_dumps_format(data: dict):
     return json.dumps(data, cls=DateTimeEncoder, ensure_ascii=False, indent=2)
+
+
+def pymongo_data_encode(data):
+    if isinstance(data, list):
+        for i in range(len(data)):
+            data[i] = pymongo_data_encode(data[i])
+    elif isinstance(data, dict):
+        for k in data:
+            data[k] = pymongo_data_encode(data[k])
+    elif isinstance(data, tzinfo.DstTzInfo):
+        # data = f"timezone|{str(data.__repr__())}"
+        data = f"timezone|{str(data)}"
+        # data = f"timezone|"
+    elif isinstance(data, datetime.timedelta):
+        data = f"timedelta|{str(data.total_seconds())}"
+    return data
+
+
+pymongo_timedelta_tz = pytz.timezone('Asia/Shanghai')
+
+
+def pymongo_data_decode(data):
+    global pymongo_timedelta_tz
+    if isinstance(data, list):
+        for i in range(len(data)):
+            data[i] = pymongo_data_decode(data[i])
+    elif isinstance(data, dict):
+        for k in data:
+            data[k] = pymongo_data_decode(data[k])
+    elif isinstance(data, str):
+        if data.startswith('timezone|'):
+            # print('timezone: ', data)
+            # tz = tzinfo.BaseTzInfo()
+            # tz = tzinfo.DstTzInfo(tz)
+            # tz.zone = data[len('timezone|'):]
+            data = pytz.timezone(data[len('timezone|'):])
+            pymongo_timedelta_tz = data
+        elif data.startswith('timedelta|'):
+            # print('timedelta: ', data)
+            data = datetime.timedelta(seconds=float(data[len('timedelta|'):]))
+    elif isinstance(data, datetime.datetime):
+        data = data.replace(tzinfo=pymongo_timedelta_tz)
+        data = pymongo_timedelta_tz.fromutc(data)
+    return data
+
+# def serialize_time_value(value):
+#     if isinstance(value, datetime.datetime):
+#         return value.replace(microsecond=0).isoformat()
+#     if isinstance(value, datetime.date):
+#         return value.isoformat()
+#     elif isinstance(value, tzinfo.DstTzInfo):
+#         return str(value)
+#     elif value is None:
+#         return None
+#     else:
+#         return str(value)

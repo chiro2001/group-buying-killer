@@ -12,3 +12,19 @@ class GBKBaseError(Exception):
 
 class GBKUserExist(GBKBaseError):
     pass
+
+
+class GBKPermissionError(GBKBaseError):
+    pass
+
+
+class GBKLoginError(GBKBaseError):
+    pass
+
+
+class GBKShopIdError(GBKBaseError):
+    pass
+
+
+class GBKError(GBKBaseError):
+    pass

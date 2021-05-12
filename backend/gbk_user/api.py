@@ -24,7 +24,7 @@ class User(Resource):
         :return:
         """
         args = self.args_signin.parse_args()
-        username, password = args.get('username'), args.get('password')
+        username, password = args.get_raw('username'), args.get_raw('password')
         result, text = password_check(password)
         if not result:
             return make_result(400, message=text)

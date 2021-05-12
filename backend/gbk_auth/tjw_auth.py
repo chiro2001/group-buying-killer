@@ -56,14 +56,14 @@ def auth_required_method(fn):
             return fn(*args, **kwargs)
         args_ = auth_reqparse.parse_args(http_error_code=401)
         # logger.info(f"  auth args: {args_}, {fn.__inner__ if '__inner__' in dir(fn) else '(no inner)'}")
-        auth = args_.get(Constants.JWT_HEADER_NAME, None)
+        auth = args_.get_raw(Constants.JWT_HEADER_NAME, None)
         if auth is None:
             return make_result(401)
         try:
             if not db.session.token_available(auth):
                 raise BadSignature("Token disabled.")
             data = Statics.tjw_access_token.loads(auth)
-            if data.get('type', None) != 'access_token':
+            if data.get_raw('type', None) != 'access_token':
                 raise BadSignature("Token type error.")
         except (BadSignature, BadData, BadHeader, BadPayload) as e:
             return make_result(422, message=f"Bad token: {e}")
@@ -72,7 +72,7 @@ def auth_required_method(fn):
         # logger.info(f"data: {data}")
         fn_data = inspect.getfullargspec(fn)
         if 'uid' in fn_data.args:
-            kwargs['uid'] = data.get('uid')
+            kwargs['uid'] = data.get_raw('uid')
         if 'access_token' in fn_data.args:
             kwargs['access_token'] = auth
         return fn(*args, **kwargs)

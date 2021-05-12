@@ -3,6 +3,10 @@ import pymongo
 from utils.logger import logger
 import secrets
 from itsdangerous import TimedJSONWebSignatureSerializer as TJWSS
+from pytz import utc
+# from apscheduler.jobstores.mongodb import MongoDBJobStore
+from apscheduler.jobstores.memory import MemoryJobStore
+from apscheduler.executors.pool import ThreadPoolExecutor, ProcessPoolExecutor
 
 
 class Constants:
@@ -55,6 +59,28 @@ class Constants:
     RUN_PORT = int(os.environ.get("PORT", 8080))
     RUN_USE_RELOAD = False
     RUN_REBASE = True
+    # Schedule
+    SCHEDULE_JOBSTORES = {
+        # 'default': MongoDBJobStore(
+        #     client=(pymongo.MongoClient(DATABASE_URI) if len(DATABASE_URI) > 0 else pymongo.MongoClient)),
+        'default': MemoryJobStore()
+    }
+    SCHEDULE_EXECUTORS = {
+        'default': ThreadPoolExecutor(20),
+        'processpool': ProcessPoolExecutor(5)
+    }
+    SCHEDULE_JOB_DEFAULTS = {
+        'coalesce': False,
+        'max_instances': 300,
+        'misfire_grace_time': 10
+    }
+    SCHEDULE_CONFIG = {
+        'jobstores': SCHEDULE_JOBSTORES, 'executors': SCHEDULE_EXECUTORS, 'job_defaults': SCHEDULE_JOB_DEFAULTS,
+        'timezone': utc
+    }
+    # Request API
+    REQUEST_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:86.0) Gecko/20100101 Firefox/86.0"
+    REQUEST_DEBUG_COOKIES = "_lxsdk_cuid=17771fd8425c8-0f5b6f7abba2ce8-4c3f217f-ca800-17771fd8425c8; _lxsdk=17771fd8425c8-0f5b6f7abba2ce8-4c3f217f-ca800-17771fd8425c8; _hc.v=6594ea87-cd60-00b4-94e8-05bc93197b85.1612525177; mpmerchant_portal_shopid=581990543; __utma=1.458675775.1615809801.1615809801.1615809801.1; __utmz=1.1615809801.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _lxsdk_s=1795f73b9b7-137-193-9d8%7C%7CNaN; edper=zezimai7sCGm3_09H01pg2dvSiz7fMZjmuKaVBQUlpjqA2LTdhcenbq0C18cc4LfhT6AgVgwmZDETyh1X0Hg-w; JSESSIONID=B7E99E9A4B8211051DB1B151E9CC436E"
 
 
 class Statics:
@@ -68,7 +94,7 @@ class Config:
             "version": Constants.VERSION,
             "api_server": {
                 "upgradable": True,
-                "api_prefix": "/api/v2"
+                "api_prefix": Constants.API_PATH
             },
             # 调试的时候用
             "file_server": {

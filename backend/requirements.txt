@@ -11,3 +11,4 @@ pyinstaller
 apscheduler
 flask-restful
 itsdangerous
+pytz

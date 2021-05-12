@@ -17,11 +17,11 @@ class Session(Resource):
     @args_required_method(args_login)
     def post(self):
         args = self.args_login.parse_args()
-        username, password = args.get('username'), args.get('password')
+        username, password = args.get_raw('username'), args.get_raw('password')
         user = db.user.find_by_username(username=username)
         if user is None:
             return make_result(403)
-        uid = user.get('uid')
+        uid = user.get_raw('uid')
         result = db.session.check_password(uid=uid, password=password)
         if not result:
             return make_result(403)
@@ -37,14 +37,14 @@ class Session(Resource):
         更新 access_token
         :return:
         """
-        refresh_token = self.args_update.parse_args(http_error_code=401).get('Refresh')
+        refresh_token = self.args_update.parse_args(http_error_code=401).get_raw('Refresh')
         try:
             data = Statics.tjw_refresh_token.loads(refresh_token)
         except (BadSignature, BadData, BadHeader, BadPayload) as e:
             return make_result(422, message=f"Bad token: {e}")
         except BadTimeSignature:
             return make_result(424)
-        uid = data.get('uid')
+        uid = data.get_raw('uid')
         payload = {
             'uid': uid
         }
@@ -62,7 +62,7 @@ class Session(Resource):
         :return:
         """
         # logger.warning('access_token: ' + access_token)
-        refresh_token = self.args_update.parse_args(http_error_code=401).get('Refresh')
+        refresh_token = self.args_update.parse_args(http_error_code=401).get_raw('Refresh')
         # logger.warning('refresh_token: ' + refresh_token)
         try:
             Statics.tjw_refresh_token.loads(refresh_token)
@@ -82,7 +82,7 @@ class Password(Resource):
     @args_required_method(args_update_password)
     @auth_required_method
     def post(self, uid: int):
-        password = self.args_update_password.parse_args().get('password')
+        password = self.args_update_password.parse_args().get_raw('password')
         if not db.session.update_one({'uid': uid, 'password': password}):
             return make_result(400)
         # logger.error(f'update password done: uid={uid}, password={password}')

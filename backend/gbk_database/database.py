@@ -3,11 +3,12 @@ from utils.logger import logger
 from gbk_database.tools import *
 from gbk_user.database import User
 from gbk_session.database import Session
+from gbk_scheduler.task_database import TaskManagerDatabase
 
 
 class DataBase:
     COLLECTIONS = [
-        'user', 'user_uid', 'gbk_bug', 'session', 'session_disabled_token'
+        'user', 'user_uid', 'gbk_bug', 'session', 'session_disabled_token', 'task_manager'
     ]
 
     def __init__(self):
@@ -16,6 +17,7 @@ class DataBase:
         self.connect_init()
         self.user: User = None
         self.session: Session = None
+        self.task_manager: TaskManagerDatabase = None
         self.init_parts()
         if Constants.RUN_REBASE:
             self.rebase()
@@ -23,6 +25,7 @@ class DataBase:
     def init_parts(self):
         self.user = User(self.db)
         self.session = Session(self.db)
+        self.task_manager = TaskManagerDatabase(self.db)
 
     def rebase(self):
         for col in DataBase.COLLECTIONS:

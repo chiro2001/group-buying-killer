@@ -18,7 +18,7 @@ class Session:
         user_data = find_one(self.col, {'uid': uid, 'password': password})
         if user_data is None:
             return False
-        if user_data.get('password') != password:
+        if user_data.get_raw('password') != password:
             return False
         return True
 
