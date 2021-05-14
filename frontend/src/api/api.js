@@ -74,6 +74,7 @@ const request = async function (url_base, router, args, method = 'GET') {
 class API {
   constructor(props) {
     this.url_base = `http://localhost:${window.location.port}/api/v1/`;
+    // this.url_base = `http://localhost:${8962}/api/v1/`;
     // this.url_base = '/api/v1/';
     // this.url_base = 'http://localhost:12000/api/v1/';
     // this.url_base = 'http://localhost:8000/';
@@ -98,6 +99,7 @@ class API {
       download_config: "download/config",
       logout: "logout",
       has_login: 'has_login',
+      predicts: 'predicts'
     }
     this.test = this.test.bind(this);
     this.get_ips = this.get_ips.bind(this);
@@ -140,7 +142,6 @@ class API {
   async delete_tid(tid) {
     return await request(this.url_base, this.url.delete_tid + '/' + tid);
   }
-  
   async get_shop_info() {
     return (await request(this.url_base, this.url.get_shop_info)).data.shop_info;
   }
@@ -156,6 +157,9 @@ class API {
   }
   async download_config() {
     return (await request(this.url_base, this.url.download_config)).data.config_frontend;
+  }
+  async predicts(data) {
+    return await request(this.url_base, this.url.predicts, data, 'POST');
   }
 }
 

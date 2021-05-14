@@ -24,10 +24,10 @@ async function cycleFunc(cycle = 1000) {
         if (periods)
           store.dispatch(setTimetablePeriods(periods));
       });
-      await api.get_room_stock_plan().then(stocks => {
-        if (stocks)
-          store.dispatch(setRoomStockPlans(stocks));
-      });
+      // await api.get_room_stock_plan().then(stocks => {
+      //   if (stocks)
+      //     store.dispatch(setRoomStockPlans(stocks));
+      // });
       // 循环验证
       /*
       if (authCount == 0) {

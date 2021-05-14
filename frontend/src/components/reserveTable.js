@@ -173,7 +173,7 @@ function ReserveTable(props) {
       <DialogTitle>管理计划</DialogTitle>
       <DialogContent>
         <PlanTime roomItemNow={roomItemNow} />
-        <PlanStock roomItemNow={roomItemNow} />
+        {/* <PlanStock roomItemNow={roomItemNow} /> */}
       </DialogContent>
     </Dialog>);
   }

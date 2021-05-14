@@ -17,6 +17,7 @@ import AccountCircleIcon from '@material-ui/icons/AccountCircle';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import AlarmIcon from '@material-ui/icons/Alarm';
 import SettingsIcon from '@material-ui/icons/Settings';
+import EqualizerIcon from '@material-ui/icons/Equalizer';
 import CloseIcon from '@material-ui/icons/Close';
 import StorageIcon from '@material-ui/icons/Storage';
 import VerifiedUserIcon from '@material-ui/icons/VerifiedUser';
@@ -47,6 +48,7 @@ import Verify from "./pages/verify";
 import PlanTime from "./pages/planTime";
 import PlanStock from "./pages/planStock";
 import Connect from "./pages/connect";
+import Predicts from "./pages/predicts";
 import Config from "./Config";
 import './App.css';
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, ListItem, Snackbar } from '@material-ui/core';
@@ -307,8 +309,9 @@ export default function App() {
               <List onClick={handleClickAction}>
                 <ListItemLink to="/" primary="启动页" icon={<DashboardIcon />} />
                 <ListItemLink to="/plan/time" primary="时间计划" icon={<AlarmIcon />} />
-                <ListItemLink to="/plan/stock" primary="库存计划" icon={<StorageIcon />} />
+                {/* <ListItemLink to="/plan/stock" primary="库存计划" icon={<StorageIcon />} /> */}
                 <ListItemLink to="/settings" primary="设置" icon={<SettingsIcon />} />
+                <ListItemLink to="/predicts" primary="智能预测" icon={<EqualizerIcon />} />
                 {/* <ListItemLink to="/verify" primary="授权" icon={<VerifiedUserIcon />} /> */}
                 {isMobileDevice() ? null : <ListItemLink to="/connect" primary="移动设备" icon={<PhonelinkIcon />} />}
               </List>
@@ -357,11 +360,14 @@ export default function App() {
                 <Route path={"/plan/time"} exact={false}>
                   <PlanTime />
                 </Route>
-                <Route path={"/plan/stock"} exact={false}>
+                {/* <Route path={"/plan/stock"} exact={false}>
                   <PlanStock />
-                </Route>
+                </Route> */}
                 <Route path={"/settings"} exact={false}>
                   <Settings />
+                </Route>
+                <Route path={"/predicts"} exact={false}>
+                  <Predicts />
                 </Route>
                 <Route path={"/verify"} exact={false}>
                   <Verify />
