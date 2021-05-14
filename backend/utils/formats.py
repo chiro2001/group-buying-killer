@@ -3,9 +3,10 @@ import datetime
 from pytz import tzinfo
 import pytz
 import tzlocal
+from apscheduler.triggers.cron.fields import BaseField
 
 
-class DateTimeEncoder(json.JSONEncoder):
+class DefaultResultEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, datetime.datetime):
             # return obj.strftime('%Y-%m-%d %H:%M:%S')
@@ -17,11 +18,18 @@ class DateTimeEncoder(json.JSONEncoder):
             return str(obj)
         elif isinstance(obj, datetime.timedelta):
             return str(obj)
+        elif issubclass(type(obj), BaseField):
+            return {
+                'type': 'field',
+                'class_name': obj.__class__.__name__,
+                "name": obj.name,
+                "expressions": str(obj)
+            }
         return json.JSONEncoder.default(self, obj)
 
 
 def json_dumps_format(data: dict):
-    return json.dumps(data, cls=DateTimeEncoder, ensure_ascii=False, indent=2)
+    return json.dumps(data, cls=DefaultResultEncoder, ensure_ascii=False, indent=2)
 
 
 def task_data_encode(data):
@@ -37,6 +45,10 @@ def task_data_encode(data):
         # data = f"timezone|"
     elif isinstance(data, datetime.timedelta):
         data = f"timedelta|{str(data.total_seconds())}"
+    elif isinstance(data, datetime.datetime):
+        data = f"datetime|{data.isoformat()}"
+    elif isinstance(data, datetime.date):
+        data = f"date|{data.isoformat()}"
     return data
 
 
@@ -62,6 +74,14 @@ def task_data_decode(data):
         elif data.startswith('timedelta|'):
             # print('timedelta: ', data)
             data = datetime.timedelta(seconds=float(data[len('timedelta|'):]))
+        elif data.startswith('datetime|'):
+            data = datetime.datetime.fromisoformat(data[len('datetime|'):])
+            data = data.replace(tzinfo=pymongo_timedelta_tz)
+            # data = pymongo_timedelta_tz.fromutc(data)
+        elif data.startswith('date|'):
+            data = datetime.date.fromisoformat(data[len("date|"):])
+            # data = data.replace(tzinfo=pymongo_timedelta_tz)
+            # data = pymongo_timedelta_tz.fromutc(data)
     elif isinstance(data, datetime.datetime):
         data = data.replace(tzinfo=pymongo_timedelta_tz)
         data = pymongo_timedelta_tz.fromutc(data)

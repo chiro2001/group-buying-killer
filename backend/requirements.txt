@@ -12,3 +12,4 @@ apscheduler
 flask-restful
 itsdangerous
 pytz
+websocket-client

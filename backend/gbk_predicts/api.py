@@ -1,7 +1,4 @@
-from flask_restful import Resource
-from gbk_auth.tjw_auth import *
-from utils.args_decorators import args_required_method
-from utils.make_result import make_result
+from utils.api_tools import *
 from gbk_predicts.predicts import predicts
 
 

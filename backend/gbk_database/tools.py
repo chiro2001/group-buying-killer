@@ -1,7 +1,7 @@
 import pymongo
 import datetime
 from gbk_database.config import Constants
-from utils.formats import json_dumps_format
+from utils.logger import logger
 
 
 def dict_update(dist: dict, src: dict) -> dict:
@@ -18,9 +18,21 @@ def dict_update(dist: dict, src: dict) -> dict:
     return result
 
 
+def dict_remove_empty(data, delete=None):
+    if data is None:
+        return None
+    if isinstance(data, list):
+        return [dict_remove_empty(d) for d in data]
+    if not isinstance(data, dict):
+        return data
+    return {k: dict_remove_empty(data[k]) for k in data if data[k] != delete}
+
+
 def insert_id_if_not_exist(col: pymongo.collection.Collection, key_name: str, value):
     result = col.find_one({"_id": key_name})
+    # logger.warning(f'result: {result}, key_name: {key_name}')
     if result is None:
+        # logger.warning(f'insert key_name: {key_name}')
         col.insert_one({"_id": key_name, "sequence_value": value})
 
 
@@ -103,6 +115,7 @@ def init_sequence_id(col: pymongo.collection.Collection, id_name: str, default_v
 
 
 def get_next_id(col: pymongo.collection.Collection, id_name: str):
+    # logger.warning(f'id_name: {id_name}')
     ret = col.find_one_and_update({"_id": id_name},
                                   {"$inc": {"sequence_value": 1}},
                                   new=True)

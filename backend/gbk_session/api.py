@@ -39,6 +39,8 @@ class Session(Resource):
             return make_result(422, message=f"Bad token: {e}")
         except BadTimeSignature:
             return make_result(424)
+        # 禁用原来的 refresh_token
+        db.session.disable_token(refresh_token=refresh_token)
         uid = data.get('uid')
         payload = {
             'uid': uid

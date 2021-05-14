@@ -11,6 +11,10 @@ from gbk_database.database import db
 from gbk_user.api import *
 from gbk_session.api import *
 from gbk_scheduler.task_api import *
+from gbk_sync.api import *
+from gbk_scheduler.action_api import *
+from gbk_scheduler.trigger_api import *
+from gbk_remote_login.api import *
 
 
 class MainAPI(Resource):
@@ -44,6 +48,13 @@ api.add_resource(Session, "/session")
 api.add_resource(Password, '/password')
 api.add_resource(DropData, '/drop_data')
 api.add_resource(TaskManagerAPI, '/task')
+api.add_resource(TaskManagerTid, '/task/<int:tid>')
+api.add_resource(ActionAPI, '/action')
+api.add_resource(ActionName, '/action/<string:action_type>')
+api.add_resource(TriggerAPI, '/trigger')
+api.add_resource(TriggerName, '/trigger/<string:trigger_type>')
+api.add_resource(Sync, '/sync')
+api.add_resource(RemoteLoginAPI, '/remote_login')
 if Constants.RUN_WITH_PREDICTS:
     if Constants.RUN_IGNORE_TF_WARNINGS:
         os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'

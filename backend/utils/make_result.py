@@ -35,5 +35,7 @@ def make_result(code=200, message=None, data=None):
 
 
 def limit_list(li: list, offset: int = None, limit: int = None):
-    return li[offset if offset is not None else 0: offset + (
-        limit if limit is not None else Constants.FIND_LIMIT) if offset is not None else 0]
+    offset = offset if offset is not None else 0
+    limit = limit if limit is not None else Constants.FIND_LIMIT
+    res = li[offset: offset + limit]
+    return res

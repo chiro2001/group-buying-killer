@@ -22,9 +22,10 @@ class Constants:
     JWT_HEADER_NAME = "Authorization"
     JWT_LOCATIONS = ['headers', ]
     JWT_MESSAGE_401 = f"Authorization required in {', '.join([location for location in JWT_LOCATIONS])}"
-    JWT_ACCESS_TIME = 60 * 5
+    # JWT_ACCESS_TIME = 60 * 5
+    JWT_ACCESS_TIME = 60 * 50 * 100
     # JWT_ACCESS_TIME = 1
-    JWT_REFRESH_TIME = 60 * 60 * 24 * 30
+    JWT_REFRESH_TIME = 60 * 60 * 24 * 30 * 100
     # JWT_REFRESH_TIME = 1
     # Database
     DATABASE_URI = secrets.SECRET_MONGO_URI
@@ -58,7 +59,8 @@ class Constants:
     RUN_LISTENING = "0.0.0.0"
     RUN_PORT = int(os.environ.get("PORT", 8080))
     RUN_USE_RELOAD = False
-    RUN_REBASE = True
+    # RUN_REBASE = True
+    RUN_REBASE = False
     # RUN_WITH_PREDICTS = True
     RUN_WITH_PREDICTS = False
     RUN_IGNORE_TF_WARNINGS = True
@@ -83,7 +85,13 @@ class Constants:
     }
     # Request API
     REQUEST_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:86.0) Gecko/20100101 Firefox/86.0"
-    REQUEST_DEBUG_COOKIES = "_lxsdk_cuid=17771fd8425c8-0f5b6f7abba2ce8-4c3f217f-ca800-17771fd8425c8; _lxsdk=17771fd8425c8-0f5b6f7abba2ce8-4c3f217f-ca800-17771fd8425c8; _hc.v=6594ea87-cd60-00b4-94e8-05bc93197b85.1612525177; mpmerchant_portal_shopid=581990543; __utma=1.458675775.1615809801.1615809801.1615809801.1; __utmz=1.1615809801.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _lxsdk_s=1795f73b9b7-137-193-9d8%7C%7CNaN; edper=zezimai7sCGm3_09H01pg2dvSiz7fMZjmuKaVBQUlpjqA2LTdhcenbq0C18cc4LfhT6AgVgwmZDETyh1X0Hg-w; JSESSIONID=B7E99E9A4B8211051DB1B151E9CC436E"
+    # REQUEST_DEBUG_COOKIES = "_lxsdk_cuid=17771fd8425c8-0f5b6f7abba2ce8-4c3f217f-ca800-17771fd8425c8; _lxsdk=17771fd8425c8-0f5b6f7abba2ce8-4c3f217f-ca800-17771fd8425c8; _hc.v=6594ea87-cd60-00b4-94e8-05bc93197b85.1612525177; mpmerchant_portal_shopid=581990543; __utma=1.458675775.1615809801.1615809801.1615809801.1; __utmz=1.1615809801.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _lxsdk_s=1795f73b9b7-137-193-9d8%7C%7CNaN; edper=n7qfrC85NBES6Qvpd9GGtqYDV2JFyziXLm2at2uCG5mvNUdjU9f55SPPlCHSIFBy2cSteVQbYF7u7sr4lRnf2Q; JSESSIONID=B7E99E9A4B8211051DB1B151E9CC436E"
+    # REQUEST_DEBUG_COOKIES = "edper=n7qfrC85NBES6Qvpd9GGtqYDV2JFyziXLm2at2uCG5mvNUdjU9f55SPPlCHSIFBy2cSteVQbYF7u7sr4lRnf2Q;"
+    REQUEST_DEBUG_COOKIES = "edper=MES6Xgs3t5w6ZgUplHRjVD0UxPNl1Nc1QP0OdWgugje8CdHFDKZHitNc5127P1Gv-WR59-JMzM-teN8OU97dJg;"
+    # Remote Login Server
+    LOGIN_SERVER_HOST = "127.0.0.1"
+    LOGIN_SERVER_PORT = 8081
+    LOGIN_SERVER_PROTOCOL = 'ws'
 
 
 class Statics:

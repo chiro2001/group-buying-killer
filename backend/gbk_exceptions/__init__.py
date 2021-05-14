@@ -28,3 +28,7 @@ class GBKShopIdError(GBKBaseError):
 
 class GBKError(GBKBaseError):
     pass
+
+
+class GBKCookiesError(GBKBaseError):
+    pass

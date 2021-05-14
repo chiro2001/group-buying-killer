@@ -29,24 +29,26 @@ class KTV:
     url_update_price = url_base + "updateprice.json?shopid=%s&itemid=%s&type=%s&price=%s"  # 参数：shopid, itemid, type, price
     url_temporary_change_item_status = url_base + "temporarychangeitemstatus.json?itemid=%s&status=%s&timestamp=%s"  # 参数：itemid, status[1=恢复, 2=下架], timestamp
 
-    def __init__(self, request_func):
+    def __init__(self, request_func, shop_id: int):
         self.request_func = request_func
-        self.shop_id = 0
-        self.shop_info = None
-        self.reserve_date = None
+        self.shop_id = shop_id
 
     def set_shop_id(self, shop_id: int):
         self.shop_id = shop_id
 
-    def get_shop_id(self, solution_id: int):
+    def get_shop_id(self, solution_id: int) -> int:
         resp = self.request_func(self.url_get_shop_id % solution_id)
         self.shop_id = resp['data'][0]['shopId']
-        self.shop_info = resp['data'][0]
         return self.shop_id
+
+    @staticmethod
+    def from_solution_id(request_func, solution_id: int):
+        resp = request_func(KTV.url_get_shop_id % solution_id)
+        shop_id = resp['data'][0]['shopId']
+        return KTV(request_func, shop_id), shop_id
 
     def get_reserve_date(self):
         resp = self.request_func(self.url_get_reserve_date)
-        self.reserve_date = resp['data']
         return resp
 
     # 以date优先，timestamp默认为当前时间
@@ -79,7 +81,8 @@ class KTV:
         # self.reserve_table[date] = temp
         return temp
 
-    def update_price(self, item_id: int, type_: int, price: str):
+    # 1 表示调整价格
+    def update_price(self, item_id: int, price: str, type_: int = 1):
         if self.shop_id == 0:
             raise GBKShopIdError("需要获取shopId")
         logger.warn(f'updating to price {price}')

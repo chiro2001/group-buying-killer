@@ -8,7 +8,8 @@ from gbk_database.config import config, Constants
 
 from gbk_proxy.file_static import app as app_file
 from gbk_api.main_api import app as app_api
-from gbk_scheduler.task import scheduler, Task, ActionSimpleRun
+from gbk_scheduler.task import scheduler, task_pool
+from gbk_remote_login.start_server import start_server
 
 # 只显示错误消息
 # logger_werkzeug = logging.getLogger('werkzeug')
@@ -22,6 +23,12 @@ dm = DispatcherMiddleware(app_file, {api_prefix: app_api})
 if __name__ == '__main__':
     host, port = Constants.RUN_LISTENING, Constants.RUN_PORT
     logger.info(f'server started on http://{host}:{port}, API: http://{host}:{port}{api_prefix}')
+    logger.info('launching remote login server...')
+    start_server()
+    scheduler.start()
+    # logger.info(f'task pool: {task_pool}')
+    task_pool.enable()
+    logger.info(f'enabled pool: {task_pool}')
     logger.info('scheduler tasks: ')
     f = StringIO()
     scheduler.print_jobs(out=f)
@@ -29,5 +36,4 @@ if __name__ == '__main__':
     jobs_data = f.readlines()
     for line in jobs_data:
         logger.info(line[:-1])
-    scheduler.start()
     run_simple(host, port, dm, use_reloader=False)

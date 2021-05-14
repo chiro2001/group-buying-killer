@@ -7,12 +7,54 @@ from gbk_database.config import Constants
 
 
 class API:
-    def __init__(self, cookies: str):
+    def __init__(self, cookies: str, solution_id: int = None, shop_id: int = None):
         self.ua = Constants.REQUEST_UA
-        self.solution = Solution(self.request_no_302)
-        self.ktv = KTV(self.request_json)
-        self.room_stock = RoomsStock(self.request_json)
-        self.cookies = cookies
+        self.solution: Solution = Solution(self.request_no_302)
+        self.ktv: KTV = None
+        self.room_stock: RoomsStock = None
+        self.cookies: str = cookies
+        self.shop_id = shop_id
+        self.solution_id = solution_id
+        # 给参数齐全了就直接初始化
+        if self.shop_id is not None and self.solution_id is not None:
+            self.ktv = KTV(self.request_json, self.shop_id)
+            self.room_stock = RoomsStock(self.request_json, self.shop_id)
+
+    def init_data(self):
+        if self.solution_id is None:
+            logger.info('loading solution_id...')
+            self.solution_id = self.solution.get_solution_id()
+        if self.ktv is None or self.shop_id is None:
+            logger.info('loading shop_id and ktv...')
+            self.ktv, self.shop_id = KTV.from_solution_id(self.request_json, self.solution_id)
+        if self.room_stock is None:
+            logger.info('loading room_stock...')
+            self.room_stock = RoomsStock(self.request_json, self.shop_id)
+        return self
+
+    @staticmethod
+    def from_cookies(cookies: str):
+        if cookies is None:
+            raise GBKCookiesError("Got empty cookies")
+        return API(cookies=cookies).init_data()
+
+    # @staticmethod
+    # def from_cookies_and_solution_id(cookies: str, solution_id: int):
+    #     if cookies is None:
+    #         raise GBKCookiesError("Got empty cookies")
+    #     if solution_id is None:
+    #         raise GBKError("solution_id is None")
+    #     return API(cookies=cookies, solution_id=solution_id).init_data()
+
+    @staticmethod
+    def from_all(cookies: str, solution_id: int, shop_id: int):
+        if cookies is None:
+            raise GBKCookiesError("Got empty cookies")
+        if solution_id is None:
+            raise GBKError("solution_id is None")
+        if shop_id is None:
+            raise GBKError("shop_id is None")
+        return API(cookies=cookies, solution_id=solution_id, shop_id=shop_id)
 
     def request_no_302(self, url: str):
         resp = requests.get(url, headers={

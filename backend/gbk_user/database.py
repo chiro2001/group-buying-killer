@@ -1,4 +1,5 @@
 from gbk_database.tools import *
+from utils.formats import *
 import gbk_exceptions
 
 
@@ -8,7 +9,7 @@ class UserDB(BaseDB):
         init_sequence_id(self.d.user_uid, "cnt_uid", 0)
 
     def get_next_uid(self):
-        return get_next_id(self.d.user_uid, "cnd_uid")
+        return get_next_id(self.d.user_uid, "cnt_uid")
 
     def insert(self, user: dict) -> int:
         user_data = self.find_by_username(user.get('username'))

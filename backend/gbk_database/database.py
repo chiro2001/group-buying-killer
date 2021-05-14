@@ -1,15 +1,18 @@
 import time
-from utils.logger import logger
+# from utils.logger import logger
 from gbk_database.tools import *
 from gbk_user.database import UserDB
 from gbk_session.database import SessionDB
 from gbk_scheduler.task_database import TaskManagerDB
 from gbk_sync.database import SyncDB
+from gbk_daemon.database import DaemonDB
 
 
 class DataBase:
+    # 用到的所有数据集合
     COLLECTIONS = [
-        'user', 'user_uid', 'gbk_bug', 'session', 'session_disabled_token', 'task_manager', 'task_tid'
+        'user', 'user_uid', 'gbk_bug', 'session', 'session_disabled_token',
+        'task_manager', 'task_tid', 'daemon', 'cookies', 'sync'
     ]
 
     def __init__(self):
@@ -20,6 +23,7 @@ class DataBase:
         self.session: SessionDB = None
         self.task_manager: TaskManagerDB = None
         self.sync: SyncDB = None
+        self.daemon: DaemonDB = None
         self.init_parts()
         if Constants.RUN_REBASE:
             self.rebase()
@@ -29,6 +33,7 @@ class DataBase:
         self.session = SessionDB(self.db)
         self.task_manager = TaskManagerDB(self.db)
         self.sync = SyncDB(self.db)
+        self.daemon = DaemonDB(self.db)
 
     def rebase(self):
         for col in DataBase.COLLECTIONS:
@@ -49,12 +54,12 @@ class DataBase:
         self.db.gbk_bug.insert_one({'time': time.asctime(), 'error': error})
 
 
-mongo = None
-
-
-def set_mongo(mongo_):
-    global mongo
-    mongo = mongo_
+# mongo = None
+#
+#
+# def set_mongo(mongo_):
+#     global mongo
+#     mongo = mongo_
 
 
 db = DataBase()

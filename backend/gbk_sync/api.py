@@ -24,5 +24,5 @@ class Sync(Resource):
         """
         data = db.sync.find_by_uid(uid)
         if data is None:
-            return make_result(404)
-        return make_result(data=data)
+            return make_result(data={})
+        return make_result(data=data.get('data'))
