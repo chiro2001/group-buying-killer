@@ -4,12 +4,15 @@ import { Button, MenuItem, FormControl, InputLabel, List, ListItem, ListItemSeco
 import store from "../data/store";
 import { setConfig, setErrorInfo, setMessage } from "../data/action";
 import { funDownload } from "../utils/utils";
+import ListInfo from "../components/ListInfo";
 
 function Settings(props) {
   const [themeName, setThemeName] = React.useState(store.getState().config.data.theme_name);
   const refConfigFileInput = React.useRef();
   const [resetSettingsOpen, setResetSettingsOpen] = React.useState(false);
   const [deleteDataOpen, setDeleteDataOpen] = React.useState(false);
+  const [openDaemon, setOpenDaemon] = React.useState(false);
+  const [openUser, setOpenUser] = React.useState(false);
 
   const resetSettings = function () {
     let c = store.getState().config;
@@ -23,31 +26,22 @@ function Settings(props) {
 
   return (<Container maxWidth="md">
     <List>
-    <ListSubheader>用户账号</ListSubheader>
+      <ListSubheader>用户账号</ListSubheader>
       <ListItem>
         <ListItemText primary="用户名"></ListItemText>
         <ListItemSecondaryAction>
           {user.username}
         </ListItemSecondaryAction>
       </ListItem>
-      <ListItem button>
+      <ListItem button onClick={() => { setOpenUser(true); }}>
         <ListItemText primary="详细信息"></ListItemText>
       </ListItem>
       <ListItem button>
         <ListItemText primary="修改信息"></ListItemText>
       </ListItem>
       <ListSubheader>用户门店</ListSubheader>
-      <ListItem>
-        <ListItemText primary="用户名"></ListItemText>
-        <ListItemSecondaryAction>
-          {user.username}
-        </ListItemSecondaryAction>
-      </ListItem>
-      <ListItem button>
+      <ListItem button onClick={() => { setOpenDaemon(true); }}>
         <ListItemText primary="详细信息"></ListItemText>
-      </ListItem>
-      <ListItem button>
-        <ListItemText primary="修改信息"></ListItemText>
       </ListItem>
       <ListSubheader>外观</ListSubheader>
       <ListItem>
@@ -136,6 +130,12 @@ function Settings(props) {
         <ListItemText primary="删除所有数据"></ListItemText>
       </ListItem>
     </List>
+    <ListInfo data={store.getState().user} open={openUser} keyNames={{
+      username: '用户名', nick: '昵称', phone: '用户手机号', profile: '详细信息', state: '用户状态', created_at: '创建于', updated_at: '更新于'
+    }} title="用户信息" onClose={() => { setOpenUser(false); }}></ListInfo>
+    <ListInfo data={store.getState().daemon} open={openDaemon} keyNames={{
+      cookies: '远程登录凭据', shop_info: "门店详细信息", solution_id: "解决方案编号"
+    }} title="门店信息" onClose={() => { setOpenDaemon(false); }}></ListInfo>
     <Dialog open={resetSettingsOpen} onClose={() => setResetSettingsOpen(false)}>
       <DialogTitle>
         回到默认设置

@@ -40,7 +40,7 @@ import { setConfig, setErrorInfo, setMessage, setReserveTableData, setRoomStockD
 import { isIterator, isMobileDevice, sleep } from "./utils/utils";
 import { api } from "./api/api";
 
-import ListItemLink from "./components/listItemLink";
+import ListItemLink from "./components/ListItemLink";
 // import Launch from "./pages/launch";
 import Settings from "./pages/Settings";
 import './App.css';

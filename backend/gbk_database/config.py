@@ -45,7 +45,6 @@ class Constants:
     USERS_OWNER = {
         'username': USERS_OWNER_USERNAME,
         'nick': USERS_OWNER_NICK,
-        'level': 10,
         'state': 'normal',
         'profile': {
             'contact': {

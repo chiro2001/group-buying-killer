@@ -10,7 +10,7 @@ class DaemonBean:
         self.uid: int = uid
         self.cookies: str = cookies
         self.shop_info: dict = shop_info
-        self.solution_id: int = solution_id
+        self.Us: int = solution_id
         self.reserve_date: dict = reserve_date
         self.reserve_table: dict = reserve_table
         self.room_stock: dict = room_stock
@@ -64,10 +64,13 @@ class Daemon:
             db.daemon.save(uid, cookies, data_type='cookies')
         else:
             cookies = db.daemon.load(uid, data_type='cookies')
+            cookies = cookies.get('data') if cookies is not None else None
         api: API
 
         solution_id = db.daemon.load(uid, data_type='solution_id')
+        solution_id = solution_id.get('data') if solution_id is not None else None
         shop_info = db.daemon.load(uid, data_type='shop_info')
+        shop_info = shop_info.get('data') if shop_info is not None else None
         if solution_id is None or shop_info is None:
             api = API.from_cookies(cookies)
             solution_id = api.solution_id
