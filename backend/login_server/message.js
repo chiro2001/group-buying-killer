@@ -12345,7 +12345,7 @@ function(t, e) {
               this.onClose();
             })
             this.ws.on('message', (e) => {
-              console.log('raw <==', e);
+              // console.log('raw <==', e);
               this.onData(e);
             })
             this.ws.on('error', (e) => {
@@ -12409,7 +12409,7 @@ function(t, e) {
             try {
               // e.usingBrowserWebSocket ? e.ws.send(o) : e.ws.send(o, i)
               e.ws.send(o);
-              console.log("raw ==>", o)
+              // console.log("raw ==>", o)
             } catch(t) {
               lh("websocket closed before onclose event")
             }--r || a()

@@ -1,11 +1,23 @@
 from utils.api_tools import *
-# import re
+from gbk_daemon.daemon import daemon, DaemonBean
 
 
 class RemoteLoginAPI(Resource):
     args_set_cookies = reqparse.RequestParser().add_argument("cookies", type=str, required=True, location=["json", ])
 
-    def get(self):
+    @auth_required_method
+    def get(self, uid: int):
+        """
+        检查远程登录状态
+        :param uid:
+        :return:
+        """
+        d: DaemonBean = daemon.get_daemon(uid)
+        if d is None:
+            return make_result(200, message='has not remote login yet')
+        return make_result(200, data=d.__getstate__())
+
+    def patch(self):
         """
         获取远程服务器信息
         :return:
@@ -37,6 +49,8 @@ class RemoteLoginAPI(Resource):
         if not (cookies[:6] == "edper=" and cookies[6 + 86:] == "; Domain=.dianping.com; Path=/; HttpOnly"):
             return make_result(400)
         cookies = cookies[:-39]
-        print(cookies)
+        # print(cookies)
         db.daemon.save(uid, cookies, data_type='cookies')
+        if daemon.get_daemon(uid) is None:
+            daemon.pool[uid] = daemon.init_data(uid, cookies=cookies)
         return make_result()

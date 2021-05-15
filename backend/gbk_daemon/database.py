@@ -19,4 +19,6 @@ class DaemonDB(BaseDB):
             auto_time_update(self.col, {'uid': uid, 'data_type': data_type}, update_dict)
 
     def load(self, uid: int, data_type: str = 'base'):
+        if uid is None:
+            return find_many(self.col, {'data_type': data_type})
         return find_one(self.col, {'uid': uid, 'data_type': data_type})

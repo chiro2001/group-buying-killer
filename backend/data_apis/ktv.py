@@ -41,11 +41,16 @@ class KTV:
         self.shop_id = resp['data'][0]['shopId']
         return self.shop_id
 
+    def get_shop_info(self, solution_id: int) -> int:
+        resp = self.request_func(self.url_get_shop_id % solution_id)
+        self.shop_id = resp['data'][0]
+        return self.shop_id
+
     @staticmethod
     def from_solution_id(request_func, solution_id: int):
         resp = request_func(KTV.url_get_shop_id % solution_id)
-        shop_id = resp['data'][0]['shopId']
-        return KTV(request_func, shop_id), shop_id
+        shop_info = resp['data'][0]
+        return KTV(request_func, shop_info['shopId']), shop_info
 
     def get_reserve_date(self):
         resp = self.request_func(self.url_get_reserve_date)

@@ -88,3 +88,30 @@ export function funDownload(content, filename) {
   // 然后移除
   document.body.removeChild(eleLink);
 };
+
+
+export function deepCopy(data) {
+  if (isIterator(data) && typeof(data) !== "string") {
+    let d = [];
+    for (let i = 0; i < data.length; i++) {
+      d.push(data[i]);
+    }
+    return d;
+  } else if (typeof (data) === "object") {
+    let d = {};
+    for (const k in data) {
+      d[k] = deepCopy(data[k]);
+    }
+    return d;
+  } else {
+    return data;
+  }
+}
+
+export function objectUpdate(origin, update) {
+  let now = deepCopy(origin);
+  for (const k in update) {
+    now[k] = update[k];
+  }
+  return now; 
+}

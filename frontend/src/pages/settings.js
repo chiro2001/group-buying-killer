@@ -11,7 +11,7 @@ function Settings(props) {
   const [resetSettingsOpen, setResetSettingsOpen] = React.useState(false);
   const [deleteDataOpen, setDeleteDataOpen] = React.useState(false);
 
-  const resetSettings = function() {
+  const resetSettings = function () {
     let c = store.getState().config;
     c.data = c.data_default;
     c.save();
@@ -19,8 +19,36 @@ function Settings(props) {
     store.dispatch(setConfig(c));
   }
 
+  const user = store.getState().user;
+
   return (<Container maxWidth="md">
     <List>
+    <ListSubheader>用户账号</ListSubheader>
+      <ListItem>
+        <ListItemText primary="用户名"></ListItemText>
+        <ListItemSecondaryAction>
+          {user.username}
+        </ListItemSecondaryAction>
+      </ListItem>
+      <ListItem button>
+        <ListItemText primary="详细信息"></ListItemText>
+      </ListItem>
+      <ListItem button>
+        <ListItemText primary="修改信息"></ListItemText>
+      </ListItem>
+      <ListSubheader>用户门店</ListSubheader>
+      <ListItem>
+        <ListItemText primary="用户名"></ListItemText>
+        <ListItemSecondaryAction>
+          {user.username}
+        </ListItemSecondaryAction>
+      </ListItem>
+      <ListItem button>
+        <ListItemText primary="详细信息"></ListItemText>
+      </ListItem>
+      <ListItem button>
+        <ListItemText primary="修改信息"></ListItemText>
+      </ListItem>
       <ListSubheader>外观</ListSubheader>
       <ListItem>
         <ListItemText primary="主题设置"></ListItemText>
@@ -106,18 +134,6 @@ function Settings(props) {
       </ListItem>
       <ListItem button onClick={() => setDeleteDataOpen(true)}>
         <ListItemText primary="删除所有数据"></ListItemText>
-      </ListItem>
-      <ListSubheader>更新</ListSubheader>
-      <ListItem button onClick={() => {
-        store.dispatch(setMessage("暂无"));
-      }}>
-        <ListItemText primary="检查更新"></ListItemText>
-      </ListItem>
-      <ListItem>
-        <ListItemText primary="自动下载安装更新"></ListItemText>
-        <ListItemSecondaryAction>
-          <Switch disabled checked={false}></Switch>
-        </ListItemSecondaryAction>
       </ListItem>
     </List>
     <Dialog open={resetSettingsOpen} onClose={() => setResetSettingsOpen(false)}>

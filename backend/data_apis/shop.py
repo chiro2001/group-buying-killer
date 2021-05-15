@@ -9,3 +9,4 @@ class Shop:
         js = self.request_func(self.url)
         self.shop_id = js['data']['currentShopId']
         return self.shop_id
+

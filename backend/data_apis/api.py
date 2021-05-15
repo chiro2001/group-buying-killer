@@ -13,8 +13,9 @@ class API:
         self.ktv: KTV = None
         self.room_stock: RoomsStock = None
         self.cookies: str = cookies
-        self.shop_id = shop_id
-        self.solution_id = solution_id
+        self.shop_id: int = shop_id
+        self.shop_info: dict = None
+        self.solution_id: int = solution_id
         # 给参数齐全了就直接初始化
         if self.shop_id is not None and self.solution_id is not None:
             self.ktv = KTV(self.request_json, self.shop_id)
@@ -25,8 +26,9 @@ class API:
             logger.info('loading solution_id...')
             self.solution_id = self.solution.get_solution_id()
         if self.ktv is None or self.shop_id is None:
-            logger.info('loading shop_id and ktv...')
-            self.ktv, self.shop_id = KTV.from_solution_id(self.request_json, self.solution_id)
+            logger.info('loading shop_info and ktv...')
+            self.ktv, self.shop_info = KTV.from_solution_id(self.request_json, self.solution_id)
+            self.shop_id = self.shop_info['shopId']
         if self.room_stock is None:
             logger.info('loading room_stock...')
             self.room_stock = RoomsStock(self.request_json, self.shop_id)

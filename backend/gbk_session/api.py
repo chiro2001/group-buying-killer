@@ -8,9 +8,12 @@ class Session(Resource):
     args_update = reqparse.RequestParser() \
         .add_argument("Refresh", type=str, required=True, location=Constants.JWT_LOCATIONS)
 
-    # Login
     @args_required_method(args_login)
     def post(self):
+        """
+        登录
+        :return:
+        """
         args = self.args_login.parse_args()
         username, password = args.get('username'), args.get('password')
         user = db.user.find_by_username(username=username)

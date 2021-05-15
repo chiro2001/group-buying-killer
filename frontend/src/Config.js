@@ -1,6 +1,6 @@
 import { createMuiTheme, makeStyles, ThemeProvider } from '@material-ui/core/styles';
 import { orange, grey, blueGrey } from '@material-ui/core/colors';
-import { API, AuthAPI } from "./api/api";
+import { api } from "./api/api";
 
 class Config {
   ITEM_NAME = "group_bying_config";
@@ -32,20 +32,16 @@ class Config {
         '默认主题',
         '黑暗模式'
       ],
-      auth: "",
-      // 用户信息
-      user: {
-        phone: '',
-      },
       // 设置同步
       settings_async: true,
+      // 远程登录服务器
+      remote_login: {
+        server: "ws://127.0.0.1:8081"
+      },
+      api_token: {}
     };
     this.data = this.data_default;
     this.theme = this.theme_avaliable["默认主题"];
-    this.api = new API();
-    // 先声明已经登录，然后再检查登录状态
-    this.has_login = true;
-    this.api.has_login().then(state => { this.has_login = state; });
     this.load();
   }
 
@@ -78,10 +74,12 @@ class Config {
     }
     this.theme = this.theme_avaliable[this.data.theme_name];
     if (!this.theme) this.theme = this.theme_avaliable["default"];
+    api.set_token(this.data.api_token.access_token, this.data.api_token.refresh_token);
   }
 
   save() {
     console.log("Config: saving config...");
+    this.data.api_token = api.get_token();
     const s = JSON.stringify(this.data);
     localStorage.setItem(this.ITEM_NAME, s);
     return s;

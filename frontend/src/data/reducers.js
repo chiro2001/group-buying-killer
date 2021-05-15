@@ -3,12 +3,9 @@ import Config from "../Config"
 
 const defaultState = {
   config: new Config(),
-  reserveTableData: {},
-  roomStockData: null,
-  timetableNodes: [],
-  timetablePeriods: [],
-  roomStockPlans: [],
-  shopInfo: null,
+  tasks: [],
+  user: null,
+  daemon: null,
   errorInfo: null,
   message: null,
 }
@@ -22,55 +19,27 @@ function config(state = defaultState.config, action) {
   }
 }
 
-function reserveTableData(state = defaultState.reserveTableData, action) {
+function user(state = defaultState.user, action) {
   switch (action.type) {
-    case "SET_RESERVE_TABLE_DATA":
+    case "SET_USER":
       return action.data;
     default:
       return state;
   }
 }
 
-function roomStockData(state = defaultState.roomStockData, action) {
+function tasks(state = defaultState.tasks, action) {
   switch (action.type) {
-    case "SET_ROOM_STOCK_DATA":
+    case "SET_TASKS":
       return action.data;
     default:
       return state;
   }
 }
 
-function shopInfo(state = defaultState.reserveTableData, action) {
+function daemon(state = defaultState.daemon, action) {
   switch (action.type) {
-    case "SET_SHOP_INFO":
-      return action.data;
-    default:
-      return state;
-  }
-}
-
-
-function timetableNodes(state = defaultState.timetableNodes, action) {
-  switch (action.type) {
-    case "SET_TIMETABLE_NODES":
-      return action.data;
-    default:
-      return state;
-  }
-}
-
-function timetablePeriods(state = defaultState.timetablePeriods, action) {
-  switch (action.type) {
-    case "SET_TIMETABLE_PERIODS":
-      return action.data;
-    default:
-      return state;
-  }
-}
-
-function roomStockPlans(state = defaultState.roomStockPlans, action) {
-  switch (action.type) {
-    case "SET_ROOM_STOCK_PLANS":
+    case "SET_DAEMON":
       return action.data;
     default:
       return state;
@@ -80,6 +49,7 @@ function roomStockPlans(state = defaultState.roomStockPlans, action) {
 function errorInfo(state = defaultState.errorInfo, action) {
   switch (action.type) {
     case "SET_ERROR_INFO":
+      // console.log('SET_ERROR_INFO', action.data);
       return action.data;
     default:
       return state;
@@ -95,4 +65,4 @@ function message(state = defaultState.message, action) {
   }
 }
 
-export default combineReducers({ config, reserveTableData, roomStockData, shopInfo, timetableNodes, timetablePeriods, errorInfo, roomStockPlans, message });
+export default combineReducers({ config, errorInfo, message, daemon, user, tasks });

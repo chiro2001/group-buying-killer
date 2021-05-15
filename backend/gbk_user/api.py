@@ -38,6 +38,16 @@ class User(Resource):
         return make_result(data={'uid': uid})
 
     @auth_required_method
+    def get(self, uid: int):
+        """
+        获取用户信息
+        :param uid: uid
+        :return:
+        """
+        user = db.user.get_by_uid(uid)
+        return make_result(data={'user': user})
+
+    @auth_required_method
     def delete(self, uid: int):
         """
         删除自己用户

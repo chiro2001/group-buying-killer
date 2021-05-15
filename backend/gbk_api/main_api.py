@@ -15,6 +15,7 @@ from gbk_sync.api import *
 from gbk_scheduler.action_api import *
 from gbk_scheduler.trigger_api import *
 from gbk_remote_login.api import *
+from gbk_daemon.api import *
 
 
 class MainAPI(Resource):
@@ -55,6 +56,7 @@ api.add_resource(TriggerAPI, '/trigger')
 api.add_resource(TriggerName, '/trigger/<string:trigger_type>')
 api.add_resource(Sync, '/sync')
 api.add_resource(RemoteLoginAPI, '/remote_login')
+api.add_resource(DaemonAPI, '/daemon')
 if Constants.RUN_WITH_PREDICTS:
     if Constants.RUN_IGNORE_TF_WARNINGS:
         os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -64,15 +66,19 @@ if Constants.RUN_WITH_PREDICTS:
     api.add_resource(Predicts, '/predicts')
 
 
+CORS(app)
+
+
 @app.after_request
 def api_after(res: Response):
-    try:
-        js = json.loads(res.data)
-        js['code'] = res.status_code
-        res.data = json.dumps(js).encode()
-    except Exception as e:
-        logger.error(e)
-    # print(res.data)
+    if len(res.data) > 0:
+        try:
+            js = json.loads(res.data)
+            js['code'] = res.status_code
+            res.data = json.dumps(js).encode()
+        except Exception as e:
+            logger.error(e)
+        # print(res.data)
     return res
 
 
