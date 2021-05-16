@@ -91,6 +91,7 @@ class Constants:
     LOGIN_SERVER_HOST = "127.0.0.1"
     LOGIN_SERVER_PORT = 8081
     LOGIN_SERVER_PROTOCOL = 'ws'
+    LOGIN_SERVER = "ws://gbk-dev.chiro.work/ws"
 
 
 class Statics:
