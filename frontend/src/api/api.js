@@ -6,12 +6,13 @@ import { isIterator, urlEncode } from "../utils/utils"
 
 class API {
   constructor() {
-    this.host = '127.0.0.1';
+    // this.host = '127.0.0.1';
+    this.host = null;
     this.port = 8080;
     this.api_version = "v2";
     this.api_prefix = `/api/${this.api_version}`;
     this.protocol = 'http'
-    this.url = `${this.protocol}://${this.host}:${this.port}${this.api_prefix}`;
+    this.url = this.host ? `${this.protocol}://${this.host}:${this.port}${this.api_prefix}` : `${this.api_prefix}`;
     this.access_token = '';
     this.refresh_token = '';
   }
