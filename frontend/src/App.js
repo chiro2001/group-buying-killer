@@ -23,8 +23,8 @@ import StorageIcon from '@material-ui/icons/Storage';
 import VerifiedUserIcon from '@material-ui/icons/VerifiedUser';
 import PhonelinkIcon from '@material-ui/icons/Phonelink';
 import {
-  // HashRouter as Router,
-  BrowserRouter as Router,
+  HashRouter as Router,
+  // BrowserRouter as Router,
   Switch,
   Route
 } from "react-router-dom";
