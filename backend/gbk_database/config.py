@@ -103,6 +103,7 @@ class Constants:
     # Dismiss rebase for multiprocessing
     PROC_DISMISS_REBASE = 'GBK_DB_RUNNING_PID'
     PROC_DISMISS_DAEMON_INIT = "GBK_DAEMON_RUNNING_PID"
+    LOGIN_SERVER = "ws://gbk-dev.chiro.work/ws"
 
 
 class Statics:

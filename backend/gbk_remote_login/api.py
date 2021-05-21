@@ -19,7 +19,9 @@ class RemoteLoginAPI(Resource):
         """
         获取远程服务器信息
         """
-        url = f"{Constants.LOGIN_SERVER_PROTOCOL}://{Constants.LOGIN_SERVER_HOST}:{Constants.LOGIN_SERVER_PORT}"
+        url = Constants.LOGIN_SERVER
+        if url is None:
+            url = f"{Constants.LOGIN_SERVER_PROTOCOL}://{Constants.LOGIN_SERVER_HOST}:{Constants.LOGIN_SERVER_PORT}"
         return make_result(data={
             'server': url,
             'servers': [

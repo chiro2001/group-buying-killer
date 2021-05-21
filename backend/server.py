@@ -1,3 +1,7 @@
+import flask.scaffold
+flask.helpers._endpoint_from_view_func = flask.scaffold._endpoint_from_view_func
+import flask_restful
+
 from apscheduler.triggers.interval import IntervalTrigger
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.serving import run_simple
