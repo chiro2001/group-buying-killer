@@ -41,7 +41,7 @@ def run_module(module_name: str, modules_path: str = Constants.MODULES_PATH):
                 return
     cmd = Constants.MODULES[module_name]
     # logger.warning(f'executing {cmd}')
-    logger.warning(f'path now: {os.path.abspath(os.curdir)}')
+    # logger.warning(f'path now: {os.path.abspath(os.curdir)}')
     logger.info(f'module {module_name} starting with cmd: '
                 f'{cmd}')
     execute_module(module_name, cmd)

@@ -1,5 +1,13 @@
-import flask.scaffold
-flask.helpers._endpoint_from_view_func = flask.scaffold._endpoint_from_view_func
+from utils.logger import logger
+import platform
+
+try:
+    import flask.scaffold
+
+    flask.helpers._endpoint_from_view_func = flask.scaffold._endpoint_from_view_func
+except Exception as e:
+    if platform.system() == 'Linux':
+        logger.error(f'Maynot start without flask.scaffold!')
 import flask_restful
 
 from apscheduler.triggers.interval import IntervalTrigger
@@ -7,7 +15,6 @@ from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.serving import run_simple
 # import logging
 from io import StringIO
-from utils.logger import logger
 from gbk_database.config import config, Constants
 
 from gbk_proxy.file_static import app as app_file
