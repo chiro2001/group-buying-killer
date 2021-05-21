@@ -35,10 +35,6 @@ async function startFunc() {
         store.dispatch(setUser(res.data.user));
       }
     }
-    const daemon = await api.request('remote_login', 'GET');
-    if (daemon.code === 200 && daemon.data.uid) {
-      store.dispatch(setDaemon(daemon.data));
-    } else store.dispatch(setDaemon(null));
     // let c = api.download_config();
     // if (!c.settings_async) return;
     // const config_frontend = await api.download_config();

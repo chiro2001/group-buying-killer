@@ -9,8 +9,6 @@ class RemoteLoginAPI(Resource):
     def get(self, uid: int):
         """
         检查远程登录状态
-        :param uid:
-        :return:
         """
         d: DaemonBean = daemon.get_daemon(uid)
         if d is None:
@@ -20,7 +18,6 @@ class RemoteLoginAPI(Resource):
     def patch(self):
         """
         获取远程服务器信息
-        :return:
         """
         url = f"{Constants.LOGIN_SERVER_PROTOCOL}://{Constants.LOGIN_SERVER_HOST}:{Constants.LOGIN_SERVER_PORT}"
         return make_result(data={
@@ -37,11 +34,10 @@ class RemoteLoginAPI(Resource):
     def post(self, uid: int):
         """
         设置 Cookies
-        :param uid:
-        :return:
         """
         cookies = self.args_set_cookies.parse_args().get('cookies')
-        # cookies = "edper=pEe5_IensPI6FQe7XlI05VNmxdON9OXQc-s6yrNUjxmi4m2GmyXqSAUzdsVslIsYb9bGmcCRhmQ1A1Zdj6eVDA; Domain=.dianping.com; Path=/; HttpOnly"
+        # cookies = "edper=pEe5_IensPI6FQe7XlI05VNmxdON9OXQc-s6yrNUjxmi4m2GmyXqSAUzdsVslIsYb9bGm
+        # cCRhmQ1A1Zdj6eVDA; Domain=.dianping.com; Path=/; HttpOnly"
         # 检查格式，提取
         # result = re.findall(r'edper=[^;] Domain=.dianping.com; Path=/; HttpOnly', cookies)
         # if len(result) == 0:
@@ -49,6 +45,7 @@ class RemoteLoginAPI(Resource):
         if not (cookies[:6] == "edper=" and cookies[6 + 86:] == "; Domain=.dianping.com; Path=/; HttpOnly"):
             return make_result(400)
         cookies = cookies[:-39]
+        # TODO: 更新Cookie之后更新Daemon状态
         # print(cookies)
         db.daemon.save(uid, cookies, data_type='cookies')
         if daemon.get_daemon(uid) is None:

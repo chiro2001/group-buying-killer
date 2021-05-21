@@ -1,3 +1,4 @@
+import os
 import time
 # from utils.logger import logger
 from gbk_database.tools import *
@@ -15,7 +16,7 @@ class DataBase:
         'task_manager', 'task_tid', 'daemon', 'cookies', 'sync'
     ]
 
-    def __init__(self):
+    def __init__(self, dismiss_rebase=False):
         self.client = None
         self.db = None
         self.connect_init()
@@ -25,7 +26,8 @@ class DataBase:
         self.sync: SyncDB = None
         self.daemon: DaemonDB = None
         self.init_parts()
-        if Constants.RUN_REBASE:
+        self.first_start = not dismiss_rebase
+        if Constants.RUN_REBASE and not dismiss_rebase:
             self.rebase()
 
     def init_parts(self):
@@ -54,15 +56,11 @@ class DataBase:
         self.db.gbk_bug.insert_one({'time': time.asctime(), 'error': error})
 
 
-# mongo = None
-#
-#
-# def set_mongo(mongo_):
-#     global mongo
-#     mongo = mongo_
+# 由主进程启动的进程不重新初始化数据库
+if os.getenv(Constants.PROC_DISMISS_REBASE) is None:
+    os.environ.setdefault(Constants.PROC_DISMISS_REBASE, f"{os.getpid()}")
 
-
-db = DataBase()
+db = DataBase(dismiss_rebase=os.getenv(Constants.PROC_DISMISS_REBASE) == f"{os.getppid()}")
 
 if __name__ == '__main__':
     pass

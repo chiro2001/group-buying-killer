@@ -26,7 +26,6 @@ class MainAPI(Resource):
     def get(self):
         """
         文档：get
-        :return:
         """
         return make_result(data={
             'docs': get_class_docs(self)
@@ -39,32 +38,47 @@ class DropData(Resource):
         return make_result()
 
 
+resources = {}
+
+
+def add_resource(class_type: Resource, endpoint: str):
+    global resources
+    resources[endpoint] = class_type
+
+
+def apply_resource(api_: Api):
+    for endpoint in resources:
+        api_.add_resource(resources[endpoint], endpoint)
+
+
 app = Flask(__name__)
 api = Api(app)
-api.add_resource(MainAPI, '/')
-api.add_resource(User, "/user")
-api.add_resource(UserUid, "/user/<int:uid>")
-api.add_resource(UserInfo, "/user_info")
-api.add_resource(Session, "/session")
-api.add_resource(Password, '/password')
-api.add_resource(DropData, '/drop_data')
-api.add_resource(TaskManagerAPI, '/task')
-api.add_resource(TaskManagerTid, '/task/<int:tid>')
-api.add_resource(ActionAPI, '/action')
-api.add_resource(ActionName, '/action/<string:action_type>')
-api.add_resource(TriggerAPI, '/trigger')
-api.add_resource(TriggerName, '/trigger/<string:trigger_type>')
-api.add_resource(Sync, '/sync')
-api.add_resource(RemoteLoginAPI, '/remote_login')
-api.add_resource(DaemonAPI, '/daemon')
+add_resource(MainAPI, '/')
+add_resource(User, "/user")
+add_resource(UserUid, "/user/<int:uid>")
+add_resource(UserInfo, "/user_info")
+add_resource(Session, "/session")
+add_resource(Password, '/password')
+if Constants.RUN_WITH_DROP_DATA:
+    add_resource(DropData, '/drop_data')
+add_resource(TaskManagerAPI, '/task')
+add_resource(TaskManagerTid, '/task/<int:tid>')
+add_resource(ActionAPI, '/action')
+add_resource(ActionName, '/action/<string:action_type>')
+add_resource(TriggerAPI, '/trigger')
+add_resource(TriggerName, '/trigger/<string:trigger_type>')
+add_resource(Sync, '/sync')
+add_resource(RemoteLoginAPI, '/remote_login')
+add_resource(DaemonAPI, '/daemon')
 if Constants.RUN_WITH_PREDICTS:
     if Constants.RUN_IGNORE_TF_WARNINGS:
         os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
     logger.info('Loading Tensorflow...')
     from gbk_predicts.api import Predicts
 
-    api.add_resource(Predicts, '/predicts')
+    add_resource(Predicts, '/predicts')
 
+apply_resource(api)
 
 CORS(app)
 
@@ -76,8 +90,11 @@ def api_after(res: Response):
             js = json.loads(res.data)
             js['code'] = res.status_code
             res.data = json.dumps(js).encode()
+            if js['code'] != 200:
+                logger.warning(f'response: {js}')
         except Exception as e:
             logger.error(e)
+            logger.error(f'data: {res.data}')
         # print(res.data)
     return res
 

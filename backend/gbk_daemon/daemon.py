@@ -1,5 +1,7 @@
+import os
+
 from utils.logger import logger
-from gbk_database.database import db
+from gbk_database.database import db, Constants
 from data_apis.api import API
 
 
@@ -42,13 +44,15 @@ class DaemonBean:
 
 
 class Daemon:
-    def __init__(self):
+    def __init__(self, init_data: bool = True):
         self.pool = {}
         # 初始化所有已经远程登录的 daemon
         data = db.daemon.load(None, data_type='cookies')
-        for d in data:
-            print('data', d)
-            self.pool[d['uid']] = self.init_data(d['uid'], cookies=d['data'])
+        if init_data:
+            for d in data:
+                # print('data', d)
+                self.pool[d['uid']] = self.init_data(d['uid'], cookies=d['data'])
+        self.data_inited = init_data
 
     def get_daemon(self, uid: int):
         # return self.pool.get(uid, default=None)
@@ -105,4 +109,8 @@ class Daemon:
         return daemon_data
 
 
-daemon = Daemon()
+# 由主进程启动的进程不重新初始化数据库
+if os.getenv(Constants.PROC_DISMISS_DAEMON_INIT) is None:
+    os.environ.setdefault(Constants.PROC_DISMISS_DAEMON_INIT, f"{os.getpid()}")
+
+daemon = Daemon(init_data=os.getenv(Constants.PROC_DISMISS_DAEMON_INIT) == f"{os.getppid()}")

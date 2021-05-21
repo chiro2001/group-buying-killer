@@ -63,6 +63,7 @@ class Constants:
     # RUN_WITH_PREDICTS = True
     RUN_WITH_PREDICTS = False
     RUN_IGNORE_TF_WARNINGS = True
+    RUN_WITH_DROP_DATA = True
     # Schedule
     SCHEDULE_JOBSTORES = {
         # 'default': MongoDBJobStore(
@@ -84,13 +85,24 @@ class Constants:
     }
     # Request API
     REQUEST_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:86.0) Gecko/20100101 Firefox/86.0"
-    # REQUEST_DEBUG_COOKIES = "_lxsdk_cuid=17771fd8425c8-0f5b6f7abba2ce8-4c3f217f-ca800-17771fd8425c8; _lxsdk=17771fd8425c8-0f5b6f7abba2ce8-4c3f217f-ca800-17771fd8425c8; _hc.v=6594ea87-cd60-00b4-94e8-05bc93197b85.1612525177; mpmerchant_portal_shopid=581990543; __utma=1.458675775.1615809801.1615809801.1615809801.1; __utmz=1.1615809801.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _lxsdk_s=1795f73b9b7-137-193-9d8%7C%7CNaN; edper=n7qfrC85NBES6Qvpd9GGtqYDV2JFyziXLm2at2uCG5mvNUdjU9f55SPPlCHSIFBy2cSteVQbYF7u7sr4lRnf2Q; JSESSIONID=B7E99E9A4B8211051DB1B151E9CC436E"
-    # REQUEST_DEBUG_COOKIES = "edper=n7qfrC85NBES6Qvpd9GGtqYDV2JFyziXLm2at2uCG5mvNUdjU9f55SPPlCHSIFBy2cSteVQbYF7u7sr4lRnf2Q;"
-    REQUEST_DEBUG_COOKIES = "edper=MES6Xgs3t5w6ZgUplHRjVD0UxPNl1Nc1QP0OdWgugje8CdHFDKZHitNc5127P1Gv-WR59-JMzM-teN8OU97dJg;"
+    REQUEST_DEBUG_COOKIES = "edper=MES6Xgs3t5w6ZgUplHRjVD0UxPNl1Nc1QP0OdWgug" \
+                            "je8CdHFDKZHitNc5127P1Gv-WR59-JMzM-teN8OU97dJg;"
+    # Modules
+    MODULES_PATH = "./"
+    MODULES = {
+        'login_server': None,
+    }
+    # 模块遇到错误是否重启重新执行n次
+    MODULES_RUN_RETRY = 3
+    # 是否模块退出了仍然执行该模块
+    MODULES_RUN_FOREVER = True
     # Remote Login Server
     LOGIN_SERVER_HOST = "127.0.0.1"
     LOGIN_SERVER_PORT = 8081
     LOGIN_SERVER_PROTOCOL = 'ws'
+    # Dismiss rebase for multiprocessing
+    PROC_DISMISS_REBASE = 'GBK_DB_RUNNING_PID'
+    PROC_DISMISS_DAEMON_INIT = "GBK_DAEMON_RUNNING_PID"
 
 
 class Statics:

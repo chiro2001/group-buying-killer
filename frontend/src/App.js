@@ -35,7 +35,7 @@ import MomentUtils from '@date-io/moment';
 import moment from 'moment';
 import 'moment/locale/zh-cn';
 import store from './data/store';
-import { setConfig, setErrorInfo, setMessage, setReserveTableData, setRoomStockData, setShopInfo } from "./data/action";
+import { setConfig, setDaemon, setErrorInfo, setMessage, setReserveTableData, setRoomStockData, setShopInfo } from "./data/action";
 
 import { isIterator, isMobileDevice, sleep } from "./utils/utils";
 import { api } from "./api/api";
@@ -160,6 +160,7 @@ store.subscribe(async () => {
 
 const getShopTitle = function () {
   return null;
+  // TODO: get title
   if (!store.getState().shopInfo.shopName) return null;
   // console.log('getShopTitle', store.getState().shopInfo);
   return `${store.getState().shopInfo.shopName} - ${store.getState().shopInfo.branchName}`
@@ -206,12 +207,19 @@ export default function App() {
       }
     }
   };
-  subscribers['User'] = function (state) {
+  subscribers['User'] = async function (state) {
     if (state.user) {
       if (JSON.stringify(state.user) != JSON.stringify(last_data.user)) {
         forceUpdate();
       }
       last_data.user = state.user;
+      if (!state.daemon === null) {
+        store.dispatch(setDaemon(false));
+        const daemon = await api.request('remote_login', 'GET');
+        if (daemon.code === 200 && daemon.data.uid) {
+          store.dispatch(setDaemon(daemon.data));
+        } else store.dispatch(setDaemon(null));
+      }
     }
   };
   subscribers['Daemon'] = function (state) {

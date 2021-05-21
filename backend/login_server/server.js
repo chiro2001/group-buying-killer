@@ -158,7 +158,7 @@ const startServer = () => {
             client = c;
         }, false);
     }).listen(8081);
-    console.log('ws server started on 8081');
+    console.log('[ws_server      ][startServer    ][INFO   ] ws server started on 8081');
 };
 
 startServer();
