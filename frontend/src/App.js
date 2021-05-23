@@ -41,7 +41,7 @@ import { isIterator, isMobileDevice, sleep } from "./utils/utils";
 import { api } from "./api/api";
 
 import ListItemLink from "./components/ListItemLink";
-// import Launch from "./pages/launch";
+import Launch from "./pages/Launch";
 import Settings from "./pages/Settings";
 import './App.css';
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, ListItem, Snackbar } from '@material-ui/core';
@@ -211,24 +211,30 @@ export default function App() {
     if (state.user) {
       if (JSON.stringify(state.user) != JSON.stringify(last_data.user)) {
         forceUpdate();
+        // 登录信息完成，触发获取daemon
+        // if (!last_data.user) 
+        if (!last_data.user) {
+          // store.dispatch(setDaemon(false));
+          console.log('trigger');
+        }
       }
       last_data.user = state.user;
-      if (!state.daemon === null) {
-        store.dispatch(setDaemon(false));
-        const daemon = await api.request('remote_login', 'GET');
-        if (daemon.code === 200 && daemon.data.uid) {
-          store.dispatch(setDaemon(daemon.data));
-        } else store.dispatch(setDaemon(null));
-      }
     }
   };
-  subscribers['Daemon'] = function (state) {
+  subscribers['Daemon'] = async function (state) {
     if (state.daemon) {
       if (JSON.stringify(state.daemon) != JSON.stringify(last_data.daemon)) {
         forceUpdate();
       }
       last_data.daemon = state.daemon;
     }
+    // if (state.daemon === false) {
+    //   store.dispatch(setDaemon(null));
+    //   const daemon = await api.request('daemon', 'GET');
+    //   if (daemon.code === 200 && daemon.data.uid) {
+    //     store.dispatch(setDaemon(daemon.data));
+    //   } else store.dispatch(setDaemon(null));
+    // }
   };
   // onMount & onUpdate
   React.useEffect(() => {
@@ -247,16 +253,6 @@ export default function App() {
     };
   });
 
-  // console.log("store", store);
-  // console.log("store.getState()", store.getState());
-
-  const handleDrawerOpen = () => {
-    setOpen(true);
-  };
-
-  const handleDrawerClose = () => {
-    setOpen(false);
-  };
 
   const handleLoginOpen = () => {
     // console.log('handleLoginOpen');
@@ -286,7 +282,7 @@ export default function App() {
           <IconButton
             color="inherit"
             aria-label="open drawer"
-            onClick={handleDrawerOpen}
+            onClick={() => { setOpen(true); }}
             edge="start"
             className={clsx(classes.menuButton, {
               [classes.hide]: open,
@@ -320,7 +316,7 @@ export default function App() {
         }}
       >
         <div className={classes.toolbar}>
-          <IconButton onClick={handleDrawerClose}>
+          <IconButton onClick={() => { setOpen(false); }}>
             {theme.direction === 'rtl' ? <ChevronRightIcon /> : <ChevronLeftIcon />}
           </IconButton>
         </div>
@@ -334,10 +330,7 @@ export default function App() {
         <div className={classes.toolbar} />
         <Switch>
           <Route path={"/"} exact={true}>
-            {/* <Launch /> */}
-            <div>
-              Launch Here
-          </div>
+            <Launch />
           </Route>
           <Route path={"/settings"} exact={false}>
             <Settings />

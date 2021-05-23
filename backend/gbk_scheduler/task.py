@@ -18,6 +18,18 @@ trigger_types = {
     'cron': CronTrigger
 }
 
+trigger_names = {
+    'interval': "间隔触发器",
+    'date': "单次触发器",
+    "cron": 'Cron触发器'
+}
+
+trigger_desc = {
+    'interval': "能够依照固定时间间隔执行动作。",
+    'date': "能在指定时间点执行动作。",
+    "cron": '使用Cron表达式实现复杂的执行规则。'
+}
+
 
 def get_trigger_name_from_dict(trigger: dict):
     return 'interval' if 'interval' in trigger else 'date' if 'run_date' in trigger else 'cron'

@@ -28,7 +28,8 @@ class MainAPI(Resource):
         文档：get
         """
         return make_result(data={
-            'docs': get_class_docs(self)
+            'document': {endpoint: get_class_docs(resources[endpoint]) for endpoint in resources},
+            'curdir': os.path.abspath(os.curdir)
         })
 
 

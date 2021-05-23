@@ -50,7 +50,7 @@ class Daemon:
         data = db.daemon.load(None, data_type='cookies')
         if init_data:
             for d in data:
-                # print('data', d)
+                print('data', d)
                 self.pool[d['uid']] = self.init_data(d['uid'], cookies=d['data'])
         self.data_inited = init_data
 
@@ -113,4 +113,4 @@ class Daemon:
 if os.getenv(Constants.PROC_DISMISS_DAEMON_INIT) is None:
     os.environ.setdefault(Constants.PROC_DISMISS_DAEMON_INIT, f"{os.getpid()}")
 
-daemon = Daemon(init_data=os.getenv(Constants.PROC_DISMISS_DAEMON_INIT) == f"{os.getppid()}")
+daemon = Daemon(init_data=os.getenv(Constants.PROC_DISMISS_DAEMON_INIT) != f"{os.getppid()}")

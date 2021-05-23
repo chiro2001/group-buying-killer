@@ -8,6 +8,16 @@ const defaultState = {
   daemon: null,
   errorInfo: null,
   message: null,
+  types: {},
+}
+
+function types(state = defaultState.types, action) {
+  switch (action.type) {
+    case "SET_TYPES":
+      return action.data;
+    default:
+      return state;
+  }
 }
 
 function config(state = defaultState.config, action) {
@@ -49,7 +59,6 @@ function daemon(state = defaultState.daemon, action) {
 function errorInfo(state = defaultState.errorInfo, action) {
   switch (action.type) {
     case "SET_ERROR_INFO":
-      // console.log('SET_ERROR_INFO', action.data);
       return action.data;
     default:
       return state;
@@ -65,4 +74,4 @@ function message(state = defaultState.message, action) {
   }
 }
 
-export default combineReducers({ config, errorInfo, message, daemon, user, tasks });
+export default combineReducers({ config, errorInfo, message, daemon, user, tasks, types });

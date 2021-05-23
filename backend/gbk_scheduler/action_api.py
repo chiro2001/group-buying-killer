@@ -2,6 +2,12 @@ from utils.api_tools import *
 from gbk_scheduler.task import *
 
 
+def action_get_info(action_type: str):
+    instance = action_types[action_type]()
+    instance_data = instance.__getstate__()
+    return instance_data
+
+
 class ActionAPI(Resource):
     args_action = reqparse.RequestParser().add_argument("action", type=dict, required=True, location=["json", ])
 
@@ -25,8 +31,15 @@ class ActionAPI(Resource):
         获取可用action_type
         :return:
         """
+        # return make_result(data={
+        #     'action_types': list(action_types.keys())
+        # })
         return make_result(data={
-            'action_types': list(action_types.keys())
+            'actions': {action: {
+                "data": action_get_info(action),
+                'desc': action_desc.get(action, None),
+                'name': action_names.get(action),
+            } for action in action_names}
         })
 
 

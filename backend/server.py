@@ -32,6 +32,8 @@ api_prefix = config.data.get('api_prefix', '/api/v2')
 # 中间件
 dm = DispatcherMiddleware(app_file, {api_prefix: app_api})
 
+# logger.warning('__name__: %s' % __name__)
+
 if __name__ == '__main__':
     host, port = Constants.RUN_LISTENING, Constants.RUN_PORT
     logger.info(f'server started on http://{host}:{port}, API: http://{host}:{port}{api_prefix}')

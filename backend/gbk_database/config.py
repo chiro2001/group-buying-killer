@@ -1,4 +1,5 @@
 import os
+import platform
 import pymongo
 from utils.logger import logger
 import secrets
@@ -56,7 +57,7 @@ class Constants:
     API_PATH = '/api/v2'
     # Running config
     RUN_LISTENING = "0.0.0.0"
-    RUN_PORT = int(os.environ.get("PORT", 8080))
+    RUN_PORT = int(os.environ.get("PORT", 10080))
     RUN_USE_RELOAD = False
     # RUN_REBASE = True
     RUN_REBASE = False
@@ -95,15 +96,17 @@ class Constants:
     # 模块遇到错误是否重启重新执行n次
     MODULES_RUN_RETRY = 3
     # 是否模块退出了仍然执行该模块
+    # TODO: Fix 无法停止
     MODULES_RUN_FOREVER = True
-    # Remote Login Server
+    MODULES_USE_THREAD = False
+    # Remote Login Serverd
     LOGIN_SERVER_HOST = "127.0.0.1"
     LOGIN_SERVER_PORT = 8081
     LOGIN_SERVER_PROTOCOL = 'ws'
+    LOGIN_SERVER = "ws://gbk-dev.chiro.work/ws" if platform.system() == 'Linux' else None
     # Dismiss rebase for multiprocessing
     PROC_DISMISS_REBASE = 'GBK_DB_RUNNING_PID'
     PROC_DISMISS_DAEMON_INIT = "GBK_DAEMON_RUNNING_PID"
-    LOGIN_SERVER = "ws://gbk-dev.chiro.work/ws"
 
 
 class Statics:

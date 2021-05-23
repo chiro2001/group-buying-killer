@@ -2,6 +2,14 @@ from utils.api_tools import *
 from gbk_scheduler.task import *
 
 
+def trigger_get_info(trigger_type: str):
+    instance = trigger_types[trigger_type]()
+    instance_data = instance.__getstate__()
+    instance_data = task_data_encode(instance_data)
+    logger.info(f'{trigger_type} data: {instance_data}')
+    return instance_data
+
+
 class TriggerAPI(Resource):
     args_trigger = reqparse.RequestParser().add_argument("trigger", type=dict, required=True, location=["json", ]) \
         .add_argument("args", type=dict, required=False, location=["json", ])
@@ -10,7 +18,6 @@ class TriggerAPI(Resource):
     def post(self):
         """
         补全trigger信息
-        :return:
         """
         trigger = self.args_trigger.parse_args().get('trigger')
         args = self.args_trigger.parse_args().get('args')
@@ -26,10 +33,18 @@ class TriggerAPI(Resource):
     def get(self):
         """
         获取可用trigger_type
-        :return:
         """
+        # return make_result(data={
+        #     'trigger_types': list(trigger_types.keys()),
+        #     'trigger_data': {trigger: trigger_get_info(trigger) for trigger in list(trigger_types.keys())},
+        #     'trigger_names': trigger_names
+        # })
         return make_result(data={
-            'trigger_types': list(trigger_types.keys())
+            'triggers': {trigger: {
+                "data": trigger_get_info(trigger),
+                'desc': trigger_desc.get(trigger, None),
+                'name': trigger_names.get(trigger),
+            } for trigger in trigger_names}
         })
 
 
@@ -41,7 +56,6 @@ class TriggerName(Resource):
     def get(self, trigger_type: str):
         """
         获取对应名称的trigger信息
-        :return:
         """
         if trigger_type not in trigger_types:
             return make_result(400, message=f"No trigger type as {trigger_type}")
@@ -55,8 +69,6 @@ class TriggerName(Resource):
     def post(self, trigger_type: str):
         """
         获取对应名称的trigger信息（可以更新数据）
-        :param trigger_type:
-        :return:
         """
         if trigger_type not in trigger_types:
             return make_result(400, message=f"No trigger type as {trigger_type}")

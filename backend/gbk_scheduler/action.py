@@ -64,3 +64,13 @@ action_types = {
     'simple_run': ActionSimpleRun,
     'adjust_price': ActionPriceAdjust
 }
+
+action_names = {
+    'base': "基础action",
+    'simple_run': "简单action",
+    'adjust_price': "调整价格action"
+}
+
+action_desc = {
+    'adjust_price': "利用此Action可以调整价格到目标价格，或者设定价格上调、下调目标。"
+}
