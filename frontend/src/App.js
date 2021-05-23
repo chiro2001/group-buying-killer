@@ -144,7 +144,7 @@ store.subscribe(async () => {
   // console.log('redux update to', state);
   // 保存 config
   if (state.config.data) {
-    if (JSON.stringify(state.config.data) != JSON.stringify(last_data.config)) {
+    if (JSON.stringify(state.config.data) !== JSON.stringify(last_data.config)) {
       // console.log('Config will change:', state.config.data);
       state.config.save();
       if (store.getState().user && store.getState().config.data.settings_async) {
