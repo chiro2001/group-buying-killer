@@ -16,6 +16,7 @@ import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import AccountCircleIcon from '@material-ui/icons/AccountCircle';
 import DashboardIcon from '@material-ui/icons/Dashboard';
+import AssignmentIcon from '@material-ui/icons/Assignment';
 import AlarmIcon from '@material-ui/icons/Alarm';
 import SettingsIcon from '@material-ui/icons/Settings';
 import CloseIcon from '@material-ui/icons/Close';
@@ -47,6 +48,7 @@ import './App.css';
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, ListItem, Snackbar } from '@material-ui/core';
 import RemoteLogin from './pages/RemoteLogin';
 import Login from './pages/Login';
+import Tasks from "./pages/Tasks";
 
 const drawerWidth = 240;
 moment.locale('zh-cn');
@@ -159,11 +161,11 @@ store.subscribe(async () => {
 });
 
 const getShopTitle = function () {
-  return null;
-  // TODO: get title
-  if (!store.getState().shopInfo.shopName) return null;
-  // console.log('getShopTitle', store.getState().shopInfo);
-  return `${store.getState().shopInfo.shopName} - ${store.getState().shopInfo.branchName}`
+  if (!(store.getState().daemon && store.getState().daemon.shop_info && store.getState().daemon.shop_info.shopName)) return null;
+  // console.log('getShopTitle', store.getState().daemon.shop_info);
+  const title = `${store.getState().daemon.shop_info.shopName} - ${store.getState().daemon.shop_info.branchName}`;
+  // console.log(title);
+  return title;
 }
 
 export default function App() {
@@ -199,14 +201,6 @@ export default function App() {
       store.dispatch(setMessage(null));
     }
   };
-  // 店信息钩子
-  subscribers['ShopInfo'] = function (state) {
-    if (state.shopInfo) {
-      if (title === titleDefault) {
-        setTitle(getShopTitle());
-      }
-    }
-  };
   subscribers['User'] = async function (state) {
     if (state.user) {
       if (JSON.stringify(state.user) != JSON.stringify(last_data.user)) {
@@ -227,6 +221,11 @@ export default function App() {
         forceUpdate();
       }
       last_data.daemon = state.daemon;
+      if (state.daemon.shop_info) {
+        if (title === titleDefault) {
+          setTitle(getShopTitle());
+        }
+      }
     }
     // if (state.daemon === false) {
     //   store.dispatch(setDaemon(null));
@@ -323,6 +322,7 @@ export default function App() {
         <Divider />
         <List onClick={handleClickAction}>
           <ListItemLink to="/" primary="启动页" icon={<DashboardIcon />} />
+          <ListItemLink to="/tasks" primary="任务" icon={<AssignmentIcon />} />
           <ListItemLink to="/settings" primary="设置" icon={<SettingsIcon />} />
         </List>
       </Drawer>
@@ -331,6 +331,9 @@ export default function App() {
         <Switch>
           <Route path={"/"} exact={true}>
             <Launch />
+          </Route>
+          <Route path={"/tasks"} exact={true}>
+            <Tasks />
           </Route>
           <Route path={"/settings"} exact={false}>
             <Settings />

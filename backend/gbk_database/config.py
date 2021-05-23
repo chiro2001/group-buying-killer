@@ -57,7 +57,7 @@ class Constants:
     API_PATH = '/api/v2'
     # Running config
     RUN_LISTENING = "0.0.0.0"
-    RUN_PORT = int(os.environ.get("PORT", 10080))
+    RUN_PORT = int(os.environ.get("PORT", 8880))
     RUN_USE_RELOAD = False
     # RUN_REBASE = True
     RUN_REBASE = False
@@ -101,7 +101,7 @@ class Constants:
     MODULES_USE_THREAD = False
     # Remote Login Serverd
     LOGIN_SERVER_HOST = "127.0.0.1"
-    LOGIN_SERVER_PORT = 8081
+    LOGIN_SERVER_PORT = 8881
     LOGIN_SERVER_PROTOCOL = 'ws'
     LOGIN_SERVER = "ws://gbk-dev.chiro.work/ws" if platform.system() == 'Linux' else None
     # Dismiss rebase for multiprocessing

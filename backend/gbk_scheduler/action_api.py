@@ -39,6 +39,7 @@ class ActionAPI(Resource):
                 "data": action_get_info(action),
                 'desc': action_desc.get(action, None),
                 'name': action_names.get(action),
+                'type': action
             } for action in action_names}
         })
 

@@ -44,6 +44,7 @@ class TriggerAPI(Resource):
                 "data": trigger_get_info(trigger),
                 'desc': trigger_desc.get(trigger, None),
                 'name': trigger_names.get(trigger),
+                'type': trigger
             } for trigger in trigger_names}
         })
 

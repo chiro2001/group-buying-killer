@@ -33,7 +33,7 @@ export default function Actions(props) {
       forceUpdate();
     });
   }
-  console.log('types', store.getState().types)
+  // console.log('types', store.getState().types)
   let content = null;
   if (!actions) {
     content = <Typography variant="body1">正在加载Action类型...</Typography>

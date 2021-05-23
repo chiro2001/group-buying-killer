@@ -5,7 +5,9 @@ import Triggers from "../components/Triggers";
 
 export default function Launch(props) {
   return <Container>
-    <Triggers useActions={true}></Triggers>
+    <Triggers useActions={false} onClick={(trigger) => {
+      console.log(trigger);
+    }}></Triggers>
     <Actions useActions={true}></Actions>
   </Container>
 }

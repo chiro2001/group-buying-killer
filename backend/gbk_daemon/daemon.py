@@ -12,7 +12,7 @@ class DaemonBean:
         self.uid: int = uid
         self.cookies: str = cookies
         self.shop_info: dict = shop_info
-        self.Us: int = solution_id
+        self.solution_id: int = solution_id
         self.reserve_date: dict = reserve_date
         self.reserve_table: dict = reserve_table
         self.room_stock: dict = room_stock
