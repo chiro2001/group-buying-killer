@@ -91,7 +91,9 @@ export function funDownload(content, filename) {
 
 
 export function deepCopy(data) {
-  if (isIterator(data) && typeof(data) !== "string") {
+  if (data === null || data === undefined) {
+    return data;
+  } if (isIterator(data) && typeof (data) !== "string") {
     let d = [];
     for (let i = 0; i < data.length; i++) {
       d.push(data[i]);
@@ -113,5 +115,59 @@ export function objectUpdate(origin, update) {
   for (const k in update) {
     now[k] = update[k];
   }
-  return now; 
+  return now;
 }
+
+// https://www.jianshu.com/p/7407bd65b15d
+export function isObjectValueEqual(a, b) {
+  var aProps = Object.getOwnPropertyNames(a);
+  var bProps = Object.getOwnPropertyNames(b);
+  if (aProps.length !== bProps.length) {
+    return false;
+  }
+  for (var i = 0; i < aProps.length; i++) {
+    var propName = aProps[i]
+
+    var propA = a[propName]
+    var propB = b[propName]
+    // 2020-11-18更新，这里忽略了值为undefined的情况
+    // 故先判断两边都有相同键名
+    if (!b.hasOwnProperty(propName)) return false
+    if ((propA instanceof Object)) {
+      if (isObjectValueEqual(propA, propB)) {
+        // return true     这里不能return ,后面的对象还没判断
+      } else {
+        return false
+      }
+    } else if (propA !== propB) {
+      return false
+    } else { }
+  }
+  return true
+}
+
+// Array.prototype.indexOf = function (val) {
+//   for (var i = 0; i < this.length; i++) {
+//     if (this[i] == val) return i;
+//   }
+//   return -1;
+// };
+
+// Array.prototype.remove = function (val) {
+//   var index = this.indexOf(val);
+//   if (index > -1) {
+//     this.splice(index, 1);
+//   }
+// };
+
+// Array.prototype.removeIndex = function (index) {
+//   this.splice(index, 1);
+// };
+
+// export function arrayRemove(array, data) {
+//   if (!isIterator(array)) return;
+//   const index = array.indexOf(data);
+//   if (index > -1) {
+//     array.slice(index, 1);
+//   }
+// }

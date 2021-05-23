@@ -8,7 +8,8 @@ class API {
   constructor() {
     // this.host = '127.0.0.1';
     this.host = window.location.href.includes("localhost") ? "localhost" : null;
-    this.port = 8080;
+    // this.port = 8080;
+    this.port = 8880;
     this.api_version = "v2";
     this.api_prefix = `/api/${this.api_version}`;
     this.protocol = 'http'
@@ -64,6 +65,7 @@ class API {
       headers: this.get_headers(Boolean(router === 'session' && method === 'DELETE')),
     };
     // console.log('request', router, method, data, payload);
+    // console.log(`${this.url}/${router}`);
     const resp = await fetch(`${this.url}/${router}`, payload);
     let js = null;
     try { js = await resp.json(); } catch (e) {
