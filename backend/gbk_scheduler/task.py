@@ -31,6 +31,39 @@ trigger_desc = {
 }
 
 
+def trigger_get_info(trigger_type: str):
+    instance = trigger_types[trigger_type]()
+    instance_data = instance.__getstate__()
+    instance_data = task_data_encode(instance_data)
+    logger.info(f'{trigger_type} data: {instance_data}')
+    return instance_data
+
+
+trigger_args = {
+    'interval': {
+        'version': {'value': 2, 'editable': False},
+        'timezone': {'value': 'timezone|Asia/Shanghai', 'editable': False},
+        'start_date': {'value': trigger_get_info('interval').get('start_date'), 'type': 'datetime', 'editable': True},
+        'end_date': {'value': trigger_get_info('interval').get('end_date'), 'type': 'datetime', 'editable': True},
+        'interval': {'value': trigger_get_info('interval').get('interval'), 'type': 'timedelta', 'editable': True},
+        'jitter': {'value': None, 'editable': False}
+    },
+    'date': {
+        'version': {'value': 1, 'editable': False},
+        'run_date': {'value': trigger_get_info('date').get('run_date'), 'type': 'datetime', 'editable': True}
+    },
+    "cron": {
+        'version': {'value': 2, 'editable': False},
+        'timezone': {'value': 'timezone|Asia/Shanghai', 'editable': False},
+        'start_date': {'value': trigger_get_info('cron').get('start_date'), 'type': 'datetime', 'editable': True},
+        'end_date': {'value': trigger_get_info('cron').get('end_date'), 'type': 'datetime', 'editable': True},
+        # 这个咋弄啊
+        'fields': {'value': [], 'editable': False},
+        'jitter': {'value': None, 'editable': False}
+    }
+}
+
+
 def get_trigger_name_from_dict(trigger: dict):
     return 'interval' if 'interval' in trigger else 'date' if 'run_date' in trigger else 'cron'
 

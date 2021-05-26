@@ -2,14 +2,6 @@ from utils.api_tools import *
 from gbk_scheduler.task import *
 
 
-def trigger_get_info(trigger_type: str):
-    instance = trigger_types[trigger_type]()
-    instance_data = instance.__getstate__()
-    instance_data = task_data_encode(instance_data)
-    logger.info(f'{trigger_type} data: {instance_data}')
-    return instance_data
-
-
 class TriggerAPI(Resource):
     args_trigger = reqparse.RequestParser().add_argument("trigger", type=dict, required=True, location=["json", ]) \
         .add_argument("args", type=dict, required=False, location=["json", ])
@@ -44,7 +36,8 @@ class TriggerAPI(Resource):
                 "data": trigger_get_info(trigger),
                 'desc': trigger_desc.get(trigger, None),
                 'name': trigger_names.get(trigger),
-                'type': trigger
+                'type': trigger,
+                'args': trigger_args.get(trigger)
             } for trigger in trigger_names}
         })
 
