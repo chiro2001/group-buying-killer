@@ -41,16 +41,18 @@ class ActionSimpleRun(Action):
 class ActionPriceAdjust(Action):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.action_type = 'price_adjust'
+        self.action_type = 'adjust_price'
         self.target_price = kwargs.get('price', None)
         if self.target_price is None:
             logger.warning('got empty price!')
+            self.target_price = 0
         self.uid = kwargs.get('uid')
         if self.uid is None:
             logger.warning('git empty uid')
         self.item_id = kwargs.get('item_id')
         if self.item_id is None:
             logger.warning('got empty item_id')
+            self.item_id = 0
 
     def exec(self):
         logger.info(f'adjusting price to {self.target_price}')

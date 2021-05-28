@@ -4,7 +4,7 @@ import React from "react";
 import { api } from "../api/api";
 import { setTypes, updateTypes } from "../data/action";
 import store from "../data/store";
-import { deepCopy, isObjectValueEqual, objectUpdate } from "../utils/utils";
+import { deepCopy, getTimedeltaString, isObjectValueEqual, objectUpdate } from "../utils/utils";
 import ListEdit from "./ListEdit";
 import ListInfo from "./ListInfo";
 
@@ -17,20 +17,6 @@ const keyNames = {
 
 export function isTriggerModified(item, type = "triggers") {
   return !isObjectValueEqual(item.data, store.getState().types[type][item.type].data);
-}
-
-function getTimedeltaString(timedelta) {
-  if (typeof (timedelta) !== 'number') return "";
-  const timedeltaUnits = {
-    "秒": 1, "分": 60, "时": 60 * 60,
-    "天": 24 * 60 * 60, "周": 7 * 24 * 60 * 60
-  };
-  for (let i = 1; i < Object.keys(timedeltaUnits).length; i++) {
-    if (timedelta < timedeltaUnits[Object.keys(timedeltaUnits)[i]]) {
-      return `${(timedelta / timedeltaUnits[Object.keys(timedeltaUnits)[i - 1]]).toFixed(2)}${Object.keys(timedeltaUnits)[i - 1]}`;
-    }
-  }
-  return `${(timedelta / timedeltaUnits[Object.keys(timedeltaUnits)[Object.keys(timedeltaUnits).length - 1]]).toFixed(2)}${Object.keys(timedeltaUnits)[Object.keys(timedeltaUnits).length - 1]}`;
 }
 
 function getDataString(data, typeName, dataType) {

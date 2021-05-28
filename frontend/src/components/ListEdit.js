@@ -3,7 +3,8 @@ import { DateTimePicker } from "@material-ui/pickers";
 import React from "react";
 import DeleteIcon from '@material-ui/icons/Delete';
 import store from "../data/store";
-import { isIterator, objectUpdate } from "../utils/utils";
+import { isIterator, objectUpdate, timedeltaUnits } from "../utils/utils";
+import moment from "moment";
 
 export default function ListEdit(props) {
   const { defaultValue, open, onClose, title, keyNames, dataType, typeName } = props;
@@ -14,10 +15,6 @@ export default function ListEdit(props) {
   const [openChild, setOpenChild] = React.useState(false);
   const [child, setChild] = React.useState(null);
   const [childTitle, setChildTitle] = React.useState(null);
-  const timedeltaUnits = {
-    "秒": 1, "分": 60, "时": 60 * 60,
-    "天": 24 * 60 * 60, "周": 7 * 24 * 60 * 60
-  };
   const [timedeltaUnit, setTimedeltaUnit] = React.useState({});
 
   const handleSave = () => {
@@ -30,14 +27,16 @@ export default function ListEdit(props) {
       <List style={{ width: "100%" }}>
         {Object.keys(data).map((v, k) => {
           if (dismiss.indexOf(v) >= 0) return null;
+          // console.log("store.getState().types", store.getState().types);
+          // console.log("typeName", typeName, "dataType", dataType);
           const args = dataType && typeName && store.getState().types[typeName][dataType].args[v] ?
             store.getState().types[typeName][dataType].args[v] : null;
-          // console.log('args', args);
+          // console.log('v', v, 'args', args);
           if (dataType && typeName && args && !args.editable) return null;
           const showName = keyNames ? (keyNames[v] || v) : (v);
           // if (((typeof (data[v]) !== "string")) && !data[v]) return undefined;
           let value = data[v];
-          if (!value && dataType && typeName && args) {
+          if ((!value && typeof (value) !== "number") && dataType && typeName && args) {
             value = `${args.type}|${args.value ? args.value : ''}`;
           }
           if (typeof (value) === 'object') {
@@ -62,9 +61,10 @@ export default function ListEdit(props) {
                   <DateTimePicker
                     value={value.slice("datetime|".length)}
                     onChange={e => {
-                      // console.log("e", e);
+                      console.log("e", e);
                       // 这里会改变到没有时区的类型
-                      setData({ [v]: `datetime|${e.toISOString()}` });
+                      console.log(`datetime|${moment(e).format("YYYY-MM-DDTHH:mm:ss.SSSSSS+00:00")}`);
+                      setData({ [v]: `datetime|${moment(e).format("YYYY-MM-DDTHH:mm:ss.SSSSSS+00:00")}` });
                     }}
                   ></DateTimePicker>
                   <IconButton onClick={() => {
@@ -76,11 +76,14 @@ export default function ListEdit(props) {
               }
             } else if (typeof (value) === "string" && value.startsWith("timedelta|")) {
               const val = value.slice("timedelta|".length);
-              const unit = timedeltaUnit[v] ? timedeltaUnit[v] : Object.keys(timedeltaUnits)[0];
+              const unit = timedeltaUnit[v] ? timedeltaUnit[v] : Object.keys(timedeltaUnits)[Object.keys(timedeltaUnits).length - 1];
               actionData = <Box>
                 <TextField value={`${parseFloat(val) / timedeltaUnits[unit]}`} onChange={e => {
-                  if (isNaN(parseFloat(e.target.value))) return;
-                  const newValue = `timedelta|${parseFloat(e.target.value) * timedeltaUnits[unit]}`;
+                  let val = e.target.value;
+                  if (isNaN(parseFloat(val)))
+                    if (val.length > 0) return;
+                    else val = 0;
+                  const newValue = `timedelta|${parseFloat(val) * timedeltaUnits[unit]}`;
                   setData({ [v]: newValue });
                 }}></TextField>
                 <Select value={unit}
@@ -94,7 +97,8 @@ export default function ListEdit(props) {
               </Box>
             } else {
               actionData = <TextField value={`${value}`} onChange={e => {
-                const newValue = (typeof (value) === "number" ? parseFloat(e.target.value) : `${e.target.value}`);
+                const newValue = e.target.value.length === 0 ? 0 : (typeof (value) === "number" ? parseFloat(e.target.value) : `${e.target.value}`);
+                if (isNaN(newValue)) return;
                 setData({ [v]: newValue });
               }}></TextField>;
             }

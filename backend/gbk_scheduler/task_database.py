@@ -9,6 +9,9 @@ class TaskManagerDB(BaseDB):
     def get_next_tid(self):
         return get_next_id(self.d.task_tid, "cnt_tid")
 
+    def get_current_tid(self):
+        return get_current_id(self.d.task_tid, "cnt_tid")
+
     def get_raw(self, uid: int) -> dict:
         result = self.col.find_one({'uid': uid}, {'_id': False})
         result = dict_remove_empty(result)

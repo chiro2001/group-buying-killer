@@ -10,7 +10,6 @@ class TaskManagerAPI(Resource):
     def get(self, uid: int):
         """
         获取当前所有任务
-        :return:
         """
         args = args_selector.parse_args()
         # 从数据库读取
@@ -22,6 +21,14 @@ class TaskManagerAPI(Resource):
             manager = TaskManager(uid)
         tasks_data = manager.get_tasks_data(offset=args.get('offset', None), limit=args.get('limit', None))
         return make_result(data=tasks_data)
+
+    def patch(self):
+        """
+        获取Task模板
+        """
+        return make_result(data={
+            'task_data': Task().get_task_data()
+        })
 
     @args_required_method(args_task)
     @auth_required_method

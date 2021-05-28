@@ -171,3 +171,29 @@ export function isObjectValueEqual(a, b) {
 //     array.slice(index, 1);
 //   }
 // }
+
+export const timedeltaUnits = {
+  "秒": 1, "分": 60, "时": 60 * 60,
+  "天": 24 * 60 * 60, "周": 7 * 24 * 60 * 60
+};
+
+
+export function getTimedeltaUnit(timedelta) {
+  if (typeof (timedelta) !== 'number') return null;
+  if (timedelta >= timedeltaUnits[Object.keys(timedeltaUnits)[Object.keys(timedeltaUnits).length - 1]])
+    return Object.keys(timedeltaUnits)[Object.keys(timedeltaUnits).length - 1];
+  for (let i = 1; i < Object.keys(timedeltaUnits).length; i++) {
+    if (timedelta < timedeltaUnits[Object.keys(timedeltaUnits)[i]]) {
+      return Object.keys(timedeltaUnits)[i - 1];
+    }
+  }
+  return Object.keys(timedeltaUnits)[0];
+}
+
+export function getTimedeltaString(timedelta) {
+  if (typeof (timedelta) !== 'number') return "";
+  const unit = getTimedeltaUnit(timedelta);
+  if (unit === null) return "";
+  // console.log("unit", unit);
+  return `${(timedelta / timedeltaUnits[unit]).toFixed(2)}${unit}`;
+}

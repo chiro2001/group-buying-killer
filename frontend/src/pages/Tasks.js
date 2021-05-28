@@ -1,9 +1,12 @@
-import { Button, Container, Dialog, DialogActions, DialogContent, DialogTitle, Grid, IconButton, List, ListItem, ListItemSecondaryAction, ListSubheader, Typography } from "@material-ui/core";
+import { Button, Container, Dialog, DialogActions, DialogContent, DialogTitle, Grid, IconButton, List, ListItem, ListItemSecondaryAction, ListSubheader, TextField, Typography } from "@material-ui/core";
 import DeleteIcon from '@material-ui/icons/Delete';
 import React from "react";
+import { api } from "../api/api";
 import Actions from "../components/Actions";
+import { ActionTag, isActionModified } from "../components/Actions";
 import Triggers from "../components/Triggers";
 import { TriggerTag, isTriggerModified } from "../components/Triggers";
+import { setErrorInfo, updateTypes } from "../data/action";
 import store from "../data/store";
 import { arrayRemove, deepCopy, objectUpdate } from "../utils/utils";
 
@@ -20,14 +23,47 @@ export default function Tasks(props) {
     dialogAddTriggerOpen: false,
     dialogAddActionOpen: false,
     dialogUpdateTrigger: false,
-    triggers: []
+    triggers: [],
+    actions: [],
+    requesting: false,
+    taskName: store.getState().types.task_data ? `未命名任务${store.getState().types.task_data.tid}` : '未命名任务'
   });
+  const taskData = store.getState().types.task_data;
+  const [ignored, forceUpdate] = React.useReducer(x => x + 1, 0);
   const setState = (update) => setInnerState(objectUpdate(state, update));
+
+  if (!state.requesting && !taskData) {
+    setState({ requesting: true });
+    api.request("task", 'PATCH').then(resp => {
+      // console.log("resp", resp);
+      store.dispatch(updateTypes("task_data", resp.data.task_data));
+      forceUpdate();
+    })
+  }
+
+  const handleAddTask = async () => {
+    console.log('pass#2');
+    if (!taskData) {
+      setErrorInfo("Task数据为空。");
+      console.error("Task数据为空。");
+      return;
+    }
+    const task = objectUpdate(taskData, { triggers: state.triggers, actions: state.actions, task_name: state.taskName, tid: null, });
+    console.log('task', task);
+    const resp = await api.request('task', "POST", { task });
+    console.log('resp', resp);
+  };
 
   const dialogAddTask = <Dialog fullWidth open={state.dialogAddTaskOpen} onClose={() => setState({ dialogAddTaskOpen: false })}>
     <DialogTitle>添加新任务</DialogTitle>
     <DialogContent>
       <List>
+        <ListSubheader>计划名称</ListSubheader>
+        <ListItem>
+          <TextField value={state.taskName} onChange={e => {
+            setState({ taskName: e.target.value });
+          }}></TextField>
+        </ListItem>
         <ListSubheader>触发器列表</ListSubheader>
         {state.triggers.map((trigger, k) => <ListItem key={k}>
           <TriggerTag trigger={trigger} onSave={data => {
@@ -48,8 +84,35 @@ export default function Tasks(props) {
             </IconButton>
           </ListItemSecondaryAction>
         </ListItem>)}
+        <ListSubheader>Actions列表</ListSubheader>
+        {state.actions.map((action, k) => <ListItem key={k}>
+          <ActionTag action={action} onSave={data => {
+            console.log('saveing', data);
+            let newActions = deepCopy(state.actions);
+            newActions[k] = data;
+            console.log("newActions", newActions);
+            setState({ actions: newActions });
+          }}></ActionTag>
+          <ListItemSecondaryAction>
+            <IconButton onClick={() => {
+              let newActions = deepCopy(state.actions);
+              newActions.splice(k, 1);
+              console.log("newActions", newActions);
+              setState({ actions: newActions });
+            }}>
+              <DeleteIcon></DeleteIcon>
+            </IconButton>
+          </ListItemSecondaryAction>
+        </ListItem>)}
         <ListItem>
-          <Button onClick={() => { setState({ dialogAddTriggerOpen: true }) }} color="primary" variant="outlined">添加触发器</Button>
+          <Grid container spacing={5}>
+            <Grid item xs={12} lg={6}>
+              <Button fullWidth onClick={() => { setState({ dialogAddTriggerOpen: true }) }} color="primary" variant="outlined">添加触发器</Button>
+            </Grid>
+            <Grid item xs={12} lg={6}>
+              <Button fullWidth onClick={() => { setState({ dialogAddActionOpen: true }) }} color="primary" variant="outlined">添加Action</Button>
+            </Grid>
+          </Grid>
         </ListItem>
       </List>
       <Dialog open={state.dialogAddTriggerOpen} onClose={() => setState({ dialogAddTriggerOpen: false })}>
@@ -63,9 +126,24 @@ export default function Tasks(props) {
           }} selectMode></Triggers>
         </DialogContent>
       </Dialog>
+      <Dialog open={state.dialogAddActionOpen} onClose={() => setState({ dialogAddActionOpen: false })}>
+        <DialogTitle>选择一个Action</DialogTitle>
+        <DialogContent>
+          <Actions onClick={action => {
+            console.log("action", action);
+            let actions = deepCopy(state.actions);
+            actions.push(action);
+            setState({ dialogAddActionOpen: false, actions: actions });
+          }} selectMode></Actions>
+        </DialogContent>
+      </Dialog>
     </DialogContent>
     <DialogActions>
-      <Button color="primary">确定</Button>
+      <Button color="primary" disabled={state.triggers.length === 0 || state.actions.length === 0} onClick={async () => {
+        console.log('pass#1');
+        await handleAddTask();
+        setState({ dialogAddTaskOpen: false, triggers: [], actions: [] });
+      }}>确定</Button>
       <Button onClick={() => setState({ dialogAddTaskOpen: false })}>取消</Button>
     </DialogActions>
   </Dialog>;

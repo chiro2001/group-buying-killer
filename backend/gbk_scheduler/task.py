@@ -39,6 +39,12 @@ def trigger_get_info(trigger_type: str):
     return instance_data
 
 
+def action_get_info(action_type: str):
+    instance = action_types[action_type]()
+    instance_data = instance.__getstate__()
+    return instance_data
+
+
 trigger_args = {
     'interval': {
         'version': {'value': 2, 'editable': False},
@@ -63,8 +69,34 @@ trigger_args = {
     }
 }
 
+action_args = {
+    'adjust_price': {
+        'action_type': {'value': 'adjust_price', 'editable': False},
+        'args': {'value': [], 'editable': False},
+        'kwargs': {'value': {}, 'editable': False},
+        'uid': {'value': None, 'editable': False},
+        'item_id': {'value': 0, 'editable': True},
+        'target_price': {'value': 0, 'editable': True},
+    },
+    'base': {
+        'action_type': {'value': 'base', 'editable': False},
+        'args': {'value': [], 'editable': False},
+        'kwargs': {'value': {}, 'editable': False},
+        'uid': {'value': None, 'editable': False},
+    },
+    'simple_run': {
+        'action_type': {'value': 'simple_run', 'editable': False},
+        'args': {'value': [], 'editable': False},
+        'kwargs': {'value': {}, 'editable': False},
+        'uid': {'value': None, 'editable': False},
+        'running': {'value': False, 'editable': False},
+    },
+}
+
 
 def get_trigger_name_from_dict(trigger: dict):
+    if 'data' in trigger:
+        trigger = trigger['data']
     return 'interval' if 'interval' in trigger else 'date' if 'run_date' in trigger else 'cron'
 
 
@@ -79,6 +111,8 @@ class Task:
         # 全部参数都是空的时候不拿新的 tid
         self.tid = tid if (not (tid is None and name is None and
                                 triggers is None and actions is None)) else db.task_manager.get_next_tid()
+        if self.tid is None:
+            self.tid = db.task_manager.get_current_tid()
         self.task_name = name if name is not None else self.get_name_by_actions()
         self._name = name
         self.jobs = []
@@ -94,9 +128,9 @@ class Task:
         # 保证每一个trigger都会触发所有action
         for i in range(len(self.actions)):
             for j in range(len(self.triggers)):
-                trigger_args = self.triggers[j].__getstate__()
-                if 'version' in trigger_args:
-                    del trigger_args['version']
+                trigger_the_args = self.triggers[j].__getstate__()
+                if 'version' in trigger_the_args:
+                    del trigger_the_args['version']
                 job = scheduler.add_job(self.actions[i].exec, self.triggers[j])
                 # logger.warning(f'trigger: {self.triggers[j]}')
                 # logger.warning(f'trigger_args: {trigger_args}')
@@ -147,7 +181,10 @@ class Task:
         if 'triggers' in state:
             self.triggers = [trigger_types[get_trigger_name_from_dict(trigger)]() for trigger in state['triggers']]
             for i in range(len(state['triggers'])):
-                data = task_data_decode(state['triggers'][i])
+                d = state['triggers'][i]
+                if 'data' in d:
+                    d = d['data']
+                data = task_data_decode(d)
                 # logger.warning(f"self.triggers[i]: {self.triggers[i]}, data: {data}, state['triggers'][i]: {state['triggers'][i]}")
                 data_default = self.triggers[i].__getstate__()
                 # logger.warning(f'data        : {data}')
@@ -155,9 +192,12 @@ class Task:
                 data_default.update(data)
                 self.triggers[i].__setstate__(data_default)
         if 'actions' in state:
-            self.actions = [action_types[action['action_type']]() for action in state['actions']]
+            self.actions = [action_types[action['data']['action_type']]()
+                            if 'data' in action else action_types[action['action_type']]()
+                            for action in state['actions']]
             for i in range(len(state['actions'])):
-                self.actions[i].__setstate__(task_data_decode(state['actions'][i]))
+                self.actions[i].__setstate__(task_data_decode(
+                    state['actions'][i]['data'] if 'data' in state['actions'][i] else state['actions'][i]))
         if 'task_name' in state:
             self.task_name = state['task_name']
         else:

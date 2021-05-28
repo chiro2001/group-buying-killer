@@ -49,6 +49,13 @@ def task_data_encode(data):
         data = f"datetime|{data.isoformat()}"
     elif isinstance(data, datetime.date):
         data = f"date|{data.isoformat()}"
+    elif issubclass(type(data), BaseField):
+        data = {
+            'type': 'field',
+            'class_name': data.__class__.__name__,
+            "name": data.name,
+            "expressions": str(data)
+        }
     return data
 
 
