@@ -97,7 +97,8 @@ class Constants:
     MODULES_RUN_RETRY = 3
     # 是否模块退出了仍然执行该模块
     # TODO: Fix 无法停止
-    MODULES_RUN_FOREVER = True
+    # MODULES_RUN_FOREVER = True
+    MODULES_RUN_FOREVER = False
     MODULES_USE_THREAD = False
     # Remote Login Serverd
     LOGIN_SERVER_HOST = "127.0.0.1"
