@@ -41,12 +41,13 @@ class RemoteLoginAPI(Resource):
         # cookies = "edper=pEe5_IensPI6FQe7XlI05VNmxdON9OXQc-s6yrNUjxmi4m2GmyXqSAUzdsVslIsYb9bGm
         # cCRhmQ1A1Zdj6eVDA; Domain=.dianping.com; Path=/; HttpOnly"
         # 检查格式，提取
-        # result = re.findall(r'edper=[^;] Domain=.dianping.com; Path=/; HttpOnly', cookies)
-        # if len(result) == 0:
-        #     return make_result(400)
-        if not (cookies[:6] == "edper=" and cookies[6 + 86:] == "; Domain=.dianping.com; Path=/; HttpOnly"):
+        result = re.findall(r'edper=[^;]*', cookies)
+        if len(result) == 0:
             return make_result(400)
-        cookies = cookies[:-39]
+        cookies = result[0] + ';'
+        # if not (cookies[:6] == "edper=" and cookies[6 + 86:] == "; Domain=.dianping.com; Path=/; HttpOnly"):
+        #     return make_result(400)
+        # cookies = cookies[:-39]
         # TODO: 更新Cookie之后更新Daemon状态
         # print(cookies)
         db.daemon.save(uid, cookies, data_type='cookies')

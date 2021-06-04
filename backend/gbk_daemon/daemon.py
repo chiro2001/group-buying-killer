@@ -3,6 +3,7 @@ import os
 from utils.logger import logger
 from gbk_database.database import db, Constants
 from data_apis.api import API
+from gbk_exceptions import *
 
 
 class DaemonBean:
@@ -51,7 +52,14 @@ class Daemon:
         if init_data:
             for d in data:
                 print('data', d)
-                self.pool[d['uid']] = self.init_data(d['uid'], cookies=d['data'])
+                try:
+                    self.pool[d['uid']] = self.init_data(d['uid'], cookies=d['data'])
+                except GBKLoginError:
+                    try:
+                        self.pool[d['uid']] = self.init_data(d['uid'])
+                    except GBKLoginError:
+                        pass
+
         self.data_inited = init_data
 
     def get_daemon(self, uid: int):
