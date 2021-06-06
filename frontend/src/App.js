@@ -15,6 +15,7 @@ import MenuIcon from '@material-ui/icons/Menu';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import AccountCircleIcon from '@material-ui/icons/AccountCircle';
+import EqualizerIcon from '@material-ui/icons/Equalizer';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import AssignmentIcon from '@material-ui/icons/Assignment';
 import AlarmIcon from '@material-ui/icons/Alarm';
@@ -49,6 +50,7 @@ import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, ListIte
 import RemoteLogin from './pages/RemoteLogin';
 import Login from './pages/Login';
 import Tasks from "./pages/Tasks";
+import Predicts from './pages/Predicts';
 
 const drawerWidth = 240;
 moment.locale('zh-cn');
@@ -253,15 +255,6 @@ export default function App() {
   });
 
 
-  const handleLoginOpen = () => {
-    // console.log('handleLoginOpen');
-    setPopupLogin(true);
-  };
-
-  const handleLoginClose = () => {
-    setPopupLogin(false);
-  };
-
   const handleClickAction = () => {
     if (window.innerWidth < 600 || window.location.pathname === '/') {
       setOpen(false);
@@ -295,7 +288,7 @@ export default function App() {
           <IconButton
             color="inherit"
             aria-label="login"
-            onClick={handleLoginOpen}
+            onClick={() => { setPopupLogin(true); }}
           >
             <AccountCircleIcon />
           </IconButton>
@@ -323,6 +316,7 @@ export default function App() {
         <List onClick={handleClickAction}>
           <ListItemLink to="/" primary="启动页" icon={<DashboardIcon />} />
           <ListItemLink to="/tasks" primary="任务" icon={<AssignmentIcon />} />
+          <ListItemLink to="/predicts" primary="智能预测" icon={<EqualizerIcon />} />
           <ListItemLink to="/settings" primary="设置" icon={<SettingsIcon />} />
         </List>
       </Drawer>
@@ -334,6 +328,9 @@ export default function App() {
           </Route>
           <Route path={"/tasks"} exact={true}>
             <Tasks />
+          </Route>
+          <Route path={"/predicts"} exact={true}>
+            <Predicts />
           </Route>
           <Route path={"/settings"} exact={false}>
             <Settings />

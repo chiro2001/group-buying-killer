@@ -1,104 +1,173 @@
-import { Button, Container, Dialog, DialogActions, DialogContent, DialogTitle, Grid, IconButton, List, ListItem, ListItemSecondaryAction, ListSubheader, TextField, Typography } from "@material-ui/core";
+import { Box, Button, Container, Dialog, DialogActions, DialogContent, DialogTitle, Grid, IconButton, List, ListItem, ListItemSecondaryAction, ListItemText, ListSubheader, TextField, Typography } from "@material-ui/core";
 import DeleteIcon from '@material-ui/icons/Delete';
 import React from "react";
 import { api } from "../api/api";
-import Actions from "../components/Actions";
+import Actions, { wrapAction } from "../components/Actions";
 import { ActionTag, isActionModified } from "../components/Actions";
-import Triggers from "../components/Triggers";
+import Triggers, { wrapTrigger } from "../components/Triggers";
 import { TriggerTag, isTriggerModified } from "../components/Triggers";
-import { setErrorInfo, updateTypes } from "../data/action";
+import { setErrorInfo, setTasks, updateTypes } from "../data/action";
 import store from "../data/store";
-import { arrayRemove, deepCopy, objectUpdate } from "../utils/utils";
+import { arrayRemove, deepCopy, isObjectValueEqual, objectUpdate } from "../utils/utils";
+
+
+async function wrapTask(task) {
+  const taskData = store.getState().types.task_data;
+  if (!taskData) return;
+  let taskWrapped = objectUpdate(taskData, task);
+  // taskWrapped.triggers = taskWrapped.triggers.map(async trigger => await wrapTrigger(trigger));
+  for (let i = 0; i < taskWrapped.triggers.length; i++)
+    taskWrapped.triggers[i] = await wrapTrigger(taskWrapped.triggers[i]);
+  // taskWrapped.actions = taskWrapped.actions.map(async action => await wrapAction(action));
+  for (let i = 0; i < taskWrapped.actions.length; i++)
+    taskWrapped.actions[i] = await wrapAction(taskWrapped.actions[i]);
+  if (taskWrapped.triggers.includes(null) || taskWrapped.actions.includes(null)) return null;
+  return taskWrapped;
+}
 
 
 function TaskTag(props) {
-  const { task } = props;
-  return <code>{JSON.stringify(task)}</code>;
+  const { task, onUpdate, onClick } = props;
+  // return <code>{JSON.stringify(task)}</code>;
+  return <ListItem button onClick={async () => {
+    console.log('task before', task);
+    const taskWrapped = await wrapTask(task);
+    console.log('task after', taskWrapped);
+    onClick && onClick(taskWrapped);
+  }}>
+    <ListItemText>
+      <Box>
+        <Typography variant="h5">{task.task_name}</Typography>
+      </Box>
+      <Box>
+        <Typography variant="body2">{`tid:${task.tid}/触发器:${task.triggers.length}/Action:${task.actions.length}`}</Typography>
+      </Box>
+    </ListItemText>
+    <ListItemSecondaryAction>
+      <IconButton onClick={() => {
+        api.request_key("task", task.tid, "DELETE").then(resp => {
+          if (resp.code !== 200) store.dispatch(setErrorInfo(resp));
+          onUpdate && onUpdate();
+        });
+      }}>
+        <DeleteIcon></DeleteIcon>
+      </IconButton>
+    </ListItemSecondaryAction>
+  </ListItem>
 }
 
-export default function Tasks(props) {
-  const tasks = store.getState().tasks;
+let taskDialogUpdate = false;
+
+function TaskDialog(props) {
+  const { addMode, open, onClose, onRefresh, onSave, taskOld } = props;
+  const realDefaultTask = {
+    task_name: '未命名任务',
+    triggers: [],
+    actions: [],
+  };
+  const defaultTask = addMode ? (props.defaultTask ? props.defaultTask : realDefaultTask) : taskOld ? taskOld : (props.defaultTask ? props.defaultTask : realDefaultTask);
   const [state, setInnerState] = React.useState({
     dialogAddTaskOpen: false,
     dialogAddTriggerOpen: false,
     dialogAddActionOpen: false,
     dialogUpdateTrigger: false,
-    triggers: [],
-    actions: [],
-    requesting: false,
-    taskName: store.getState().types.task_data ? `未命名任务${store.getState().types.task_data.tid}` : '未命名任务'
+    task: defaultTask,
+    requestingTaskData: false,
+    defaultTid: null,
   });
-  const taskData = store.getState().types.task_data;
-  const [ignored, forceUpdate] = React.useReducer(x => x + 1, 0);
   const setState = (update) => setInnerState(objectUpdate(state, update));
+  const [ignored, forceUpdate] = React.useReducer(x => x + 1, 0);
+  const taskData = store.getState().types.task_data;
 
-  if (!state.requesting && !taskData) {
-    setState({ requesting: true });
+  // console.log('taskNow', state.task);
+  if (!addMode && (taskDialogUpdate || (isObjectValueEqual(state.task, realDefaultTask) && !isObjectValueEqual(defaultTask, realDefaultTask)))) {
+    taskDialogUpdate = false;
+    setState({ task: defaultTask });
+  }
+
+  if (!state.requestingTaskData && !taskData) {
+    setState({ requestingTaskData: true });
     api.request("task", 'PATCH').then(resp => {
       // console.log("resp", resp);
-      store.dispatch(updateTypes("task_data", resp.data.task_data));
+      let taskData = resp.data.task_data;
+      taskData.tid = null;
+      store.dispatch(updateTypes("task_data", taskData));
       forceUpdate();
     })
   }
 
-  const handleAddTask = async () => {
-    console.log('pass#2');
+  const handleAddTask = addMode ? () => {
+    // console.log('pass#2');
     if (!taskData) {
       setErrorInfo("Task数据为空。");
       console.error("Task数据为空。");
       return;
     }
-    const task = objectUpdate(taskData, { triggers: state.triggers, actions: state.actions, task_name: state.taskName, tid: null, });
+    // const task = objectUpdate(taskData, { triggers: state.task.triggers, actions: state.task.actions, task_name: state.task.task_name, tid: null, });
+    const task = objectUpdate(taskData, state.task);
     console.log('task', task);
-    const resp = await api.request('task', "POST", { task });
-    console.log('resp', resp);
+    return api.request('task', "POST", { task }).then(resp => {
+      // console.log('resp', resp);
+      if (resp.code !== 200) return;
+      const defaultTid = resp.data.tid ? (resp.data.tid + 1) : null;
+      setState({
+        defaultTid,
+        taskName: store.getState().types.task_data ? `未命名任务${defaultTid ? defaultTid : ""}` : '未命名任务',
+      });
+      onRefresh && onRefresh();
+    });
+  } : () => {
+    if (!taskOld) return;
+    const task = objectUpdate(taskOld, state.task);
+    console.log('task', task);
+    if (onSave)
+      return onSave(task);
+    else return new Promise((resolve, reject) => { resolve(); });
   };
 
-  const dialogAddTask = <Dialog fullWidth open={state.dialogAddTaskOpen} onClose={() => setState({ dialogAddTaskOpen: false })}>
-    <DialogTitle>添加新任务</DialogTitle>
+  return <Dialog fullWidth open={open} onClose={() => { onClose && onClose() }}>
+    <DialogTitle>{addMode ? "添加新任务" : "设置任务"}</DialogTitle>
     <DialogContent>
       <List>
         <ListSubheader>计划名称</ListSubheader>
         <ListItem>
-          <TextField value={state.taskName} onChange={e => {
-            setState({ taskName: e.target.value });
+          <TextField value={state.task.task_name} onChange={e => {
+            let newTask = deepCopy(state.task);
+            newTask.task_name = e.target.value;
+            setState({ task: newTask });
           }}></TextField>
         </ListItem>
         <ListSubheader>触发器列表</ListSubheader>
-        {state.triggers.map((trigger, k) => <ListItem key={k}>
-          <TriggerTag trigger={trigger} onSave={data => {
+        {state.task.triggers.map((trigger, k) => <ListItem key={k}>
+          <TriggerTag fullWidth trigger={trigger} onSave={data => {
             console.log('saveing', data);
-            let newTriggers = deepCopy(state.triggers);
-            newTriggers[k] = data;
-            console.log("newTriggers", newTriggers);
-            setState({ triggers: newTriggers });
+            let newTask = deepCopy(state.task);
+            newTask.triggers[k] = data;
+            setState({ task: newTask });
           }}></TriggerTag>
           <ListItemSecondaryAction>
             <IconButton onClick={() => {
-              let newTriggers = deepCopy(state.triggers);
-              newTriggers.splice(k, 1);
-              console.log("newTriggers", newTriggers);
-              setState({ triggers: newTriggers });
+              let newTask = deepCopy(state.task);
+              newTask.triggers.splice(k, 1);
+              setState({ task: newTask });
             }}>
               <DeleteIcon></DeleteIcon>
             </IconButton>
           </ListItemSecondaryAction>
         </ListItem>)}
         <ListSubheader>Actions列表</ListSubheader>
-        {state.actions.map((action, k) => <ListItem key={k}>
-          <ActionTag action={action} onSave={data => {
+        {state.task.actions.map((action, k) => <ListItem key={k}>
+          <ActionTag fullWidth action={action} onSave={data => {
             console.log('saveing', data);
-            let newActions = deepCopy(state.actions);
-            newActions[k] = data;
-            console.log("newActions", newActions);
-            setState({ actions: newActions });
+            let newTask = deepCopy(state.task);
+            newTask.actions[k] = data;
+            setState({ task: newTask });
           }}></ActionTag>
           <ListItemSecondaryAction>
             <IconButton onClick={() => {
-              let newActions = deepCopy(state.actions);
-              newActions.splice(k, 1);
-              console.log("newActions", newActions);
-              setState({ actions: newActions });
+              let newTask = deepCopy(state.task);
+              newTask.actions.splice(k, 1);
+              setState({ task: newTask });
             }}>
               <DeleteIcon></DeleteIcon>
             </IconButton>
@@ -120,9 +189,9 @@ export default function Tasks(props) {
         <DialogContent>
           <Triggers onClick={trigger => {
             console.log("trigger", trigger);
-            let triggers = deepCopy(state.triggers);
-            triggers.push(trigger);
-            setState({ dialogAddTriggerOpen: false, triggers: triggers });
+            let newTask = deepCopy(state.task);
+            newTask.triggers.push(trigger);
+            setState({ dialogAddTriggerOpen: false, task: newTask });
           }} selectMode></Triggers>
         </DialogContent>
       </Dialog>
@@ -131,37 +200,74 @@ export default function Tasks(props) {
         <DialogContent>
           <Actions onClick={action => {
             console.log("action", action);
-            let actions = deepCopy(state.actions);
-            actions.push(action);
-            setState({ dialogAddActionOpen: false, actions: actions });
+            let newTask = deepCopy(state.task);
+            newTask.actions.push(action);
+            setState({ dialogAddActionOpen: false, task: newTask });
           }} selectMode></Actions>
         </DialogContent>
       </Dialog>
     </DialogContent>
     <DialogActions>
-      <Button color="primary" disabled={state.triggers.length === 0 || state.actions.length === 0} onClick={async () => {
-        console.log('pass#1');
-        await handleAddTask();
-        setState({ dialogAddTaskOpen: false, triggers: [], actions: [] });
+      <Button color="primary" disabled={state.task.triggers.length === 0 || state.task.actions.length === 0} onClick={async () => {
+        // console.log('pass#1');
+        handleAddTask().then(() => {
+          setState({ task: defaultTask });
+          onClose && onClose();
+        });
       }}>确定</Button>
-      <Button onClick={() => setState({ dialogAddTaskOpen: false })}>取消</Button>
+      <Button onClick={() => { onClose && onClose(); }}>取消</Button>
     </DialogActions>
-  </Dialog>;
+  </Dialog >;
+}
+
+export default function Tasks(props) {
+  const [state, setInnerState] = React.useState({
+    requestingTasks: false,
+    dialogAddTaskOpen: false,
+    addMode: true,
+    task: null,
+  });
+  const tasks = store.getState().tasks;
+  const [ignored, forceUpdate] = React.useReducer(x => x + 1, 0);
+  const setState = (update) => setInnerState(objectUpdate(state, update));
+
+  if (!state.requestingTasks) {
+    setState({ requestingTasks: true });
+    api.request("task", "GET").then(resp => {
+      if (resp.code !== 200) {
+        store.dispatch(setErrorInfo(resp));
+        return;
+      }
+      store.dispatch(setTasks(resp.data.tasks));
+      forceUpdate();
+    });
+  }
 
   return <Container>
     <Grid container spacing={3}>
       <Grid item lg={8} sm={12}>
         <Typography variant="h4">任务列表</Typography>
-        <List>
-          {tasks.map((task, k) => <ListItem><TaskTag task={task} key={k}></TaskTag></ListItem>)}
-        </List>
+        {tasks.length > 0 ? <List>
+          {tasks.map((task, k) => <TaskTag onClick={task => {
+            console.log('Task: onClick', task);
+            taskDialogUpdate = true;
+            setState({ dialogAddTaskOpen: true, addMode: false, task });
+          }} onUpdate={() => { setState({ requestingTasks: false }); }} key={k} task={task}></TaskTag>)}
+        </List> : <List>
+          <ListItem>
+            <Typography variant="body1" color="textSecondary">空列表</Typography>
+          </ListItem>
+        </List>}
       </Grid>
       <Grid item lg={4} sm={12}>
         <Container maxWidth="xs">
           <List>
             <ListSubheader>新任务</ListSubheader>
             <ListItem>
-              <Button fullWidth variant="contained" color="secondary" onClick={() => { setState({ dialogAddTaskOpen: true }) }}>添加新任务</Button>
+              <Button fullWidth variant="contained" color="secondary" onClick={() => {
+                taskDialogUpdate = true;
+                setState({ dialogAddTaskOpen: true, addMode: true });
+              }}>添加新任务</Button>
             </ListItem>
             <ListItem>
               <Button fullWidth variant="contained">设置默认任务</Button>
@@ -169,12 +275,29 @@ export default function Tasks(props) {
 
             <ListSubheader>全部任务管理</ListSubheader>
             <ListItem>
-              <Button fullWidth variant="outlined">删除全部任务</Button>
+              <Button fullWidth disabled={tasks.length == 0} variant="outlined" onClick={() => {
+                let tids = {};
+                tasks.map(task => { tids = Object.assign(tids, { [task.tid]: task.tid }); });
+                api.request("task", "DELETE", { tids }).then(resp => {
+                  // forceUpdate();
+                  setState({ requestingTasks: false });
+                });
+              }}>删除全部任务</Button>
             </ListItem>
           </List>
         </Container>
       </Grid>
     </Grid>
-    {dialogAddTask}
-  </Container>
+    <TaskDialog taskOld={state.task}
+      addMode={state.addMode}
+      open={state.dialogAddTaskOpen}
+      onRefresh={() => { setState({ requestingTasks: false }); }}
+      onClose={() => { setState({ dialogAddTaskOpen: false }); }}
+      onSave={task => {
+        return api.request_key('task', task.tid, "POST", { task }).then(resp => {
+          setState({ requestingTasks: false });
+        });
+      }}
+    ></TaskDialog>
+  </Container >
 }

@@ -14,8 +14,30 @@ const keyNames = {
 };
 
 export function isActionModified(item, type = "actions") {
-  return !isObjectValueEqual(item.data, store.getState().types[type][item.type].data);
+  try {
+    return !isObjectValueEqual(item.data, store.getState().types[type][item.type].data);
+  } catch (e) {
+    return true;
+  }
 }
+
+export function updateActionData(callback) {
+  return api.request("action", 'GET').then(resp => {
+    // console.log("resp", resp);
+    store.dispatch(updateTypes("actions", resp.data.actions));
+    callback && callback(resp.data.actions);
+  });
+}
+
+export async function wrapAction(action) {
+  const actionType = action.action_type;
+  let actionData = null;
+  if (!store.getState().types.actions || !store.getState().types.actions[actionType]) {
+    await updateActionData((newActionData) => { actionData = newActionData[actionType]; });
+  } else actionData = store.getState().types.actions[actionType];
+  return objectUpdate(actionData, { data: action });
+}
+
 
 function getTimedeltaString(timedelta) {
   if (typeof (timedelta) !== 'number') return "";
@@ -54,7 +76,7 @@ function getDataString(data, typeName, dataType) {
 }
 
 export function ActionTag(props) {
-  let { action, selectMode, onClick, onSave } = props;
+  let { action, selectMode, onClick, onSave, fullWidth } = props;
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [toUse, setToUse] = React.useState(false);
   onClick = onClick ? onClick : () => { };
@@ -63,7 +85,7 @@ export function ActionTag(props) {
   const handleClick = newAction => {
     onClick(newAction ? newAction : action, selectMode);
   };
-  return <Card style={{ minWidth: 200, margin: 10 }}>
+  return <Card style={{ minWidth: 200, margin: 10, width: (fullWidth ? "100%" : "auto") }}>
     <CardContent onClick={selectMode ? () => { } : () => { handleClick(); }}>
       <Typography variant="h5">{action.name}</Typography>
       {isActionModified(action, "actions") ?
@@ -104,11 +126,7 @@ export default function Actions(props) {
   const actions = store.getState().types.actions;
   if (!actions && !requesting) {
     setRequesting(true);
-    api.request("action", 'GET').then(resp => {
-      // console.log("resp", resp);
-      store.dispatch(updateTypes("actions", resp.data.actions));
-      forceUpdate();
-    });
+    updateActionData().then(() => { forceUpdate(); });
   }
   // console.log('types', store.getState().types)
   let content = null;
