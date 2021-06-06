@@ -64,9 +64,17 @@ class Daemon:
 
         self.data_inited = init_data
 
-    def get_daemon(self, uid: int):
+    def get_daemon(self, uid: int, init_new: bool = False, cookies: str = None):
         # return self.pool.get(uid, default=None)
+        if uid is None:
+            raise GBKError()
         if uid in self.pool:
+            return self.pool[uid]
+        if init_new and cookies is None:
+            cookies = db.daemon.load(uid, data_type='cookies')
+            cookies = cookies.get("data") if cookies is not None else None
+        if init_new and cookies is not None:
+            self.pool[uid] = self.init_data(uid, cookies=cookies)
             return self.pool[uid]
         return None
 

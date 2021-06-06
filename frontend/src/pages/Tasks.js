@@ -57,6 +57,76 @@ function TaskTag(props) {
   </ListItem>
 }
 
+export function getTargetTasks(targets) {
+  const tasks = store.getState().tasks;
+  if (!targets || !targets.roomItem || (targets.roomItem && JSON.stringify(targets.roomItem) === "{}")) return tasks;
+  let result = [];
+  for (const task of tasks) {
+    for (const action of task.actions) {
+      const target = action.data ? action.data : action;
+      if (target.action_type === "adjust_price") {
+        if (targets.roomItem && target.item_id === targets.roomItem.itemId) {
+          result.push(task);
+          break;
+        }
+      }
+    }
+  }
+  if (result.length > 0)
+    console.log("getTargetTasks", result, targets, tasks);
+  return result;
+}
+
+export function getTargetTasksMarks(targets) {
+  if (targets) console.log(targets);
+  const tasks = store.getState().tasks;
+  const marks = tasks.map((task, k) => {
+    for (const action of task.actions) {
+      const target = action.data ? action.data : action;
+      if (target.action_type === "adjust_price") {
+        if (targets && targets.roomItem && target.item_id === targets.roomItem.itemId) {
+          console.log('found', task);
+          return true;
+        } else if (!targets) return true;
+      }
+    }
+    return false;
+  });
+  // if (!targets || !targets.roomItem || (targets.roomItem && JSON.stringify(targets.roomItem) === "{}")) return tasks;
+  // let result = [];
+  // for (const task of tasks) {
+  //   for (const action of task.actions) {
+  //     const target = action.data ? action.data : action;
+  //     if (target.action_type === "adjust_price") {
+  //       if (targets.roomItem && target.item_id === targets.roomItem.itemId) {
+  //         result.push(task);
+  //         break;
+  //       }
+  //     }
+  //   }
+  // }
+  // if (result.length > 0)
+  //   console.log("getTargetTasks", result, targets, tasks);
+  // return result;
+  return marks;
+}
+
+export function TaskList(props) {
+  const { onClick, onUpdate, targets, fullWidth } = props;
+  // const tasks = getTargetTasks(targets);
+  const tasks = props.tasks ? props.tasks : store.getState().tasks;
+  const marks = getTargetTasksMarks(targets);
+  if (targets && targets.roomItem && JSON.stringify(targets.roomItem) !== "{}") console.log('tasks', targets, tasks);
+  if (tasks.length > 0) console.log(tasks, marks);
+  return tasks.length > 0 ? <List>
+    {tasks.map((task, k) => marks[k] ? <TaskTag onClick={onClick} onUpdate={onUpdate} key={k} task={task}></TaskTag> : null)}
+  </List> : <List style={{ width: fullWidth ? "100%" : null }}>
+    <ListItem>
+      <Typography variant="body1" color="textSecondary">空列表</Typography>
+    </ListItem>
+  </List>
+}
+
 export default function Tasks(props) {
   const [state, setInnerState] = React.useState({
     requestingTasks: false,
@@ -84,7 +154,7 @@ export default function Tasks(props) {
     <Grid container spacing={3}>
       <Grid item lg={8} sm={12}>
         <Typography variant="h4">任务列表</Typography>
-        {tasks.length > 0 ? <List>
+        {/* {tasks.length > 0 ? <List>
           {tasks.map((task, k) => <TaskTag onClick={task => {
             console.log('Task: onClick', task);
             setTaskDialogUpdate(true);
@@ -94,7 +164,12 @@ export default function Tasks(props) {
           <ListItem>
             <Typography variant="body1" color="textSecondary">空列表</Typography>
           </ListItem>
-        </List>}
+        </List>} */}
+        <TaskList onClick={task => {
+          console.log('Task: onClick', task);
+          setTaskDialogUpdate(true);
+          setState({ dialogAddTaskOpen: true, addMode: false, task });
+        }} onUpdate={() => { setState({ requestingTasks: false }); }}></TaskList>
       </Grid>
       <Grid item lg={4} sm={12}>
         <Container maxWidth="xs">

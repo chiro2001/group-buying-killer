@@ -81,18 +81,18 @@ export function ActionTag(props) {
   // console.log('targets', targets);
   const [actionTemp, setActionTemp] = React.useState((() => {
     if (action.data.action_type === "adjust_price" && targets && targets.roomItem) {
-      let tmp = deepCopy(action.data);
-      tmp.item_id = targets.roomItem.itemId;
-      tmp.target_price = targets.roomItem.price;
+      let tmp = deepCopy(action);
+      tmp.data.item_id = targets.roomItem.itemId;
+      tmp.data.target_price = targets.roomItem.price;
       return tmp;
-    } else return action.data;
+    } else return action;
   })());
   const [toUse, setToUse] = React.useState(false);
   onClick = onClick ? onClick : () => { };
   if (!action) return null;
   const handleCloseDialog = () => { setDialogOpen(false); };
   const handleClick = newAction => {
-    let selected = deepCopy(newAction ? newAction : action);
+    let selected = deepCopy(newAction ? newAction : actionTemp);
     console.log("selected action:", selected);
     onClick(selected, selectMode);
   };
@@ -111,7 +111,7 @@ export function ActionTag(props) {
         typeName="actions"
         onClose={handleCloseDialog}
         // defaultValue={action.data}
-        defaultValue={actionTemp}
+        defaultValue={actionTemp.data}
         onSave={newData => {
           let newAction = deepCopy(action);
           newAction.data = newData;

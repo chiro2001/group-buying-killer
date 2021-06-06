@@ -52,6 +52,9 @@ class TaskManagerAPI(Resource):
         添加新任务
         """
         task_data = args_task.parse_args().get('task')
+        for i in range(len(task_data['actions'])):
+            if task_data['actions'][i]['data']['uid'] is None:
+                task_data['actions'][i]['data']['uid'] = uid
         task = Task.from_task_data(task_data)
         logger.warning(f'New task: {task}')
         tid = task_pool.add_task(uid, task)

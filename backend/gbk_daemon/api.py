@@ -23,7 +23,7 @@ class DaemonAPI(Resource):
         依照参数更新Daemon
         """
         args = self.args_daemon_update.parse_args().get("daemon_args")
-        d: DaemonBean = daemon.get_daemon(uid)
+        d: DaemonBean = daemon.get_daemon(uid, init_new=True)
         if d is None:
             return make_result(200, message='has not remote login yet')
         d = daemon.update_data(uid=uid, **args)

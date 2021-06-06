@@ -51,6 +51,7 @@ class RemoteLoginAPI(Resource):
         # TODO: 更新Cookie之后更新Daemon状态
         # print(cookies)
         db.daemon.save(uid, cookies, data_type='cookies')
-        if daemon.get_daemon(uid) is None:
-            daemon.pool[uid] = daemon.init_data(uid, cookies=cookies)
+        daemon.get_daemon(uid, init_new=True, cookies=cookies)
+        # if daemon.get_daemon(uid) is None:
+        #     daemon.pool[uid] = daemon.init_data(uid, cookies=cookies)
         return make_result()

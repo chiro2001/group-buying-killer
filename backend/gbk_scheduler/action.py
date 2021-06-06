@@ -1,13 +1,17 @@
 from gbk_database.database import db
 from utils.logger import logger
 from data_apis.api import API
-from gbk_daemon.daemon import daemon
+from gbk_daemon.daemon import daemon, DaemonBean
+from gbk_exceptions import *
 
 
 class Action:
     def __init__(self, *args, **kwargs):
         self.args, self.kwargs = args, kwargs
         self.action_type = 'base'
+        self.uid = kwargs.get('uid')
+        if self.uid is None:
+            logger.warning('git empty uid')
 
     def __getstate__(self):
         return self.__dict__
@@ -16,6 +20,7 @@ class Action:
         self.action_type = state.get('action_type', self.action_type)
         self.args = state.get('args', self.args)
         self.kwargs = state.get('kwargs', self.kwargs)
+        self.uid = state.get('uid')
 
     def get_self_name(self):
         return f"#{self.__class__.__name__}{str(self.__hash__())[-4:]}"
@@ -27,6 +32,9 @@ class ActionSimpleRun(Action):
         self.action_type = 'simple_run'
         self.running = False
         # logger.warning(f"constructor: {__class__.__name__}")
+
+    def __setstate__(self, state):
+        super(ActionSimpleRun, self).__setstate__(state)
 
     def exec(self):
         logger.info(f"#{str(self.__hash__())[-4:]}, self.args: {self.args}, self.kwargs: {self.kwargs}")
@@ -46,9 +54,6 @@ class ActionPriceAdjust(Action):
         if self.target_price is None:
             logger.warning('got empty price!')
             self.target_price = 0
-        self.uid = kwargs.get('uid')
-        if self.uid is None:
-            logger.warning('git empty uid')
         self.item_id = kwargs.get('item_id')
         if self.item_id is None:
             logger.warning('got empty item_id')
@@ -56,9 +61,17 @@ class ActionPriceAdjust(Action):
 
     def exec(self):
         logger.info(f'adjusting price to {self.target_price}')
-        api: API = daemon.get_daemon(self.uid)
+        if self.uid is None:
+            raise GBKError(f"Empty uid")
+        daemon_bean: DaemonBean = daemon.get_daemon(self.uid, init_new=True)
+        api: API = daemon_bean.get_api()
         resp = api.ktv.update_price(item_id=self.item_id, price=self.target_price)
         logger.debug(f'{self.get_self_name()}: resp = {resp}')
+
+    def __setstate__(self, state):
+        super(ActionPriceAdjust, self).__setstate__(state)
+        self.target_price = state.get('target_price')
+        self.item_id = state.get('item_id')
 
 
 action_types = {

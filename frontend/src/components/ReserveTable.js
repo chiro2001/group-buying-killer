@@ -11,9 +11,10 @@ import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import { api } from '../api/api';
 import store from '../data/store';
-import { setDaemon } from '../data/action';
+import { setDaemon, setErrorInfo, setTasks } from '../data/action';
 import TaskDialog, { setTaskDialogUpdate } from "./TaskDialog";
 import { weekDayList } from '../utils/utils';
+import { getTargetTasks, TaskList } from '../pages/Tasks';
 
 const useStyles = makeStyles({
   table: {
@@ -46,7 +47,7 @@ function MyTableCell(props) {
 // });
 
 let requestedDayData = null;
-let roomItemNow = {};
+// let roomItemNow = {};
 let setUpdateTimer = null;
 
 function ReserveTable(props) {
@@ -54,6 +55,7 @@ function ReserveTable(props) {
   // console.log('daemon', store.getState().daemon);
   const [requestingDaemon, setRequestingDaemon] = React.useState(false);
   const [requestingUpdate, setRequestingUpdate] = React.useState(false);
+  const [ignored, forceUpdate] = React.useReducer(x => x + 1, 0);
   const { day, data } = props;
   const date = new Date().setDay(day).toDateString();
   // const [dayData, setDayData] = React.useState(data ? data : store.getState().daemon.reserve_table[date]);
@@ -62,6 +64,8 @@ function ReserveTable(props) {
     store.getState().daemon.reserve_table &&
     store.getState().daemon.reserve_table[date]) ? store.getState().daemon.reserve_table[date].roomList : []);
   const [dialogAddTaskOpen, setDialogAddTaskOpen] = React.useState(false);
+  const [dialogTasksListOpen, setDialogTasksListOpen] = React.useState(null);
+  const [roomItemNow, setRoomItemNow] = React.useState({});
 
   if (!store.getState().daemon) {
     if (!requestingDaemon) {
@@ -87,6 +91,21 @@ function ReserveTable(props) {
   requestedDayData = JSON.stringify(store.getState().daemon.reserve_table[date]) !== '{}' && JSON.stringify(store.getState().daemon.reserve_table[date]) !== undefined;
   // console.log('requested', requestedDayData);
   // console.log('date', date);
+
+  const TasksListDialog = <Dialog open={!!dialogTasksListOpen} onClose={() => { setDialogTasksListOpen(null); }}>
+    <DialogTitle>任务列表</DialogTitle>
+    <DialogContent>
+      {roomItemNow && JSON.stringify(roomItemNow) !== "{}" ? <TaskList fullWidth tasks={dialogTasksListOpen} onClick={task => {
+        console.log('click task', task);
+      }} onUpdate={() => {
+        api.request("task", "GET").then(resp => {
+          if (resp.code !== 200) return;
+          store.dispatch(setTasks(resp.data.tasks));
+          forceUpdate();
+        });
+      }}></TaskList> : null}
+    </DialogContent>
+  </Dialog>
 
   const Period = function (props) {
     const classes = useStyles();
@@ -124,18 +143,8 @@ function ReserveTable(props) {
         // 计划
         cells.push(<MyTableCell key={data.periodId + name + roomItem.itemId + i + 'plan'} align="center" colSpan={1} content={
           (() => {
-            let planCount = 0;
-            for (const task of store.getState().tasks) {
-              for (const action of task.actions) {
-                if (action.action_type === "adjust_price") {
-                  if (action.item_id === roomItem.itemId) {
-                    planCount++;
-                    break;
-                  }
-                }
-              }
-            }
-            return (<Link key={data.periodId + name + roomItem.itemId + i + 'planLink'} onClick={() => {
+            let planCount = getTargetTasks({ roomItem }).length;
+            return (<Link key={data.periodId + name + roomItem.itemId + i + 'planLink'} onClick={planCount === 0 ? () => {
               // console.log('roomItem', roomItem);
               // console.log('data', data);
               let parent = {};
@@ -143,10 +152,11 @@ function ReserveTable(props) {
                 if (arg !== 'roomMapItemEntry')
                   parent[arg] = data[arg];
               roomItem.parent = parent;
-              roomItemNow = roomItem;
+              // roomItemNow = roomItem;
+              setRoomItemNow(roomItem);
               setTaskDialogUpdate(true);
               setDialogAddTaskOpen(true);
-            }} className={classes.planButton}>计划{planCount > 0 ? (`(${planCount})`) : ''}</Link>);
+            } : () => { setDialogTasksListOpen(getTargetTasks({ roomItem })); }} className={classes.planButton}>计划{planCount > 0 ? (`(${planCount})`) : ''}</Link>);
           })()
         }></MyTableCell>);
         // 临时下线
@@ -179,6 +189,7 @@ function ReserveTable(props) {
         if (resp.code !== 200) return;
         store.dispatch(setDaemon(resp.data));
         requestedDayData = false;
+        forceUpdate();
       });
     } else {
       let reserveTableData = store.getState().daemon.reserve_table[date];
@@ -191,6 +202,7 @@ function ReserveTable(props) {
           if (resp.code !== 200) return;
           store.dispatch(setDaemon(resp.data));
           requestedDayData = false;
+          forceUpdate();
         });
       } else {
         // console.warn('got empty reserveTableData', dayData, store.getState().daemon.reserve_table, date, JSON.stringify(store.getState().daemon.reserve_table[date]));
@@ -242,11 +254,23 @@ function ReserveTable(props) {
           </TableBody>
         </Table>
       </TableContainer>
+      {TasksListDialog}
       <TaskDialog
         addMode
         targets={{ roomItem: roomItemNow, taskName: (roomItemNow && JSON.stringify(roomItemNow) !== "{}") ? `${roomItemNow.roomType}周${weekDayList[new Date().getDay()]}${roomItemNow.parent.periodDesc}` : null }}
         open={dialogAddTaskOpen}
-        // onRefresh={() => { setState({ requestingTasks: false }); }}
+        onRefresh={() => {
+          // 更新Task数据
+          updateData();
+          api.request("task", "GET").then(resp => {
+            if (resp.code !== 200) {
+              store.dispatch(setErrorInfo(resp));
+              return;
+            }
+            store.dispatch(setTasks(resp.data.tasks));
+            forceUpdate();
+          });
+        }}
         onClose={() => { setDialogAddTaskOpen(false); }}
       ></TaskDialog>
     </Container>
