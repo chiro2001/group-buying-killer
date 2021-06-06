@@ -37,7 +37,7 @@ def trigger_get_info(trigger_type: str):
     instance = trigger_types[trigger_type]()
     instance_data = instance.__getstate__()
     instance_data = task_data_encode(instance_data)
-    logger.info(f'{trigger_type} data: {instance_data}')
+    # logger.info(f'{trigger_type} data: {instance_data}')
     return instance_data
 
 

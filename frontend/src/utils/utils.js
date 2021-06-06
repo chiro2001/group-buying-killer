@@ -197,3 +197,5 @@ export function getTimedeltaString(timedelta) {
   // console.log("unit", unit);
   return `${(timedelta / timedeltaUnits[unit]).toFixed(2)}${unit}`;
 }
+
+export const weekDayList = ['日', '一', '二', '三', '四', '五', '六'];

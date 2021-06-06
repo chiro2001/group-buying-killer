@@ -211,7 +211,7 @@ export default function App() {
         // if (!last_data.user) 
         if (!last_data.user) {
           // store.dispatch(setDaemon(false));
-          console.log('trigger');
+          // console.log('trigger');
         }
       }
       last_data.user = state.user;

@@ -11,6 +11,7 @@ def get_timestamp_date(timestamp) -> str:
 
 # YYYY-MM-DD 格式
 def get_date_today() -> str:
+    # TODO: 有可能以4:00做刷新界限
     return get_timestamp_date(datetime.datetime.today().timestamp() * 1000)
 
 

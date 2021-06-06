@@ -76,14 +76,25 @@ function getDataString(data, typeName, dataType) {
 }
 
 export function ActionTag(props) {
-  let { action, selectMode, onClick, onSave, fullWidth } = props;
+  let { action, selectMode, onClick, onSave, fullWidth, targets } = props;
   const [dialogOpen, setDialogOpen] = React.useState(false);
+  // console.log('targets', targets);
+  const [actionTemp, setActionTemp] = React.useState((() => {
+    if (action.data.action_type === "adjust_price" && targets && targets.roomItem) {
+      let tmp = deepCopy(action.data);
+      tmp.item_id = targets.roomItem.itemId;
+      tmp.target_price = targets.roomItem.price;
+      return tmp;
+    } else return action.data;
+  })());
   const [toUse, setToUse] = React.useState(false);
   onClick = onClick ? onClick : () => { };
   if (!action) return null;
   const handleCloseDialog = () => { setDialogOpen(false); };
   const handleClick = newAction => {
-    onClick(newAction ? newAction : action, selectMode);
+    let selected = deepCopy(newAction ? newAction : action);
+    console.log("selected action:", selected);
+    onClick(selected, selectMode);
   };
   return <Card style={{ minWidth: 200, margin: 10, width: (fullWidth ? "100%" : "auto") }}>
     <CardContent onClick={selectMode ? () => { } : () => { handleClick(); }}>
@@ -99,11 +110,12 @@ export function ActionTag(props) {
         dataType={action.type}
         typeName="actions"
         onClose={handleCloseDialog}
-        defaultValue={action.data}
+        // defaultValue={action.data}
+        defaultValue={actionTemp}
         onSave={newData => {
           let newAction = deepCopy(action);
           newAction.data = newData;
-          console.log(newData);
+          console.log('newData', newData);
           onSave && onSave(newAction);
           handleCloseDialog();
           if (toUse) handleClick(newAction);
@@ -119,7 +131,7 @@ export function ActionTag(props) {
 }
 
 export default function Actions(props) {
-  let { selectMode, onClick } = props;
+  let { selectMode, onClick, targets } = props;
   onClick = onClick ? onClick : () => { };
   const [requesting, setRequesting] = React.useState(false);
   const [ignored, forceUpdate] = React.useReducer(x => x + 1, 0);
@@ -134,7 +146,7 @@ export default function Actions(props) {
     content = <Typography variant="body1">正在加载Action类型...</Typography>
   } else {
     content = <Box style={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}>
-      {Object.keys(actions).map((action_type, k) => <ActionTag onClick={onClick} key={k} selectMode={selectMode} action={actions[action_type]}></ActionTag>)}
+      {Object.keys(actions).map((action_type, k) => <ActionTag targets={targets} onClick={onClick} key={k} selectMode={selectMode} action={actions[action_type]}></ActionTag>)}
     </Box>
   }
   return <Box>

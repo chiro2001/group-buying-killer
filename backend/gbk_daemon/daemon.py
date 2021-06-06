@@ -1,9 +1,11 @@
 import os
+import time
 
 from utils.logger import logger
 from gbk_database.database import db, Constants
 from data_apis.api import API
 from gbk_exceptions import *
+from utils.time_formats import get_date_today, get_date_timestamp, get_timestamp_date
 
 
 class DaemonBean:
@@ -25,12 +27,12 @@ class DaemonBean:
         return API.from_all(cookies=self.cookies, solution_id=self.solution_id, shop_id=self.shop_info['shopId'])
 
     def refresh(self):
-        self.cookies = db.daemon.load(self.uid, data_type='cookies')
-        self.shop_info = db.daemon.load(self.uid, data_type='shop_info')
-        self.solution_id = db.daemon.load(self.uid, data_type='solution_id')
-        self.reserve_date = db.daemon.load(self.uid, data_type='reserve_date')
-        self.reserve_table = db.daemon.load(self.uid, data_type='reserve_table')
-        self.room_stock = db.daemon.load(self.uid, data_type='room_stock')
+        self.cookies = db.daemon.load(self.uid, data_type='cookies').get("data")
+        self.shop_info = db.daemon.load(self.uid, data_type='shop_info').get("data")
+        self.solution_id = db.daemon.load(self.uid, data_type='solution_id').get("data")
+        self.reserve_date = db.daemon.load(self.uid, data_type='reserve_date').get("data")
+        self.reserve_table = db.daemon.load(self.uid, data_type='reserve_table').get("data")
+        self.room_stock = db.daemon.load(self.uid, data_type='room_stock').get("data")
         return self
 
     def save(self):
@@ -68,21 +70,17 @@ class Daemon:
             return self.pool[uid]
         return None
 
-    def init_data(self, uid: int, cookies: str = None, update_data: bool = False):
-        daemon_data: DaemonBean = self.pool.get(uid)
-        # if daemon_data is None:
-        #     update_data = True
-        if cookies is not None:
-            db.daemon.save(uid, cookies, data_type='cookies')
-        else:
-            cookies = db.daemon.load(uid, data_type='cookies')
-            cookies = cookies.get('data') if cookies is not None else None
-        api: API
-
+    def get_base_info(self, uid: int) -> tuple:
         solution_id = db.daemon.load(uid, data_type='solution_id')
         solution_id = solution_id.get('data') if solution_id is not None else None
         shop_info = db.daemon.load(uid, data_type='shop_info')
         shop_info = shop_info.get('data') if shop_info is not None else None
+        return solution_id, shop_info
+
+    def get_api(self, uid: int, cookies: str):
+        api: API
+
+        solution_id, shop_info = self.get_base_info(uid)
         if solution_id is None or shop_info is None:
             api = API.from_cookies(cookies)
             solution_id = api.solution_id
@@ -91,25 +89,72 @@ class Daemon:
             db.daemon.save(uid, shop_info, data_type='shop_info')
         else:
             api = API.from_all(cookies=cookies, solution_id=solution_id, shop_id=shop_info['shopId'])
-
         logger.info(f'shop_info: {shop_info}')
-        if update_data:
+        return api
+
+    def update_data(self, uid: int, api: API = None, cookies: str = None, update_all: bool = False, **kwargs):
+        if api is None:
+            if cookies is None:
+                cookies = db.daemon.load(uid, data_type='cookies').get('data', None)
+                if cookies is None:
+                    raise GBKError("No cookies!")
+            api = self.get_api(uid, cookies=cookies)
+        daemon_old = self.get_daemon(uid)
+        # reserve_date = None if daemon_old is None else daemon_old.reserve_date
+        if 'reserve_date' in kwargs or update_all:
             logger.info('Loading reserve_date...')
             reserve_date = api.ktv.get_reserve_date()['data']
             logger.debug(reserve_date)
             db.daemon.save(uid, reserve_date, data_type='reserve_date')
 
-            logger.info('Loading reserve_table...')
-            reserve_table = api.ktv.get_reserve_table()
-            logger.debug(reserve_table)
-            db.daemon.save(uid, reserve_date, data_type='reserve_table')
+        reserve_table = None if daemon_old is None else daemon_old.reserve_table
+        if 'reserve_table' in kwargs or update_all:
+            date, timestamp = kwargs.get("reserve_table", {}).get("date", None), \
+                              kwargs.get("reserve_table", {}).get("timestamp", None)
+            if date is not None:
+                timestamp = get_date_timestamp(date)
+            elif timestamp is not None:
+                date = get_date_today()
+                timestamp = get_date_timestamp(date)
+            else:
+                timestamp = int(time.time() * 1000)
+            date = get_timestamp_date(timestamp)
+            logger.info(f'Loading reserve_table({date})...')
+            reserve_table_today = api.ktv.get_reserve_table(**(kwargs.get("reserve_table", {})))
+            logger.debug(f"{date}: {reserve_table_today}")
+            if reserve_table is None:
+                reserve_table = {date: reserve_table_today}
+            else:
+                reserve_table[date] = reserve_table_today
+            db.daemon.save(uid, reserve_table, data_type='reserve_table')
 
+        # room_stock = None
+        if 'room_stock' in kwargs or update_all:
             logger.info('Loading room_stock...')
-            room_stock = api.room_stock.get_room_stock()
+            room_stock = api.room_stock.get_room_stock().get("data", {})
             logger.debug(room_stock)
-            db.daemon.save(uid, reserve_date, data_type='room_stock')
-            daemon_data = DaemonBean(uid, cookies=cookies, shop_info=shop_info, solution_id=solution_id,
-                                     reserve_date=reserve_date, reserve_table=reserve_table, room_stock=room_stock)
+            db.daemon.save(uid, room_stock, data_type='room_stock')
+        # solution_id, shop_info = self.get_base_info(uid)
+        # daemon_data = DaemonBean(uid, cookies=cookies, shop_info=shop_info, solution_id=solution_id,
+        #                          reserve_date=reserve_date,
+        #                          reserve_table=reserve_table,
+        #                          room_stock=room_stock)
+        daemon_data = DaemonBean(uid=uid).refresh()
+        return daemon_data
+
+    def init_data(self, uid: int, cookies: str = None, update_data: bool = False, **kwargs):
+        daemon_data: DaemonBean = self.pool.get(uid)
+        # if daemon_data is None:
+        #     update_data = True
+        if cookies is not None:
+            db.daemon.save(uid, cookies, data_type='cookies')
+        else:
+            cookies = db.daemon.load(uid, data_type='cookies')
+            cookies = cookies.get('data') if cookies is not None else None
+        api: API = self.get_api(uid, cookies=cookies)
+        solution_id, shop_info = self.get_base_info(uid)
+        if update_data:
+            daemon_data = self.update_data(uid, api=api, update_all=True, **kwargs)
         if daemon_data is None:
             daemon_data = DaemonBean(uid, cookies=cookies, shop_info=shop_info, solution_id=solution_id)
         # daemon_data.shop_info = shop_info

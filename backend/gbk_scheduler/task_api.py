@@ -53,7 +53,7 @@ class TaskManagerAPI(Resource):
         """
         task_data = args_task.parse_args().get('task')
         task = Task.from_task_data(task_data)
-        logger.warning(f'task: {task}')
+        logger.warning(f'New task: {task}')
         tid = task_pool.add_task(uid, task)
         return make_result(data={
             'tid': tid
