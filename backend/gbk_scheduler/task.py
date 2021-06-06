@@ -1,4 +1,5 @@
 from gbk_scheduler.action import *
+import apscheduler.jobstores.base
 from apscheduler.schedulers.background import BackgroundScheduler
 # from apscheduler.triggers import interval, cron, date
 from apscheduler.triggers.interval import IntervalTrigger
@@ -9,6 +10,7 @@ from gbk_database.database import db
 from utils.formats import task_data_encode, task_data_decode
 from utils.make_result import limit_list
 from utils.logger import logger
+from gbk_exceptions import *
 
 scheduler = BackgroundScheduler(**Constants.SCHEDULE_CONFIG)
 
@@ -143,7 +145,12 @@ class Task:
         # logger.warning(f'disable jobs: {self.jobs}')
         for job in self.jobs:
             # logger.warning(f'removing job: {job}')
-            scheduler.remove_job(job_id=job.id)
+            try:
+                scheduler.remove_job(job_id=job.id)
+            except apscheduler.jobstores.base.JobLookupError:
+                # raise GBKError("Cannot remove job!")
+                logger.warning("Cannot remove job!")
+            # scheduler.remove_job(job_id=job.id)
         self.jobs = []
         return self
 
@@ -203,7 +210,10 @@ class Task:
         else:
             self.task_name = self.get_name_by_actions()
         if 'tid' in state:
-            self.tid = state['tid']
+            if state['tid'] is not None:
+                self.tid = state['tid']
+            else:
+                self.tid = db.task_manager.get_next_tid()
         return self
 
     def __repr__(self):
@@ -229,6 +239,11 @@ class TaskManager:
 
     def add_task(self, task: Task):
         # logger.warning(f'before insert {self}, {task}')
+        # 保证唯一tid
+        task_old = self.find_task_by_tid(task.tid)
+        if task_old is not None:
+            if not self.remove_task(task_old.tid):
+                raise GBKError("Cannot remove task!")
         if self.enabled:
             task.enable()
         self.tasks.append(task)

@@ -1,3 +1,7 @@
+import json
+
+from flask import request
+
 from utils.logger import logger
 
 
@@ -13,6 +17,7 @@ def args_required_method(parser):
                             "Resource.dispatch_request" in str(fn.__inner__) or
                             "__args_not_required__" in str(fn.__inner__))):
                 return fn(*args, **kwargs)
+            # print(json.loads(request.data))
             args_ = parser.parse_args()
             logger.info(f'args: {args_}')
             return fn(*args, **kwargs)

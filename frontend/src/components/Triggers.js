@@ -15,8 +15,35 @@ const keyNames = {
   "run_date": '运行时间'
 };
 
+export function updateTriggerData(callback) {
+  return api.request("trigger", 'GET').then(resp => {
+    // console.log("resp", resp);
+    store.dispatch(updateTypes("triggers", resp.data.triggers));
+    callback && callback(resp.data.triggers);
+  });
+}
+
 export function isTriggerModified(item, type = "triggers") {
-  return !isObjectValueEqual(item.data, store.getState().types[type][item.type].data);
+  try {
+    return !isObjectValueEqual(item.data, store.getState().types[type][item.type].data);
+  } catch (e) {
+    return true;
+  }
+}
+
+export function getTriggerType(trigger) {
+  if (trigger.interval) return 'interval';
+  if (trigger.run_date) return 'date';
+  return 'cron';
+}
+
+export async function wrapTrigger(trigger) {
+  const triggerType = getTriggerType(trigger);
+  let triggerData = null;
+  if (!store.getState().types.triggers || !store.getState().types.triggers[triggerType]) {
+    await updateTriggerData((newTriggerData) => { triggerData = newTriggerData[triggerType] });
+  } else triggerData = store.getState().types.triggers[triggerType];
+  return objectUpdate(triggerData, { data: trigger });
 }
 
 function getDataString(data, typeName, dataType) {
@@ -40,7 +67,7 @@ function getDataString(data, typeName, dataType) {
 }
 
 export function TriggerTag(props) {
-  let { trigger, selectMode, onClick, onSave } = props;
+  let { trigger, selectMode, onClick, onSave, fullWidth } = props;
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [toUse, setToUse] = React.useState(false);
   onClick = onClick ? onClick : () => { };
@@ -49,7 +76,7 @@ export function TriggerTag(props) {
   const handleClick = newTrigger => {
     onClick(newTrigger ? newTrigger : trigger, selectMode);
   };
-  return <Card style={{ minWidth: 200, margin: 10 }}>
+  return <Card style={{ minWidth: 200, margin: 10, width: (fullWidth ? "100%" : "auto") }}>
     <CardContent onClick={selectMode ? () => { } : () => { handleClick(); }}>
       <Typography variant="h5">{trigger.name}</Typography>
       {isTriggerModified(trigger, "triggers") ?
@@ -90,11 +117,7 @@ export default function Triggers(props) {
   const triggers = store.getState().types.triggers;
   if (!triggers && !requesting) {
     setRequesting(true);
-    api.request("trigger", 'GET').then(resp => {
-      // console.log("resp", resp);
-      store.dispatch(updateTypes("triggers", resp.data.triggers));
-      forceUpdate();
-    });
+    updateTriggerData().then(() => { forceUpdate(); });
   }
   // console.log('types', store.getState().types)
   let content = null;
