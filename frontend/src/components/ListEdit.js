@@ -18,7 +18,7 @@ export default function ListEdit(props) {
   const [timedeltaUnit, setTimedeltaUnit] = React.useState({});
 
   const handleSave = () => {
-    onSave(data);
+    onSave && onSave(data);
   }
 
   return <Dialog fullWidth open={open} onClose={onClose}>
@@ -77,6 +77,12 @@ export default function ListEdit(props) {
             } else if (typeof (value) === "string" && value.startsWith("timedelta|")) {
               const val = value.slice("timedelta|".length);
               const unit = timedeltaUnit[v] ? timedeltaUnit[v] : Object.keys(timedeltaUnits)[Object.keys(timedeltaUnits).length - 1];
+              const updateFixed = () => {
+                // const unit2 = timedeltaUnit[v] ? timedeltaUnit[v] : Object.keys(timedeltaUnits)[Object.keys(timedeltaUnits).length - 1];
+                // const newValue2 = `timedelta|${parseFloat(('' + (parseFloat(data[v].slice("timedelta|".length)) / timedeltaUnits[unit2]).toFixed(2) * timedeltaUnits[unit2]))}`
+                // console.log("newValue2", newValue2);
+                // setData({ [v]: newValue2 });
+              };
               actionData = <Box>
                 <TextField value={`${parseFloat(val) / timedeltaUnits[unit]}`} onChange={e => {
                   let val = e.target.value;
@@ -85,11 +91,11 @@ export default function ListEdit(props) {
                     else val = 0;
                   const newValue = `timedelta|${parseFloat(val) * timedeltaUnits[unit]}`;
                   setData({ [v]: newValue });
-                }}></TextField>
+                }} onBlur={updateFixed}></TextField>
                 <Select value={unit}
                   onChange={e => {
                     setTimedeltaUnit(objectUpdate(timedeltaUnit, { [v]: e.target.value }));
-                  }}>
+                  }} onBlur={updateFixed}>
                   {Object.keys(timedeltaUnits).map((key, k) => <MenuItem key={k} value={key}>
                     {key}
                   </MenuItem>)}
