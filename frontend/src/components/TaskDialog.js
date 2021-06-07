@@ -15,7 +15,8 @@ let taskDialogUpdate = false;
 export function setTaskDialogUpdate(val) { taskDialogUpdate = val; }
 
 export default function TaskDialog(props) {
-  const { addMode, open, onClose, onRefresh, onSave, taskOld, targets } = props;
+  const { addMode, open, onClose, onRefresh, onSave, targets } = props;
+  const taskOld = props.taskOld === true ? null : props.taskOld;
   // console.log('targets', targets);
   const baseTaskName = (targets && targets.taskName) ? targets.taskName : '未命名任务';
   const realDefaultTask = {

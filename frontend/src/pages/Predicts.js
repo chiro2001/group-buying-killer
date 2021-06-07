@@ -40,12 +40,12 @@ function Predicts(props) {
         <ListItemText primary={labelShows[v]}></ListItemText>
         <ListItemSecondaryAction>
           <Box>
-            <TextField inputProps={{ style: { textAlign: "center" } }} value={inputValues[v][0]} onChange={e => {
+            <TextField style={{ maxWidth: 40 }} inputProps={{ style: { textAlign: "center" } }} value={inputValues[v][0]} onChange={e => {
               let tmp = getTempValues();
               tmp[v][0] = e.target.value;
               setInputValues(tmp);
             }}></TextField>~
-            <TextField inputProps={{ style: { textAlign: "center" } }} value={inputValues[v][1]} onChange={e => {
+            <TextField style={{ maxWidth: 40 }} inputProps={{ style: { textAlign: "center" } }} value={inputValues[v][1]} onChange={e => {
               let tmp = getTempValues();
               tmp[v][1] = e.target.value;
               setInputValues(tmp);
@@ -56,7 +56,7 @@ function Predicts(props) {
       <ListItem key={k}>
         <ListItemText primary={labelShows[v]}></ListItemText>
         <ListItemSecondaryAction>
-          <TextField inputProps={{ style: { textAlign: "center" } }} fullWidth value={inputValues[v][0]} onChange={e => {
+          <TextField style={{ maxWidth: 90 }} inputProps={{ style: { textAlign: "center" } }} fullWidth value={inputValues[v][0]} onChange={e => {
             let tmp = getTempValues();
             tmp[v][0] = e.target.value;
             setInputValues(tmp);

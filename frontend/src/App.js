@@ -181,6 +181,7 @@ export default function App() {
   const titleDefault = "团购杀手 - KTV体验版";
   const [title, setTitle] = React.useState(getShopTitle() || titleDefault);
   const [ignored, forceUpdate] = React.useReducer(x => x + 1, 0);
+  const [requestingRemote, setRequesingRemote] = React.useState(false);
 
   // 拉大到800会打开，拉小到600关闭
   const triggerWidthOpen = 800;
@@ -344,6 +345,18 @@ export default function App() {
   const isNowLogining = !user && store.getState().config.data.api_token.access_token;
   let content = isNowLogining ? <Box>正在登录...</Box> : (user ? mainContent : <Login></Login>);
   if ((!isNowLogining && user) && !store.getState().daemon) {
+    content = <Typography variant="body1">获取账户信息...</Typography>;
+    if (!requestingRemote) {
+      setRequesingRemote(true);
+      const daemon = api.request('remote_login', 'GET').then(daemon => {
+        if (daemon.code === 200 && daemon.data.uid) {
+          store.dispatch(setDaemon(daemon.data));
+        } else if (daemon.code === 200 && !daemon.data.uid) {
+          store.dispatch(setDaemon({}));
+        }
+      });
+    }
+  } else if ((!isNowLogining && user) && store.getState().daemon && !store.getState().daemon.uid) {
     content = <RemoteLogin></RemoteLogin>
   }
   // console.log('app.js user', user, 'content', content);

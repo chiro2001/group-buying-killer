@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Container, LinearProgress, Button, Dialog, Link, List, ListItemText, DialogTitle, DialogContent, ListItem, Typography } from '@material-ui/core';
+import { Box, Container, LinearProgress, Button, Dialog, Link, List, ListItemText, DialogTitle, DialogContent, ListItem, Typography, DialogActions } from '@material-ui/core';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import { makeStyles } from '@material-ui/core/styles';
 import Table from '@material-ui/core/Table';
@@ -63,9 +63,19 @@ function ReserveTable(props) {
   const [roomList, setRoomList] = React.useState((store.getState().daemon &&
     store.getState().daemon.reserve_table &&
     store.getState().daemon.reserve_table[date]) ? store.getState().daemon.reserve_table[date].roomList : []);
-  const [dialogAddTaskOpen, setDialogAddTaskOpen] = React.useState(false);
+  const [dialogAddTaskOpen, setDialogAddTaskOpen] = React.useState(null);
   const [dialogTasksListOpen, setDialogTasksListOpen] = React.useState(null);
   const [roomItemNow, setRoomItemNow] = React.useState({});
+  const [requestingTasks, setRequestingTasks] = React.useState(false);
+
+  if (!requestingTasks && (!store.getState().tasks || (store.getState().tasks || store.getState().tasks.length === 0))) {
+    setRequestingTasks(true);
+    api.request("task", "GET").then(resp => {
+      if (resp.code !== 200) return;
+      store.dispatch(setTasks(resp.data.tasks));
+      forceUpdate();
+    });
+  }
 
   if (!store.getState().daemon) {
     if (!requestingDaemon) {
@@ -91,21 +101,6 @@ function ReserveTable(props) {
   requestedDayData = JSON.stringify(store.getState().daemon.reserve_table[date]) !== '{}' && JSON.stringify(store.getState().daemon.reserve_table[date]) !== undefined;
   // console.log('requested', requestedDayData);
   // console.log('date', date);
-
-  const TasksListDialog = <Dialog open={!!dialogTasksListOpen} onClose={() => { setDialogTasksListOpen(null); }}>
-    <DialogTitle>任务列表</DialogTitle>
-    <DialogContent>
-      {roomItemNow && JSON.stringify(roomItemNow) !== "{}" ? <TaskList fullWidth tasks={dialogTasksListOpen} onClick={task => {
-        console.log('click task', task);
-      }} onUpdate={() => {
-        api.request("task", "GET").then(resp => {
-          if (resp.code !== 200) return;
-          store.dispatch(setTasks(resp.data.tasks));
-          forceUpdate();
-        });
-      }}></TaskList> : null}
-    </DialogContent>
-  </Dialog>
 
   const Period = function (props) {
     const classes = useStyles();
@@ -156,7 +151,17 @@ function ReserveTable(props) {
               setRoomItemNow(roomItem);
               setTaskDialogUpdate(true);
               setDialogAddTaskOpen(true);
-            } : () => { setDialogTasksListOpen(getTargetTasks({ roomItem })); }} className={classes.planButton}>计划{planCount > 0 ? (`(${planCount})`) : ''}</Link>);
+            } : () => {
+              const tasks = getTargetTasks({ roomItem });
+              console.log('got tasks', tasks);
+              let parent = {};
+              for (const arg in data)
+                if (arg !== 'roomMapItemEntry')
+                  parent[arg] = data[arg];
+              roomItem.parent = parent;
+              setRoomItemNow(roomItem);
+              setDialogTasksListOpen(tasks);
+            }} className={classes.planButton}>计划{planCount > 0 ? (`(${planCount})`) : ''}</Link>);
           })()
         }></MyTableCell>);
         // 临时下线
@@ -254,11 +259,38 @@ function ReserveTable(props) {
           </TableBody>
         </Table>
       </TableContainer>
-      {TasksListDialog}
+      <Dialog open={!!dialogTasksListOpen} onClose={() => { setDialogTasksListOpen(null); }}>
+        <DialogTitle>任务列表</DialogTitle>
+        <DialogContent>
+          {/* {roomItemNow && JSON.stringify(roomItemNow) !== "{}" ?  */}
+          {dialogTasksListOpen ? <TaskList fullWidth tasks={dialogTasksListOpen}
+            // onClick={task => {
+            //   console.log('click task', task);
+            //   setDialogAddTaskOpen(task);
+            // }}
+            onUpdate={() => {
+              api.request("task", "GET").then(resp => {
+                if (resp.code !== 200) return;
+                store.dispatch(setTasks(resp.data.tasks));
+                forceUpdate();
+              });
+            }}></TaskList> : null
+            // <code>{`${console.log(roomItemNow, dialogTasksListOpen)}`}</code>
+          }
+        </DialogContent>
+        <DialogActions>
+          <Button color="primary" onClick={() => {
+            setTaskDialogUpdate(true);
+            setDialogAddTaskOpen(true);
+          }}>添加任务</Button>
+          <Button color="primary" onClick={() => { setDialogTasksListOpen(null); }}>取消</Button>
+        </DialogActions>
+      </Dialog>
       <TaskDialog
-        addMode
+        taskOld={dialogAddTaskOpen}
+        addMode={dialogAddTaskOpen === true}
         targets={{ roomItem: roomItemNow, taskName: (roomItemNow && JSON.stringify(roomItemNow) !== "{}") ? `${roomItemNow.roomType}周${weekDayList[new Date().getDay()]}${roomItemNow.parent.periodDesc}` : null }}
-        open={dialogAddTaskOpen}
+        open={!!dialogAddTaskOpen}
         onRefresh={() => {
           // 更新Task数据
           updateData();
@@ -268,10 +300,17 @@ function ReserveTable(props) {
               return;
             }
             store.dispatch(setTasks(resp.data.tasks));
+            setDialogTasksListOpen(null);
             forceUpdate();
           });
         }}
-        onClose={() => { setDialogAddTaskOpen(false); }}
+        onClose={() => { setDialogAddTaskOpen(null); }}
+        onSave={task => {
+          return api.request_key('task', task.tid, "POST", { task }).then(resp => {
+            // setState({ requestingTasks: false });
+            console.log("update task done");
+          });
+        }}
       ></TaskDialog>
     </Container>
   );

@@ -15,6 +15,8 @@ class Constants:
     VERSION = "0.2.0"
     OWNER = "Chiro"
     EMAIL = "Chiro2001@163.com"
+    # Environment
+    ENVIRONMENT = "release" if platform.system() == 'Linux' else "dev"
     # Find
     FIND_LIMIT = 30
     # JWT config
@@ -61,8 +63,7 @@ class Constants:
     RUN_USE_RELOAD = False
     # RUN_REBASE = True
     RUN_REBASE = False
-    # RUN_WITH_PREDICTS = True
-    RUN_WITH_PREDICTS = False
+    RUN_WITH_PREDICTS = ENVIRONMENT == 'release'
     RUN_IGNORE_TF_WARNINGS = True
     RUN_WITH_DROP_DATA = True
     # Schedule
@@ -104,7 +105,7 @@ class Constants:
     LOGIN_SERVER_HOST = "127.0.0.1"
     LOGIN_SERVER_PORT = 8881
     LOGIN_SERVER_PROTOCOL = 'ws'
-    LOGIN_SERVER = "ws://gbk-dev.chiro.work/ws" if platform.system() == 'Linux' else None
+    LOGIN_SERVER = "ws://gbk-dev.chiro.work/ws" if ENVIRONMENT == 'release' else None
     # Dismiss rebase for multiprocessing
     PROC_DISMISS_REBASE = 'GBK_DB_RUNNING_PID'
     PROC_DISMISS_DAEMON_INIT = "GBK_DAEMON_RUNNING_PID"

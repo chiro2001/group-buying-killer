@@ -31,10 +31,11 @@ function TaskTag(props) {
   const { task, onUpdate, onClick } = props;
   // return <code>{JSON.stringify(task)}</code>;
   return <ListItem button onClick={async () => {
+    if (!onClick) return;
     console.log('task before', task);
     const taskWrapped = await wrapTask(task);
     console.log('task after', taskWrapped);
-    onClick && onClick(taskWrapped);
+    taskWrapped && onClick && onClick(taskWrapped);
   }}>
     <ListItemText>
       <Box>
@@ -63,7 +64,9 @@ export function getTargetTasks(targets) {
   let result = [];
   for (const task of tasks) {
     for (const action of task.actions) {
+      if (!action) return [];
       const target = action.data ? action.data : action;
+      // console.log('target', target, 'require', targets);
       if (target.action_type === "adjust_price") {
         if (targets.roomItem && target.item_id === targets.roomItem.itemId) {
           result.push(task);
@@ -72,8 +75,10 @@ export function getTargetTasks(targets) {
       }
     }
   }
-  if (result.length > 0)
-    console.log("getTargetTasks", result, targets, tasks);
+  // if (result.length > 0) {
+  //   console.log("getTargetTasks", result, targets, tasks);
+  //   // debugger;
+  // }
   return result;
 }
 
@@ -115,9 +120,9 @@ export function TaskList(props) {
   const { onClick, onUpdate, targets, fullWidth } = props;
   // const tasks = getTargetTasks(targets);
   const tasks = props.tasks ? props.tasks : store.getState().tasks;
-  const marks = getTargetTasksMarks(targets);
+  const marks = props.tasks ? getTargetTasksMarks(null) : getTargetTasksMarks(targets);
   if (targets && targets.roomItem && JSON.stringify(targets.roomItem) !== "{}") console.log('tasks', targets, tasks);
-  if (tasks.length > 0) console.log(tasks, marks);
+  // if (tasks.length > 0) console.log(tasks, marks);
   return tasks.length > 0 ? <List>
     {tasks.map((task, k) => marks[k] ? <TaskTag onClick={onClick} onUpdate={onUpdate} key={k} task={task}></TaskTag> : null)}
   </List> : <List style={{ width: fullWidth ? "100%" : null }}>

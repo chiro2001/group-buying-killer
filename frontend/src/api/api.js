@@ -66,7 +66,15 @@ class API {
     };
     // console.log('request', router, method, data, payload);
     // console.log(`${this.url}/${router}`);
-    const resp = await fetch(`${this.url}/${router}`, payload);
+    let resp = null;
+    try {
+      resp = await fetch(`${this.url}/${router}`, payload);
+    } catch (e) {
+      console.error(e);
+      store.dispatch(setErrorInfo(e));
+      resp = { status: 433, error: "Error when fetching internet" };
+      return { code: resp.status, error: resp.statusText };
+    }
     let js = null;
     try { js = await resp.json(); } catch (e) {
       console.error(e);

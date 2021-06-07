@@ -35,6 +35,7 @@ export async function wrapAction(action) {
   if (!store.getState().types.actions || !store.getState().types.actions[actionType]) {
     await updateActionData((newActionData) => { actionData = newActionData[actionType]; });
   } else actionData = store.getState().types.actions[actionType];
+  if (!actionData) return null;
   return objectUpdate(actionData, { data: action });
 }
 
