@@ -7,6 +7,10 @@ from data_apis.api import API
 from gbk_exceptions import *
 from utils.time_formats import get_date_today, get_date_timestamp, get_timestamp_date
 
+daemon_types = [
+    "cookies", "shop_info", "solution_id", "reserve_date", "reserve_table", "room_stock"
+]
+
 
 class DaemonBean:
     def __init__(self, uid: int, cookies: str = None, shop_info: dict = None,
@@ -56,13 +60,24 @@ class Daemon:
                 print('data', d)
                 try:
                     self.pool[d['uid']] = self.init_data(d['uid'], cookies=d['data'])
-                except GBKLoginError:
+                except (GBKLoginError, GBKPermissionError) as e:
+                    logger.error(f'{e}, retrying')
                     try:
                         self.pool[d['uid']] = self.init_data(d['uid'])
-                    except GBKLoginError:
-                        pass
+                    except (GBKLoginError, GBKPermissionError) as e:
+                        logger.error(f'{e}, passing uid {d["uid"]}')
 
         self.data_inited = init_data
+
+    def delete_daemon(self, uid: int):
+        if uid is None:
+            return False
+        if uid not in self.pool:
+            return False
+        del self.pool[uid]
+        for daemon_type in daemon_types:
+            db.daemon.delete(uid, daemon_type)
+        return True
 
     def get_daemon(self, uid: int, init_new: bool = False, cookies: str = None):
         # return self.pool.get(uid, default=None)

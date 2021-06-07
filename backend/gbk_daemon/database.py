@@ -6,6 +6,12 @@ class DaemonDB(BaseDB):
         super().__init__(d, 'daemon')
         self.col_cookies = self.d.cookies
 
+    def delete(self, uid: int, data_type: str = "base"):
+        try:
+            self.col.delete_one({'uid': uid, 'data_type': data_type})
+        except Exception as e:
+            logger.error(e)
+
     def save(self, uid: int, data, data_type: str = 'base'):
         result = self.load(uid, data_type=data_type)
         update_dict = {

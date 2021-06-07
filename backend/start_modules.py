@@ -14,6 +14,8 @@ def execute_module(module_name: str, cmd: str, retry: int = 0) -> bool:
     ready = True
     res = os.system(cmd)
     if res != 0:
+        if res == 2:
+            return False
         ready = False
         if retry < Constants.MODULES_RUN_RETRY:
             logger.warning(f'module {module_name} returns {res}, retry = {retry}.')

@@ -86,6 +86,7 @@ CORS(app)
 
 @app.after_request
 def api_after(res: Response):
+    # 对遇到的Exception做包装...
     if len(res.data) > 0:
         try:
             js = json.loads(res.data)
@@ -96,7 +97,8 @@ def api_after(res: Response):
         except Exception as e:
             logger.error(e)
             logger.error(f'data: {res.data}')
-        # print(res.data)
+            res.data = json.dumps(make_result(500, message=f'{e}')[0])
+            res.status_code = 500
     return res
 
 

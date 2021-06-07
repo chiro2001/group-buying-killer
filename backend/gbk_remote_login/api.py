@@ -1,5 +1,6 @@
 from utils.api_tools import *
 from gbk_daemon.daemon import daemon, DaemonBean
+from gbk_exceptions import *
 
 
 class RemoteLoginAPI(Resource):
@@ -31,6 +32,16 @@ class RemoteLoginAPI(Resource):
             ]
         })
 
+    @auth_required_method
+    def delete(self, uid: int):
+        """
+        删除登录凭据
+        """
+        # 删除整个daemon
+        if not daemon.delete_daemon(uid):
+            return make_result(500)
+        return make_result()
+
     @args_required_method(args_set_cookies)
     @auth_required_method
     def post(self, uid: int):
@@ -45,13 +56,15 @@ class RemoteLoginAPI(Resource):
         if len(result) == 0:
             return make_result(400)
         cookies = result[0] + ';'
-        # if not (cookies[:6] == "edper=" and cookies[6 + 86:] == "; Domain=.dianping.com; Path=/; HttpOnly"):
-        #     return make_result(400)
-        # cookies = cookies[:-39]
-        # TODO: 更新Cookie之后更新Daemon状态
         # print(cookies)
         db.daemon.save(uid, cookies, data_type='cookies')
-        daemon.get_daemon(uid, init_new=True, cookies=cookies)
+        try:
+            daemon.get_daemon(uid, init_new=True, cookies=cookies)
+        except (GBKLoginError, GBKPermissionError) as e:
+            logger.error(f"error updating daemon: {e}")
+            # 删除整个daemon
+            daemon.delete_daemon(uid)
+            return make_result(400, message=f'{e}')
         # if daemon.get_daemon(uid) is None:
         #     daemon.pool[uid] = daemon.init_data(uid, cookies=cookies)
         return make_result()

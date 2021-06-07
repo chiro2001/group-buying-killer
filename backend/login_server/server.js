@@ -162,4 +162,10 @@ const startServer = () => {
     console.log(`[ws_server      ][startServer    ][INFO   ] ws server started on ${port}`);
 };
 
+// 捕获 Ctrl + C，返回 2
+process.on('SIGINT', function () {
+    console.log('[ws_server      ][startServer    ][WARNING] Exit with Signal SIGINT now!');
+    process.exit(2);
+});
+
 startServer();

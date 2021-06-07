@@ -51,6 +51,7 @@ import RemoteLogin from './pages/RemoteLogin';
 import Login from './pages/Login';
 import Tasks from "./pages/Tasks";
 import Predicts from './pages/Predicts';
+import User from './pages/User';
 
 const drawerWidth = 240;
 moment.locale('zh-cn');
@@ -174,7 +175,6 @@ export default function App() {
   const classes = useStyles();
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
-  const [popupLogin, setPopupLogin] = React.useState(false);
   const [errorDialogInfo, setErrorDialogInfo] = React.useState(false);
   const [myMessage, setMyMessage] = React.useState(null);
   const [hasLogin, setHasLogin] = React.useState(false);
@@ -182,6 +182,7 @@ export default function App() {
   const [title, setTitle] = React.useState(getShopTitle() || titleDefault);
   const [ignored, forceUpdate] = React.useReducer(x => x + 1, 0);
   const [requestingRemote, setRequesingRemote] = React.useState(false);
+  const [openUser, setOpenUser] = React.useState(false);
 
   // 拉大到800会打开，拉小到600关闭
   const triggerWidthOpen = 800;
@@ -288,8 +289,7 @@ export default function App() {
           </Typography>
           <IconButton
             color="inherit"
-            aria-label="login"
-            onClick={() => { setPopupLogin(true); }}
+            onClick={() => { setOpenUser(true); }}
           >
             <AccountCircleIcon />
           </IconButton>
@@ -365,6 +365,11 @@ export default function App() {
     <div className={classes.root}>
       <ThemeProvider theme={store.getState().config.theme}>
         {content}
+        <Dialog fullWidth open={openUser} onClose={() => { setOpenUser(false); }}>
+          <DialogContent>
+            <User onClose={() => { setOpenUser(false); }}></User>
+          </DialogContent>
+        </Dialog>
         <Dialog open={errorDialogInfo ? true : false} onClose={() => { setErrorDialogInfo(null); }}>
           <DialogTitle>遇到错误</DialogTitle>
           <DialogContent>
