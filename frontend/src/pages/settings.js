@@ -5,6 +5,8 @@ import store from "../data/store";
 import { setConfig, setErrorInfo, setMessage } from "../data/action";
 import { funDownload } from "../utils/utils";
 import ListInfo from "../components/ListInfo";
+import { api } from "../api/api";
+import Config from "../Config";
 
 function Settings(props) {
   const [themeName, setThemeName] = React.useState(store.getState().config.data.theme_name);
@@ -13,6 +15,7 @@ function Settings(props) {
   const [deleteDataOpen, setDeleteDataOpen] = React.useState(false);
   const [openDaemon, setOpenDaemon] = React.useState(false);
   const [openUser, setOpenUser] = React.useState(false);
+  const [openResetShop, setOpenResetShop] = React.useState(false);
 
   const resetSettings = function () {
     let c = store.getState().config;
@@ -39,9 +42,20 @@ function Settings(props) {
       <ListItem button>
         <ListItemText primary="修改信息"></ListItemText>
       </ListItem>
+      <ListItem button onClick={() => {
+        Config.clear();
+        setTimeout(() => { window.location.reload(); }, 500);
+      }}>
+        <ListItemText primary="退出当前账号"></ListItemText>
+      </ListItem>
       <ListSubheader>用户门店</ListSubheader>
       <ListItem button onClick={() => { setOpenDaemon(true); }}>
-        <ListItemText primary="详细信息"></ListItemText>
+        <ListItemText primary="门店信息"></ListItemText>
+      </ListItem>
+      <ListItem button onClick={() => { setOpenResetShop(true); }}>
+        <ListItemText primary="解绑当前门店"></ListItemText>
+        <ListItemSecondaryAction><Typography variant="body1" color="textSecondary">{store.getState().daemon &&
+          store.getState().daemon.shop_info && store.getState().daemon.shop_info.branchName}</Typography></ListItemSecondaryAction>
       </ListItem>
       <ListSubheader>外观</ListSubheader>
       <ListItem>
@@ -164,6 +178,22 @@ function Settings(props) {
           resetSettings();
           window.location.reload();
         }}>确定</Button>
+      </DialogActions>
+    </Dialog>
+    <Dialog open={openResetShop} onClose={() => { setOpenResetShop(false); }}>
+      <DialogTitle>解绑当前门店</DialogTitle>
+      <DialogContent>
+        <Typography variant="body1">此操作将会解除门店和<b>本网站</b>的数据绑定，需要<b>重新绑定</b>才能使用网站功能。是否继续？</Typography>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => { setOpenResetShop(false); }}>取消</Button>
+        <Button onClick={async () => {
+          const resp = await api.request("remote_login", "DELETE");
+          console.log('delete cookies:', resp);
+          if (resp.code !== 200) store.dispatch(setErrorInfo(`删除失败: ${resp.code}, ${resp.message}, ${resp.error}`));
+          // setOpenResetShop(false);
+          window.location.reload();
+        }} color="secondary">确定</Button>
       </DialogActions>
     </Dialog>
   </Container>)

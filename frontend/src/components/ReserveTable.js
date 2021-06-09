@@ -13,12 +13,12 @@ import { api } from '../api/api';
 import store from '../data/store';
 import { setDaemon, setErrorInfo, setTasks } from '../data/action';
 import TaskDialog, { setTaskDialogUpdate } from "./TaskDialog";
-import { weekDayList } from '../utils/utils';
+import { deepCopy, weekDayList } from '../utils/utils';
 import { getTargetTasks, TaskList } from '../pages/Tasks';
 
 const useStyles = makeStyles({
   table: {
-    minWidth: 1200,
+    minWidth: 1500,
   },
   foodDesc: {
     overflow: 'hidden',
@@ -35,10 +35,11 @@ const useStyles = makeStyles({
 });
 
 function MyTableCell(props) {
-  let styles = { padding: 3 };
+  let styles = Object.assign((props.style ? props.style : {}), { padding: 3 });
   // console.log('props.noBorder', props.noBorder);
   if (props.noBorder) styles.borderBottom = "0";
-  return <TableCell align={props.align} colSpan={props.colSpan} style={styles}>{props.content}</TableCell>
+  // return <TableCell align={props.align} colSpan={props.colSpan} style={styles}>{props.content}</TableCell>
+  return <TableCell align={props.align} colSpan={props.colSpan} style={styles}>{props.children}</TableCell>
 }
 
 // 容易subscribe到已经卸载的component上面...
@@ -102,80 +103,118 @@ function ReserveTable(props) {
   // console.log('requested', requestedDayData);
   // console.log('date', date);
 
-  const Period = function (props) {
+  const PeriodTable = function (props) {
     const classes = useStyles();
     const { data, roomList } = props;
-    // console.log('period', data, 'roomList', roomList);
-    // 先找到有几个row，再格式化输出
-    let maxRow = 0;
-    let roomNameList = [];
-    roomList.map((roomData, i) => {
-      maxRow = maxRow > data.roomMapItemEntry[roomData.roomName].length ? maxRow : data.roomMapItemEntry[roomData.roomName].length;
-      roomNameList.push(roomData.roomName);
-    });
-    // console.log('maxRow', maxRow);
-    let targetRowCenter = parseInt(maxRow / 2);
-    if (targetRowCenter < 0) targetRowCenter = 0;
-    // console.log('targetRowCenter', targetRowCenter);
-    let rows = [];
-    for (let i = 0; i < maxRow; i++) {
-      let cells = [<MyTableCell key="time" key2="time" align="center" colSpan={1} content={targetRowCenter === i ? data.periodId : null} noBorder={maxRow - 1 !== i}></MyTableCell>,];
-      for (let name of roomNameList) {
-        // if (!(data.roomMapItemEntry[name] instanceof Array)) {
-        if (!(data.roomMapItemEntry[name][i])) {
-          // 没这个项的话也要占个位置
-          cells.push(<MyTableCell key={data.periodId + name + i + '_'} colSpan={1}></MyTableCell>);
-          continue;
-        }
-        let roomItem = data.roomMapItemEntry[name][i];
-        // 价格
-        cells.push(<MyTableCell key={data.periodId + name + roomItem.itemId + i + 'price'} align="center" colSpan={1} content={'￥' + roomItem.price}></MyTableCell>);
-        // 说明
-        cells.push(<MyTableCell key={data.periodId + name + roomItem.itemId + i + 'desc'} align="center" colSpan={1} content={<Box component="div" className={classes.foodDesc}>
-          {roomItem.foodDesc}</Box>}></MyTableCell>);
-        // 库存
-        cells.push(<MyTableCell key={data.periodId + name + roomItem.itemId + i + 'stock'} align="center" colSpan={1} content={i === targetRowCenter ? (roomItem.stock + '间') : ''} noBorder={maxRow - 1 !== i}></MyTableCell>);
-        // 计划
-        cells.push(<MyTableCell key={data.periodId + name + roomItem.itemId + i + 'plan'} align="center" colSpan={1} content={
-          (() => {
-            let planCount = getTargetTasks({ roomItem }).length;
-            return (<Link key={data.periodId + name + roomItem.itemId + i + 'planLink'} onClick={planCount === 0 ? () => {
-              // console.log('roomItem', roomItem);
-              // console.log('data', data);
-              let parent = {};
-              for (const arg in data)
-                if (arg !== 'roomMapItemEntry')
-                  parent[arg] = data[arg];
-              roomItem.parent = parent;
-              // roomItemNow = roomItem;
-              setRoomItemNow(roomItem);
-              setTaskDialogUpdate(true);
-              setDialogAddTaskOpen(true);
-            } : () => {
-              const tasks = getTargetTasks({ roomItem });
-              console.log('got tasks', tasks);
-              let parent = {};
-              for (const arg in data)
-                if (arg !== 'roomMapItemEntry')
-                  parent[arg] = data[arg];
-              roomItem.parent = parent;
-              setRoomItemNow(roomItem);
-              setDialogTasksListOpen(tasks);
-            }} className={classes.planButton}>计划{planCount > 0 ? (`(${planCount})`) : ''}</Link>);
-          })()
-        }></MyTableCell>);
-        // 临时下线
-        // cells.push(<MyTableCell key={data.periodId + name + roomItem.itemId + i + 'off'} align="center" colSpan={1} content={
-        //   <Link key={data.periodId + name + roomItem.itemId + i + 'planLink'} onClick={() => {
-        //     console.log('roomItem', roomItem);
-        //   }} >下线</Link>
-        // }></MyTableCell>);
+    // console.log("data", data);
+    let table = {};
+    let periodIds = [];
+    let periodMap = {};
+    for (const period of data.periodList) {
+      table[period.periodId] = {};
+      periodMap[period.periodId] = period;
+      periodIds.push({ id: period.periodId, desc: period.periodDesc });
+      for (const room of roomList) {
+        table[period.periodId][room.roomName] = [];
       }
-      // console.log('cells', cells);
-      rows.push(<TableRow key={data.periodId + i}>{cells}</TableRow>);
+      for (const roomMapItemName in period.roomMapItemEntry) {
+        if (!table[period.periodId][roomMapItemName]) table[period.periodId][roomMapItemName] = [];
+        for (const roomItem of period.roomMapItemEntry[roomMapItemName]) {
+          table[period.periodId][roomMapItemName].push(roomItem);
+        }
+      }
     }
-    return rows;
-  }
+    // console.log('table', table);
+    let rows = [];
+    let maxRows = {};
+    let key = 1;
+    for (const periodData of periodIds) {
+      const periodId = periodData.id;
+      if (!table[periodId]) continue;
+      let index = 0;
+      while (true) {
+        let notEmpty = false;
+        for (const room of roomList) {
+          if (!table[periodId][room.roomName] || !(table[periodId][room.roomName] && table[periodId][room.roomName][index])) {
+            continue;
+          }
+          notEmpty = true;
+        }
+        if (!notEmpty) break;
+        index++;
+      }
+      maxRows[periodId] = index;
+    }
+    const getCenterTable = (index, maxIndex, content, key) => {
+      return index == (parseInt(maxIndex / 2)) ? (maxIndex % 2 === 1 ? (index === maxIndex - 1 ? <MyTableCell key={`${key}`} align="center" colSpan={1}>{content}</MyTableCell> :
+        <MyTableCell key={`${key}`} align="center" noBorder colSpan={1}>{content}</MyTableCell>) :
+        (index === maxIndex - 1 ? <MyTableCell key={`${key++}`} align="center" colSpan={1}><Box style={{ position: "relative", top: -15 }}>{content}</Box></MyTableCell> :
+          <MyTableCell key={`${key}`} align="center" noBorder colSpan={1}><Box style={{ position: "relative", top: -15 }}>{content}</Box></MyTableCell>)) :
+        (index === maxIndex - 1 ? <MyTableCell key={`${key++}`} align="center" colSpan={1}></MyTableCell> :
+          <MyTableCell key={`${key}`} align="center" colSpan={1} noBorder></MyTableCell>);
+    };
+    for (const periodData of periodIds) {
+      const periodId = periodData.id;
+      if (!table[periodId]) continue;
+      let index = 0;
+      while (true) {
+        let notEmpty = false;
+        const maxIndex = maxRows[periodId] ? maxRows[periodId] : 1;
+        // let row = [getCenterTable(index, maxIndex, periodData.id, key++),];
+        let row = [getCenterTable(index, maxIndex, <Box component="div" className={classes.foodDesc}>
+          {periodData.desc}
+        </Box>, key++),];
+        for (const room of roomList) {
+          if (!table[periodId][room.roomName] || !(table[periodId][room.roomName] && table[periodId][room.roomName][index])) {
+            for (const i of [0, 1, 2, 3]) {
+              row.push(<MyTableCell key={`${key++}`} colSpan={1}></MyTableCell>);
+            }
+            continue;
+          }
+          notEmpty = true;
+          const roomItem = table[periodId][room.roomName][index];
+          // console.log("roomItem", roomItem);
+          // 价格
+          row.push(<MyTableCell key={`${key++}`} align="center" colSpan={1}>{'￥' + roomItem.price}</MyTableCell>);
+          // 说明
+          row.push(<MyTableCell key={`${key++}`} align="center" colSpan={1}>
+            <Box component="div" className={classes.foodDesc}>
+              {roomItem.foodDesc}
+            </Box>
+          </MyTableCell>);
+          // 库存
+          row.push(getCenterTable(index, maxIndex, `${roomItem.stock}间`, key++));
+          // 计划
+          // row.push(<MyTableCell key={`${key++}`} align="center" colSpan={1}><Link className={classes.planButton}>计划</Link></MyTableCell>);
+          row.push(<MyTableCell key={`${key++}`} align="center" colSpan={1}>{
+            (() => {
+              let planCount = getTargetTasks({ roomItem }).length;
+              return (<Link key={`${key++}`} onClick={planCount === 0 ? () => {
+                const parent = periodMap[periodId];
+                let roomItemTmp = deepCopy(roomItem);
+                roomItemTmp.parent = parent;
+                setRoomItemNow(roomItemTmp);
+                setTaskDialogUpdate(true);
+                setDialogAddTaskOpen(true);
+              } : () => {
+                const tasks = getTargetTasks({ roomItem });
+                console.log('got tasks', tasks);
+                const parent = periodMap[periodId];
+                let roomItemTmp = deepCopy(roomItem);
+                roomItemTmp.parent = parent;
+                setRoomItemNow(roomItemTmp);
+                setDialogTasksListOpen(tasks);
+              }} className={classes.planButton}>计划{planCount > 0 ? (`(${planCount})`) : ''}</Link>);
+            })()
+          }</MyTableCell>);
+        }
+        if (!notEmpty) break;
+        rows.push(row);
+        index++;
+      }
+    }
+    return rows.map((v, k) => <TableRow style={{ height: 30 }} key={k}>{v}</TableRow>);
+  };
 
   if (!setUpdateTimer) {
     setUpdateTimer = true;
@@ -232,7 +271,7 @@ function ReserveTable(props) {
     <TableRow>
       <TableCell align="center" colSpan={1}>[{date.slice(date.length - 2, date.length)}日{'周' + ["日", '一', '二', '三', '四', '五', '六'][day]}]</TableCell>
       {roomList.map((d, i) =>
-        <TableCell align="center" key={i} colSpan={5}>{d.roomName}({d.roomCapacity})</TableCell>
+        <TableCell align="center" key={i} colSpan={4}>{d.roomName}({d.roomCapacity})</TableCell>
       )}
     </TableRow>
     <TableRow>
@@ -253,9 +292,10 @@ function ReserveTable(props) {
         <Table stickyHeader className={classes.table}>
           {tableHeader}
           <TableBody>
-            {dayData.periodList.map((d, i) =>
+            {/* {dayData.periodList.map((d, i) =>
               <Period key={'period' + i} data={d} roomList={roomList}></Period>
-            )}
+            )} */}
+            <PeriodTable data={dayData} roomList={roomList}></PeriodTable>
           </TableBody>
         </Table>
       </TableContainer>

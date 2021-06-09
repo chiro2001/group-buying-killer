@@ -2,8 +2,9 @@ import { createMuiTheme, makeStyles, ThemeProvider } from '@material-ui/core/sty
 import { orange, grey, blueGrey } from '@material-ui/core/colors';
 import { api } from "./api/api";
 
+const ITEM_NAME = "group_bying_config";
+
 class Config {
-  ITEM_NAME = "group_bying_config";
   constructor() {
     this.load = this.load.bind(this);
     this.save = this.save.bind(this);
@@ -52,7 +53,7 @@ class Config {
       this.save();
     }
     try {
-      this.data = JSON.parse(localStorage.getItem(this.ITEM_NAME));
+      this.data = JSON.parse(localStorage.getItem(ITEM_NAME));
       if (!this.data) throw new Error("Null data");
       console.log("Got data:", this.data);
       if (!this.data.version_frontend || this.data.version_frontend < this.data_default.version_frontend) {
@@ -68,7 +69,7 @@ class Config {
         this.save();
       }
     } catch (e) {
-      console.warn(`Can not find ${this.ITEM_NAME} in localStorage, use default config.`);
+      console.warn(`Can not find ${ITEM_NAME} in localStorage, use default config.`);
       this.data = this.data_default;
       this.save();
     }
@@ -81,8 +82,13 @@ class Config {
     console.log("Config: saving config...");
     this.data.api_token = api.get_token();
     const s = JSON.stringify(this.data);
-    localStorage.setItem(this.ITEM_NAME, s);
+    localStorage.setItem(ITEM_NAME, s);
     return s;
+  }
+
+  static clear() {
+    console.log("Config: clearing all data...");
+    localStorage.setItem(ITEM_NAME, undefined);
   }
 };
 

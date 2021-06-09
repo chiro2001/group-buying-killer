@@ -199,3 +199,9 @@ export function getTimedeltaString(timedelta) {
 }
 
 export const weekDayList = ['日', '一', '二', '三', '四', '五', '六'];
+
+export function isChinese(temp) {
+  var re = /[^\u4E00-\u9FA5]/;
+  if (re.test(temp)) return false;
+  return true;
+}
