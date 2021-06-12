@@ -3,8 +3,25 @@ import { DateTimePicker } from "@material-ui/pickers";
 import React from "react";
 import DeleteIcon from '@material-ui/icons/Delete';
 import store from "../data/store";
-import { isIterator, objectUpdate, timedeltaUnits } from "../utils/utils";
+import { formatDateTime, getNewNumberString, isIterator, objectUpdate, timedeltaUnits } from "../utils/utils";
 import moment from "moment";
+
+export function ActionData(props) {
+  const { value, onChange, onDelete } = props;
+  return <Box>
+    {value === null || value === undefined || value === 'datetime|' ?
+      <Button color="secondary" onClick={() => { onChange && onChange(null); }}>点击设置</Button> :
+      <Box style={{ display: "flex", flexDirection: "row" }}>
+        <DateTimePicker
+          value={value.slice("datetime|".length)}
+          onChange={onChange}
+        ></DateTimePicker>
+        <IconButton onClick={onDelete}>
+          <DeleteIcon></DeleteIcon>
+        </IconButton>
+      </Box>}
+  </Box>;
+}
 
 export default function ListEdit(props) {
   const { defaultValue, open, onClose, title, keyNames, dataType, typeName } = props;
@@ -57,22 +74,14 @@ export default function ListEdit(props) {
                   setData({ [v]: `datetime|${new Date().toISOString()}` });
                 }}>点击设置</Button>;
               } else {
-                actionData = <Box>
-                  <DateTimePicker
-                    value={value.slice("datetime|".length)}
-                    onChange={e => {
-                      console.log("e", e);
-                      // 这里会改变到没有时区的类型
-                      console.log(`datetime|${moment(e).format("YYYY-MM-DDTHH:mm:ss.SSSSSS+00:00")}`);
-                      setData({ [v]: `datetime|${moment(e).format("YYYY-MM-DDTHH:mm:ss.SSSSSS+00:00")}` });
-                    }}
-                  ></DateTimePicker>
-                  <IconButton onClick={() => {
-                    setData({ [v]: null });
-                  }}>
-                    <DeleteIcon></DeleteIcon>
-                  </IconButton>
-                </Box>;
+                actionData = <ActionData value={value} onChange={e => {
+                  console.log("e", e);
+                  // 这里会改变到没有时区的类型
+                  console.log(`datetime|${formatDateTime(e)}`);
+                  setData({ [v]: `datetime|${formatDateTime(e)}` });
+                }} onDelete={() => {
+                  setData({ [v]: null });
+                }}></ActionData>
               }
             } else if (typeof (value) === "string" && value.startsWith("timedelta|")) {
               const val = value.slice("timedelta|".length);
@@ -103,8 +112,8 @@ export default function ListEdit(props) {
               </Box>
             } else {
               actionData = <TextField value={`${value}`} onChange={e => {
-                const newValue = e.target.value.length === 0 ? 0 : (typeof (value) === "number" ? parseFloat(e.target.value) : `${e.target.value}`);
-                if (isNaN(newValue)) return;
+                const newValue = typeof (value) === "number" ? getNewNumberString(e.target.value) : `${value}`;
+                if (newValue === null) return;
                 setData({ [v]: newValue });
               }}></TextField>;
             }

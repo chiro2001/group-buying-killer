@@ -13,7 +13,7 @@ import flask_restful
 from apscheduler.triggers.interval import IntervalTrigger
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.serving import run_simple
-# import logging
+import logging
 from io import StringIO
 from gbk_database.config import config, Constants
 
@@ -23,16 +23,15 @@ from gbk_scheduler.task import scheduler, task_pool
 # from gbk_remote_login.start_server import start_server
 from start_modules import start_all
 
-# 只显示错误消息
-# logger_werkzeug = logging.getLogger('werkzeug')
-# logger_werkzeug.setLevel(logging.ERROR)
+if Constants.ENVIRONMENT == 'release':
+    # 只显示错误消息
+    logger_werkzeug = logging.getLogger('werkzeug')
+    logger_werkzeug.setLevel(logging.ERROR)
 
 api_prefix = config.data.get('api_prefix', '/api/v2')
 
 # 中间件
 dm = DispatcherMiddleware(app_file, {api_prefix: app_api})
-
-# logger.warning('__name__: %s' % __name__)
 
 if __name__ == '__main__':
     host, port = Constants.RUN_LISTENING, Constants.RUN_PORT

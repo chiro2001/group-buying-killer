@@ -32,8 +32,9 @@ function TaskTag(props) {
   // return <code>{JSON.stringify(task)}</code>;
   return <ListItem button onClick={async () => {
     if (!onClick) return;
-    console.log('task before', task);
-    const taskWrapped = await wrapTask(task);
+    let taskOrigin = deepCopy(task);
+    console.log('task before', taskOrigin);
+    const taskWrapped = await wrapTask(taskOrigin);
     console.log('task after', taskWrapped);
     taskWrapped && onClick && onClick(taskWrapped);
   }}>

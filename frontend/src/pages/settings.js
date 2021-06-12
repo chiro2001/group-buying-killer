@@ -1,12 +1,14 @@
 import React from "react"
 import Container from '@material-ui/core/Container';
-import { Button, MenuItem, FormControl, InputLabel, List, ListItem, ListItemSecondaryAction, ListItemText, Select, ListSubheader, Switch, Dialog, DialogTitle, DialogContent, Typography, DialogActions } from "@material-ui/core";
+import { Button, MenuItem, FormControl, InputLabel, List, ListItem, ListItemSecondaryAction, ListItemText, Select, ListSubheader, Switch, Dialog, DialogTitle, DialogContent, Typography, DialogActions, Box, IconButton, DialogContentText } from "@material-ui/core";
+import DeleteIcon from '@material-ui/icons/Delete';
 import store from "../data/store";
 import { setConfig, setErrorInfo, setMessage } from "../data/action";
 import { funDownload } from "../utils/utils";
 import ListInfo from "../components/ListInfo";
 import { api } from "../api/api";
 import Config from "../Config";
+import RemoteLogin from "./RemoteLogin";
 
 function Settings(props) {
   const [themeName, setThemeName] = React.useState(store.getState().config.data.theme_name);
@@ -16,6 +18,8 @@ function Settings(props) {
   const [openDaemon, setOpenDaemon] = React.useState(false);
   const [openUser, setOpenUser] = React.useState(false);
   const [openResetShop, setOpenResetShop] = React.useState(false);
+  const [openSelectShop, setOpenSelectShop] = React.useState(false);
+  const [openNewShop, setOpenNewShop] = React.useState(false);
 
   const resetSettings = function () {
     let c = store.getState().config;
@@ -50,12 +54,18 @@ function Settings(props) {
       </ListItem>
       <ListSubheader>用户门店</ListSubheader>
       <ListItem button onClick={() => { setOpenDaemon(true); }}>
-        <ListItemText primary="门店信息"></ListItemText>
+        <ListItemText primary="当前门店信息"></ListItemText>
       </ListItem>
       <ListItem button onClick={() => { setOpenResetShop(true); }}>
         <ListItemText primary="解绑当前门店"></ListItemText>
         <ListItemSecondaryAction><Typography variant="body1" color="textSecondary">{store.getState().daemon &&
           store.getState().daemon.shop_info && store.getState().daemon.shop_info.branchName}</Typography></ListItemSecondaryAction>
+      </ListItem>
+      <ListItem button onClick={() => { setOpenSelectShop(true); }}>
+        <ListItemText primary="管理/切换当前已绑定门店"></ListItemText>
+      </ListItem>
+      <ListItem button onClick={() => { setOpenNewShop(true); }}>
+        <ListItemText primary="绑定并且切换到新的门店"></ListItemText>
       </ListItem>
       <ListSubheader>外观</ListSubheader>
       <ListItem>
@@ -195,6 +205,51 @@ function Settings(props) {
           window.location.reload();
         }} color="secondary">确定</Button>
       </DialogActions>
+    </Dialog>
+    <Dialog open={openSelectShop} onClose={() => { setOpenSelectShop(false); }}>
+      <DialogTitle>选择一家门店</DialogTitle>
+      <DialogContent>
+        <List>
+          <ListItem>
+            <Typography variant="body2" color="textSecondary">注意，切换门店之后原有门店计划将停止执行。</Typography>
+          </ListItem>
+          {store.getState().daemon.shops ?
+            Object.keys(store.getState().daemon.shops).map((v, k) => {
+              const d = store.getState().daemon.shops[v];
+              return <ListItem button key={k} onClick={async () => {
+                console.log('switching to', d);
+                if (!d.cookies) return;
+                await api.request('remote_login', "POST", { cookies: d.cookies });
+                setOpenSelectShop(false);
+              }}>
+                <Box style={{ display: 'flex', flexDirection: "row" }}>
+                  <Box style={{ display: 'flex', flexDirection: "column" }}>
+                    <Typography variant="body1">{`${d.shopName} - ${d.branchName}`}</Typography>
+                    <Typography variant="body2" color="textSecondary">{`${d.shopId}`}</Typography>
+                  </Box>
+                </Box>
+                <ListItemSecondaryAction>
+                  <IconButton onClick={async () => {
+                    console.log('to delete:', d);
+                    await api.request("remote_login", "DELETE", { shop_id: d.shopId });
+                    if (store.getState().daemon.shop_info && d.shopId === store.getState().daemon.shop_info.shopId) window.location.reload();
+                  }}>
+                    <DeleteIcon></DeleteIcon>
+                  </IconButton>
+                </ListItemSecondaryAction>
+              </ListItem>;
+            })
+            : <ListItem><ListItemText>无门店数据</ListItemText></ListItem>}
+        </List>
+      </DialogContent>
+    </Dialog>
+    <Dialog open={openNewShop} onClose={() => { setOpenNewShop(false); }}>
+      <DialogContent>
+        <RemoteLogin forceLogin onFinish={() => {
+          console.log('onFinish');
+          setTimeout(() => { window.location.reload(); }, 3000);
+        }}></RemoteLogin>
+      </DialogContent>
     </Dialog>
   </Container>)
 }

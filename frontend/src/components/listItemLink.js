@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import { ListItem, ListItemText, ListItemIcon } from '@material-ui/core';
 import { Link as RouterLink } from "react-router-dom";
 
+let updated = false;
+
 function ListItemLink(props) {
   const { icon, primary, to, onClick } = props;
 
@@ -11,9 +13,17 @@ function ListItemLink(props) {
     [to],
   );
 
+  if (!updated) {
+    updated = true;
+    document.title = `${primary} - 团购杀手`;
+  }
+
   return (
     <li>
-      <ListItem button component={renderLink} onClick={onClick}>
+      <ListItem button component={renderLink} onClick={() => {
+        document.title = `${primary} - 团购杀手`;
+        onClick && onClick();
+      }}>
         {icon ? <ListItemIcon>{icon}</ListItemIcon> : null}
         <ListItemText primary={primary} />
       </ListItem>

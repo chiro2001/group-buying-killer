@@ -19,12 +19,16 @@ function CenterBox(props) {
 export default class RemoteLogin extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
+    this.onFinish = props.onFinish;
+    this.forceLogin = props.forceLogin;
+    this.stateDefault = {
       code: null,
       loginDone: false,
       loginError: null,
     };
+    this.state = this.stateDefault;
     this.ws_api = null;
+    this.ws_running = false;
     // this.unsubscribe = store.subscribe(async () => {
     //   if (this.loginDone) return;
     //   let state = store.getState();
@@ -33,20 +37,22 @@ export default class RemoteLogin extends React.Component {
     //     if (this.ws_api) this.ws_api.close();
     //   }
     // });
-    setTimeout(async () => {
+    this.run_ws = async () => {
+      // debugger;
+      this.ws_running = true;
       console.log(store.getState().daemon);
-      if ((store.getState().daemon && store.getState().daemon.cookies) || this.state.loginDone) return;
+      if (!this.forceLogin && ((store.getState().daemon && store.getState().daemon.cookies) || this.state.loginDone)) { this.ws_running = false; return; }
       const res = await api.request('remote_login', "PATCH");
-      if ((store.getState().daemon && store.getState().daemon.cookies) || this.state.loginDone) return;
+      if (!this.forceLogin && ((store.getState().daemon && store.getState().daemon.cookies) || this.state.loginDone)) { this.ws_running = false; return; }
       const server = res.data.server;
       let config = store.getState().config;
       config.data.remote_login.server = server;
       store.dispatch(setConfig(config));
-      if ((store.getState().daemon && store.getState().daemon.cookies) || this.state.loginDone) return;
+      if (!this.forceLogin && ((store.getState().daemon && store.getState().daemon.cookies) || this.state.loginDone)) { this.ws_running = false; return; }
       this.ws_api = new WebSocketAPI(server);
       this.ws_api.oncode = code => {
         // console.log('code', code);
-        if ((store.getState().daemon && store.getState().daemon.cookies) || this.state.loginDone) return;
+        if (!this.forceLogin && ((store.getState().daemon && store.getState().daemon.cookies) || this.state.loginDone)) { this.ws_running = false; return; }
         this.setState({ code });
       };
       this.ws_api.oncookies = async cookies => {
@@ -56,17 +62,20 @@ export default class RemoteLogin extends React.Component {
           return;
         }
         console.log('done', resp);
-        if ((store.getState().daemon && store.getState().daemon.cookies) || this.state.loginDone) return;
+        if (!this.forceLogin && ((store.getState().daemon && store.getState().daemon.cookies) || this.state.loginDone)) { this.ws_running = false; return; }
         this.setState({ loginDone: true });
         const daemon = await api.request('remote_login', 'GET');
         if (daemon.code === 200 && daemon.data.uid) {
           store.dispatch(setDaemon(daemon.data));
         }
+        this.onFinish && this.onFinish();
       }
-      if ((store.getState().daemon && store.getState().daemon.cookies) || this.state.loginDone) return;
+      if (!this.forceLogin && ((store.getState().daemon && store.getState().daemon.cookies) || this.state.loginDone)) { this.ws_running = false; return; }
       this.ws_api.connect();
-    }, 1000);
+    };
+    setTimeout(this.run_ws, 1000);
   }
+
   componentWillUnmount() {
     if (this.ws_api) this.ws_api.close();
     // this.unsubscribe();
@@ -81,7 +90,14 @@ export default class RemoteLogin extends React.Component {
       else content = <Paper style={{ width: 200, height: 200 }}>
         <CenterBox>
           <Typography variant="body1">{this.state.loginError}</Typography>
-          <Button variant="outlined" color="secondary">重试</Button>
+          <Button variant="outlined" color="secondary" onClick={() => {
+            try { clearTimeout(this.run_ws); } catch (e) { console.error(e); }
+            this.setState(this.stateDefault);
+            try { if (this.ws_api) this.ws_api.connect(); } catch (e) { console.error(e); }
+            this.ws_api = null;
+            this.ws_running = false;
+            setTimeout(this.run_ws, 1000);
+          }}>重试</Button>
         </CenterBox>
       </Paper>;
     } else {
@@ -89,7 +105,6 @@ export default class RemoteLogin extends React.Component {
         <Paper style={{ width: 200, height: 200 }}>
           <CenterBox>正在加载二维码...</CenterBox>
         </Paper>;
-      // <span style={{ width: 200, height: 200 }}><CenterBox>正在加载二维码...</CenterBox></span>
     }
     return (<Container maxWidth="xs" style={{ height: window.innerHeight * 0.6 }}>
       <CenterBox>

@@ -1,8 +1,9 @@
+import re
 import json
 import datetime
 from pytz import tzinfo
 import pytz
-import tzlocal
+# import tzlocal
 from apscheduler.triggers.cron.fields import BaseField
 
 
@@ -94,6 +95,7 @@ def task_data_decode(data):
         data = pymongo_timedelta_tz.fromutc(data)
     return data
 
+
 # def serialize_time_value(value):
 #     if isinstance(value, datetime.datetime):
 #         return value.replace(microsecond=0).isoformat()
@@ -105,3 +107,9 @@ def task_data_decode(data):
 #         return None
 #     else:
 #         return str(value)
+
+def cookies_check(cookies: str):
+    result = re.findall(r'edper=[^;]*', cookies)
+    if len(result) == 0:
+        return None
+    return result[0] + ';'

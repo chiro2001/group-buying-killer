@@ -183,7 +183,7 @@ function ReserveTable(props) {
             </Box>
           </MyTableCell>);
           // 库存
-          row.push(getCenterTable(index, maxIndex, `${roomItem.stock}间`, key++));
+          row.push(getCenterTable(index, table[periodId][room.roomName] ? table[periodId][room.roomName].length : maxIndex, `${roomItem.stock}间`, key++));
           // 计划
           // row.push(<MyTableCell key={`${key++}`} align="center" colSpan={1}><Link className={classes.planButton}>计划</Link></MyTableCell>);
           row.push(<MyTableCell key={`${key++}`} align="center" colSpan={1}>{
@@ -252,6 +252,17 @@ function ReserveTable(props) {
         // console.warn('got empty reserveTableData', dayData, store.getState().daemon.reserve_table, date, JSON.stringify(store.getState().daemon.reserve_table[date]));
       }
     }
+  };
+
+  const updateTaskData = () => {
+    // 更新Task数据
+    updateData();
+    api.request("task", "GET").then(resp => {
+      if (resp.code !== 200) return;
+      store.dispatch(setTasks(resp.data.tasks));
+      setDialogTasksListOpen(null);
+      forceUpdate();
+    });
   };
 
   if (!dayData) {
@@ -327,24 +338,18 @@ function ReserveTable(props) {
         </DialogActions>
       </Dialog>
       <TaskDialog
+        simpleMode
         taskOld={dialogAddTaskOpen}
         addMode={dialogAddTaskOpen === true}
         targets={{ roomItem: roomItemNow, taskName: (roomItemNow && JSON.stringify(roomItemNow) !== "{}") ? `${roomItemNow.roomType}周${weekDayList[new Date().getDay()]}${roomItemNow.parent.periodDesc}` : null }}
-        open={!!dialogAddTaskOpen}
+        open={!!dialogAddTaskOpen && (roomItemNow && JSON.stringify(roomItemNow) !== '{}')}
         onRefresh={() => {
-          // 更新Task数据
-          updateData();
-          api.request("task", "GET").then(resp => {
-            if (resp.code !== 200) {
-              store.dispatch(setErrorInfo(resp));
-              return;
-            }
-            store.dispatch(setTasks(resp.data.tasks));
-            setDialogTasksListOpen(null);
-            forceUpdate();
-          });
+          updateTaskData();
         }}
-        onClose={() => { setDialogAddTaskOpen(null); }}
+        onClose={(isOk) => {
+          setDialogAddTaskOpen(null);
+          if (isOk) updateTaskData();
+        }}
         onSave={task => {
           return api.request_key('task', task.tid, "POST", { task }).then(resp => {
             // setState({ requestingTasks: false });

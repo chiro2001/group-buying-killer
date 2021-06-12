@@ -401,7 +401,7 @@ export default function App() {
             horizontal: 'right',
           }}
           open={myMessage !== null}
-          autoHideDuration={6000}
+          autoHideDuration={3000}
           // onClose={(e) => { console.log(e); }}
           message={myMessage}
           action={

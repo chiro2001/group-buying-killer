@@ -205,3 +205,14 @@ export function isChinese(temp) {
   if (re.test(temp)) return false;
   return true;
 }
+
+
+export function getNewNumberString(value) {
+  const newValue = value.length === 0 ? 0 : parseFloat(value);
+  if (isNaN(newValue)) return null;
+  return newValue;
+}
+
+export function formatDateTime(value) {
+  return moment(value).format("YYYY-MM-DDTHH:mm:ss.SSSSSS+08:00");
+}
