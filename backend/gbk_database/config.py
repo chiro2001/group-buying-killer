@@ -68,6 +68,10 @@ class Constants:
     RUN_WITH_DROP_DATA = True
     # RUN_WITH_SYS_TASK_LOG = True
     RUN_WITH_SYS_TASK_LOG = False
+    RUN_TASKS_DELAYS = {
+        'sys_trade_data': 5.3,
+        'sys_flow_data': 15.2
+    }
     # Schedule
     SCHEDULE_JOBSTORES = {
         # 'default': MongoDBJobStore(
