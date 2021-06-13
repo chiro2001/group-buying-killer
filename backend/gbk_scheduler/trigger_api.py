@@ -35,10 +35,10 @@ class TriggerAPI(Resource):
             'triggers': {trigger: {
                 "data": trigger_get_info(trigger),
                 'desc': trigger_desc.get(trigger, None),
-                'name': trigger_names.get(trigger),
+                'name': trigger_names_available.get(trigger),
                 'type': trigger,
                 'args': trigger_args.get(trigger)
-            } for trigger in trigger_names}
+            } for trigger in trigger_names_available}
         })
 
 

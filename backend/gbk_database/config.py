@@ -66,6 +66,8 @@ class Constants:
     RUN_WITH_PREDICTS = ENVIRONMENT == 'release'
     RUN_IGNORE_TF_WARNINGS = True
     RUN_WITH_DROP_DATA = True
+    # RUN_WITH_SYS_TASK_LOG = True
+    RUN_WITH_SYS_TASK_LOG = False
     # Schedule
     SCHEDULE_JOBSTORES = {
         # 'default': MongoDBJobStore(
@@ -87,8 +89,10 @@ class Constants:
     }
     # Request API
     REQUEST_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:86.0) Gecko/20100101 Firefox/86.0"
-    REQUEST_DEBUG_COOKIES = "edper=MES6Xgs3t5w6ZgUplHRjVD0UxPNl1Nc1QP0OdWgug" \
-                            "je8CdHFDKZHitNc5127P1Gv-WR59-JMzM-teN8OU97dJg;"
+    # REQUEST_DEBUG_COOKIES = "edper=-qBZL3fxGiq1-SgqKxlawjA90vmkZbHwgpL7h" \
+    #                         "UAWDvFX30LKSLwSX6B32fZze_aJrNgBpxt1k2qwS2qiJFpMwQ;"
+    REQUEST_DEBUG_COOKIES = "edper=TH_p-7_SmD_Z4XTTXiyIy_cXuTPZIjWpxms50k2" \
+                            "ipsbdYdfcBpWPaKxDoZkpqkfKH_IoH-xtyxQpR7Z5JaX64A;"
     # Modules
     MODULES_PATH = "./"
     MODULES = {

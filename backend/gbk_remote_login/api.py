@@ -1,4 +1,5 @@
 from data_apis.api import API
+from gbk_scheduler.task_pool import task_sys_pool
 from utils.api_tools import *
 from gbk_daemon.daemon import daemon, DaemonBean
 from gbk_exceptions import *
@@ -28,6 +29,8 @@ def post_cookies(uid: int, cookies: str, use_this_cookies: bool = True):
         shop_info.update({'cookies': cookies})
         d.shops[str(api.shop_id)] = shop_info
         d.save(select='shops')
+    # 添加到最新 uid 列表
+    task_sys_pool.update_uid(uid)
     return make_result()
 
 

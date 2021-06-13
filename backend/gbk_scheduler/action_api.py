@@ -38,10 +38,10 @@ class ActionAPI(Resource):
             'actions': {action: {
                 "data": action_get_info(action),
                 'desc': action_desc.get(action, None),
-                'name': action_names.get(action),
+                'name': action_names_available.get(action),
                 'type': action,
                 'args': action_args.get(action)
-            } for action in action_names}
+            } for action in action_names_available}
         })
 
 

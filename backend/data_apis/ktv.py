@@ -1,10 +1,7 @@
-import json
-import time
-from utils.time_formats import *
-from gbk_exceptions import *
+from data_apis.data_tools import *
 
 
-class KTV:
+class KTV(APIComponent):
     class RoomType:
         def __init__(self, roomName, roomCapacity):
             self.roomName, self.roomCapacity = roomName, roomCapacity
@@ -30,7 +27,7 @@ class KTV:
     url_temporary_change_item_status = url_base + "temporarychangeitemstatus.json?itemid=%s&status=%s&timestamp=%s"  # 参数：itemid, status[1=恢复, 2=下架], timestamp
 
     def __init__(self, request_func, shop_id: int):
-        self.request_func = request_func
+        super().__init__(request_func)
         self.shop_id = shop_id
 
     def set_shop_id(self, shop_id: int):

@@ -1,6 +1,8 @@
 import re
 import json
 import datetime
+import time
+
 from pytz import tzinfo
 import pytz
 # import tzlocal
@@ -113,3 +115,7 @@ def cookies_check(cookies: str):
     if len(result) == 0:
         return None
     return result[0] + ';'
+
+
+def year_month_to_timestamp(year: int, month: int) -> int:
+    return int(time.mktime(time.strptime("%s-%02d-01" % (year, month), "%Y-%m-%d")))

@@ -3,7 +3,6 @@ import store from "../data/store";
 import { isIterator, urlEncode } from "../utils/utils"
 
 
-
 class API {
   constructor() {
     // this.host = '127.0.0.1';

@@ -1,13 +1,8 @@
-# from lxml import etree
-import re
-from gbk_exceptions import *
+from data_apis.data_tools import *
 
 
-class Solution:
+class Solution(APIComponent):
     url = 'https://e.dianping.com/fun/ktv/solutionlist'
-
-    def __init__(self, request_func):
-        self.request_func = request_func
 
     def get_solution_id(self):
         resp = self.request_func(self.url)

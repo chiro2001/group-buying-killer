@@ -19,7 +19,8 @@ from gbk_database.config import config, Constants
 
 from gbk_proxy.file_static import app as app_file
 from gbk_api.main_api import app as app_api
-from gbk_scheduler.task import scheduler, task_pool
+from gbk_scheduler.task import scheduler
+from gbk_scheduler.task_pool import task_pool, task_sys_pool
 # from gbk_remote_login.start_server import start_server
 from start_modules import start_all
 
@@ -42,6 +43,7 @@ if __name__ == '__main__':
     scheduler.start()
     # logger.info(f'task pool: {task_pool}')
     task_pool.enable()
+    task_sys_pool.enable()
     logger.info(f'enabled pool: {task_pool}')
     logger.info('scheduler tasks: ')
     f = StringIO()

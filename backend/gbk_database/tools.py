@@ -1,6 +1,7 @@
 import pymongo
 import datetime
 from gbk_database.config import Constants
+from gbk_exceptions import *
 from utils.logger import logger
 
 
@@ -44,7 +45,14 @@ def auto_time_insert(col: pymongo.collection.Collection,
 
 
 def auto_time_update(col: pymongo.collection.Collection,
-                     filter_dict: dict, update_dict: dict):
+                     filter_dict: dict, update_dict: dict, insert_if_necessary: bool = False):
+    if insert_if_necessary:
+        # 先看看原来有没有数据
+        res = find_one(col, filter_dict)
+        if res is None:
+            all_data = filter_dict
+            all_data.update(update_dict)
+            return auto_time_insert(col, all_data)
     dt0 = datetime.datetime.utcnow()
     update_dict['updated_at'] = dt0
     update_dict = {'$set': update_dict, '$setOnInsert': {'created_at': dt0}}
@@ -110,11 +118,60 @@ class BaseDB:
         self.col: pymongo.collection.Collection = d[col_name]
 
 
+# 根据 uid 和 data_type 保存数据
+class DataDB(BaseDB):
+    def __init__(self, d, col_name: str):
+        super().__init__(d, col_name)
+
+    def delete(self, uid: int, data_type: str = "base"):
+        try:
+            self.col.delete_one({'uid': uid, 'data_type': data_type})
+        except Exception as e:
+            logger.error(e)
+
+    def save(self, uid: int, data, data_type: str = 'base'):
+        auto_time_update(self.col, {'uid': uid, 'data_type': data_type}, {'data': data},
+                         insert_if_necessary=True)
+
+    def load(self, uid: int, data_type: str = 'base'):
+        if uid is None:
+            return find_many(self.col, {'data_type': data_type})
+        return find_one(self.col, {'uid': uid, 'data_type': data_type})
+
+
+# 根据 uid, key 和 data_type 保存数据
+class DataKeyDB(BaseDB):
+    def __init__(self, d, col_name: str):
+        super().__init__(d, col_name)
+
+    def delete(self, uid: int, data_type: str = "base", key: str = None):
+        try:
+            query = {'uid': uid, 'data_type': data_type}
+            if key is not None:
+                query['key'] = key
+            self.col.delete_one(query)
+        except Exception as e:
+            logger.error(e)
+
+    def save(self, uid: int, data, data_type: str = 'base', key: str = None):
+        if key is None:
+            raise GBKError("Cannot save without key")
+        auto_time_update(self.col, {'uid': uid, 'data_type': data_type, 'key': key}, {'data': data},
+                         insert_if_necessary=True)
+
+    def load(self, uid: int, data_type: str = 'base', key: str = None):
+        if uid is None and key is None:
+            raise GBKError("Operation error")
+        if uid is None:
+            return find_many(self.col, {'data_type': data_type, 'key': key})
+        return find_one(self.col, {'uid': uid, 'data_type': data_type, 'key': key})
+
+
 def init_sequence_id(col: pymongo.collection.Collection, id_name: str, default_value: int = 0):
     insert_id_if_not_exist(col, id_name, default_value)
 
 
-def get_next_id(col: pymongo.collection.Collection, id_name: str):
+def get_next_id(col: pymongo.collection.Collection, id_name: str) -> int:
     # logger.warning(f'id_name: {id_name}')
     ret = col.find_one_and_update({"_id": id_name},
                                   {"$inc": {"sequence_value": 1}},
@@ -123,7 +180,18 @@ def get_next_id(col: pymongo.collection.Collection, id_name: str):
     return new_id
 
 
-def get_current_id(col: pymongo.collection.Collection, id_name: str):
+def get_current_id(col: pymongo.collection.Collection, id_name: str) -> int:
     ret = col.find_one({"_id": id_name})
     new_id = ret["sequence_value"]
     return new_id
+
+
+def get_next_exist_id(col: pymongo.collection.Collection, id_name: str, now: int) -> int:
+    ret = list(col.find({id_name: {"$gt": now}}, {'_id': 0}).sort(id_name, 1).limit(1))
+    if len(ret) > 0:
+        return ret[0][id_name]
+    return None
+
+
+def get_first_exist_id(col: pymongo.collection.Collection, id_name: str) -> int:
+    return get_next_exist_id(col, id_name, -1)
