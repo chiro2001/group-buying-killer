@@ -93,7 +93,7 @@ class ActionCycle(Action):
         self.page_count: int = None
         self.shop_id: int = None
         self.cookies: str = None
-        self.item_list: list = None
+        # self.item_list: list = None
         self.uid_list: list = []
         self.load()
         self.save(state=SystemDB.SERVICE_STOP)
@@ -106,20 +106,24 @@ class ActionCycle(Action):
             self.month = self.service.get('month', self.month)
             self.page = self.service.get('page', self.page)
             self.page_count = self.service.get('page_count', self.page_count)
-            self.item_list = self.service.get('item_list', self.item_list)
+            # self.item_list = self.service.get('item_list', self.item_list)
 
     def save(self, state: str = SystemDB.SERVICE_RUNNING):
         db.system.update_service_state(self.service_type, state=state, data=self.__getstate__())
 
     def __getstate__(self):
-        return {
-            'uid': self.uid,
-            'year': self.year,
-            'month': self.month,
-            'page': self.page,
-            'page_count': self.page_count,
-            'item_list': self.item_list
-        }
+        # return {
+        #     'uid': self.uid,
+        #     'year': self.year,
+        #     'month': self.month,
+        #     'page': self.page,
+        #     'page_count': self.page_count,
+        #     # 'item_list': self.item_list
+        # }
+        d = self.__dict__
+        if 'service' in d:
+            del d['service']
+        return d
 
     def update_uid(self, uid: int):
         self.uid_list = [uid, ].extend(self.uid_list)
@@ -148,7 +152,7 @@ class ActionCycle(Action):
 
     def next_month(self):
         self.month += 1
-        self.item_list = None
+        # self.item_list = None
         self.page_count = None
         if self.month > 12:
             self.month = 1
@@ -202,6 +206,8 @@ class ActionFetchFlowData(ActionCycle):
                                    self.month + 1 if self.month != 12 else 1)
         if new_service_info['state'] != SystemDB.SERVICE_STOP and Constants.RUN_WITH_SYS_TASK_LOG:
             logger.warning(f"[ flow_data ] uid:{self.uid}, {key} => {next_key} ( SKIP )")
+            self.next_month()
+            self.save(state=SystemDB.SERVICE_STOP)
             return
         self.save(state=SystemDB.SERVICE_RUNNING)
         if Constants.RUN_WITH_SYS_TASK_LOG:
@@ -218,7 +224,10 @@ class ActionFetchFlowData(ActionCycle):
             self.next_month()
             self.save(state=SystemDB.SERVICE_STOP)
             return
-        db.spider.save(self.uid, resp['data'], 'flow_data', key)
+        db.spider.save(self.uid, {
+            'flow_data': resp['data'],
+            'task_data': self.__getstate__()
+        }, 'flow_data', key)
         self.next_month()
         self.save(state=SystemDB.SERVICE_STOP)
 
@@ -244,7 +253,7 @@ class ActionFetchTradeData(ActionCycle):
                                                       self.get_next_month_timestamp() * 1000,
                                                       page=self.page, shop_id=self.shop_id)
         if 'code' not in resp or ('code' in resp and resp['code'] != 200):
-            logger.error(f"[ trade_data ] Resp errror: uid:{self.uid}, {key}, page: {self.page}")
+            logger.error(f"[ trade_data ] Resp error: uid:{self.uid}, {key}, page: {self.page}")
             self.next_page()
             self.save(state=SystemDB.SERVICE_STOP)
             return
@@ -257,10 +266,14 @@ class ActionFetchTradeData(ActionCycle):
             logger.debug(resp)
             self.next_page()
             return
-        if self.item_list is None:
-            self.item_list = []
-        self.item_list.extend(trade_data_list)
-        db.spider.save(self.uid, self.item_list, 'trade_data', key)
+        # if self.item_list is None:
+        #     self.item_list = []
+        # self.item_list.extend(trade_data_list)
+        # db.spider.save(self.uid, self.item_list, 'trade_data', key)
+        db.spider.save(self.uid, {
+            'item_list': trade_data_list,
+            'task_data': self.__getstate__()
+        }, 'trade_data', key)
         self.next_page()
         self.save(state=SystemDB.SERVICE_STOP)
 
