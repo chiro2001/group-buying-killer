@@ -213,9 +213,15 @@ class ActionFetchFlowData(ActionCycle):
         if Constants.RUN_WITH_SYS_TASK_LOG:
             logger.warning(f"[ flow_data ] uid:{self.uid}, {key} => {next_key}")
         self.update_shop_id()
-        resp: dict = API(self.cookies).flow_data.get(key,
-                                                     shop_id=self.shop_id,
-                                                     end_time=next_key)
+        try:
+            resp: dict = API(self.cookies).flow_data.get(key,
+                                                         shop_id=self.shop_id,
+                                                         end_time=next_key)
+        except GBKPermissionError as e:
+            logger.error(f"[ flow_data ] {e}")
+            self.next_uid()
+            self.save(state.SystemDB.SERVICE_STOP)
+            return
         if 'code' not in resp or \
                 ('code' in resp and resp['code'] != 200 and resp['code'] != 0) or \
                 'data' not in resp:
@@ -249,9 +255,15 @@ class ActionFetchTradeData(ActionCycle):
                 f"[ trade_data ] uid:{self.uid}, {key}, page: {self.page} "
                 f"({'%4.2f%%' % ((self.page / self.page_count * 100) if self.page_count is not None else 0)})")
         self.update_shop_id()
-        resp: dict = API(self.cookies).trade_data.get(self.get_timestamp() * 1000,
-                                                      self.get_next_month_timestamp() * 1000,
-                                                      page=self.page, shop_id=self.shop_id)
+        try:
+            resp: dict = API(self.cookies).trade_data.get(self.get_timestamp() * 1000,
+                                                          self.get_next_month_timestamp() * 1000,
+                                                          page=self.page, shop_id=self.shop_id)
+        except GBKPermissionError as e:
+            logger.error(f"[ trade_data ] {e}")
+            self.next_uid()
+            self.save(state.SystemDB.SERVICE_STOP)
+            return
         if 'code' not in resp or ('code' in resp and resp['code'] != 200):
             logger.error(f"[ trade_data ] Resp error: uid:{self.uid}, {key}, page: {self.page}")
             self.next_page()
