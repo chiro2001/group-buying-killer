@@ -38,7 +38,7 @@ class DaemonBean:
         self.shops = db.daemon.load(self.uid, data_type='shops')
         self.shops = self.shops.get('data') if isinstance(self.shops, dict) else None
         self.solution_id = db.daemon.load(self.uid, data_type='solution_id')
-        self.solution_id = self.shops.get('data') if isinstance(self.solution_id, dict) else None
+        self.solution_id = self.solution_id.get('data') if isinstance(self.solution_id, dict) else None
         self.reserve_date = db.daemon.load(self.uid, data_type='reserve_date')
         self.reserve_date = self.reserve_date.get('data') if isinstance(self.reserve_date, dict) else None
         self.reserve_table = db.daemon.load(self.uid, data_type='reserve_table')
