@@ -70,10 +70,13 @@ class Constants:
     RUN_WITH_SYS_TASK_LOG = ENVIRONMENT != 'release'
     RUN_TASKS_DELAYS = {
         'sys_trade_data': 5.3,
-        'sys_flow_data': 15.2
+        'sys_flow_data': 15.2,
+        # 六小时备份
+        'sys_backup': 60 * 60 * 6
     } if ENVIRONMENT == 'release' else {
         'sys_trade_data': 1.5,
-        'sys_flow_data': 5.2
+        'sys_flow_data': 5.2,
+        'sys_backup': 60 * 60 * 6
     }
     # Schedule
     SCHEDULE_JOBSTORES = {
@@ -118,12 +121,19 @@ class Constants:
     LOGIN_SERVER = "ws://gbk-dev.chiro.work/ws" if ENVIRONMENT == 'release' else None
     # Dismiss rebase for multiprocessing
     PROC_DISMISS_REBASE = 'GBK_DB_RUNNING_PID'
+    PROC_DISMISS_COS = 'GBK_COS_RUNNING_PID'
     PROC_DISMISS_DAEMON_INIT = "GBK_DAEMON_RUNNING_PID"
 
 
 class Statics:
     tjw_access_token = TJWSS(Constants.JWT_SECRET_KEY, Constants.JWT_ACCESS_TIME)
     tjw_refresh_token = TJWSS(Constants.JWT_SECRET_KEY, Constants.JWT_REFRESH_TIME)
+    cos_readonly: bool = True
+    cos_secret_id: str = None
+    cos_secret_key: str = None
+    cos_region = 'ap-guangzhou'
+    cos_bucket = 'backup-1254016670'
+
 
 
 class Config:

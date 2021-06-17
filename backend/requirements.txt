@@ -13,3 +13,4 @@ flask-restful
 itsdangerous
 pytz
 websocket-client
+cos-python-sdk-v5

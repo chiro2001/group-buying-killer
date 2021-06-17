@@ -2,3 +2,5 @@
 ./old
 
 secrets.py
+
+./logs/*log*

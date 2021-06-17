@@ -74,6 +74,6 @@ if __name__ == '__main__':
     # db.session.insert('chiro', '3521')
     # logger.info(db.session.find_by_username('chiro'))
     # logger.info(db.session.check_password('chiro', '3521'))
-    db.system.update_service_state(1, 'flow_data', db.system.SERVICE_START, {'uid': 2})
+    db.system.update_service_state(1, 'flow_data', db.system.SERVICE_START)
     print(get_next_exist_id(db.user.col, 'uid', 1))
     print(get_first_exist_id(db.user.col, 'uid'))

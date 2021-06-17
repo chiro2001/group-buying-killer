@@ -1,6 +1,8 @@
 from utils.logger import logger
 import platform
 
+logger.info('GBK starting...')
+
 try:
     import flask.scaffold
 
