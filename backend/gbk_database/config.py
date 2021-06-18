@@ -37,9 +37,10 @@ class Constants:
     # Email
     EMAIL_SENDER = "LanceLiang2018@163.com"
     EMAIL_SMTP_PASSWORD = secrets.SECRET_EMAIL_SMTP_PASSWORD
-    EMAIL_ERROR_TITLE = "chiblog errors"
+    EMAIL_ERROR_TITLE = "gbk errors"
     EMAIL_SMTP_SSL = 'smtp.163.com'
     EMAIL_SMTP_PORT = 465
+    EMAIL_SENDING = True  # ENVIRONMENT == 'release'
     # Users
     USERS_OWNER_PASSWORD = secrets.SECRET_OWNER_PASSWORD
     USERS_OWNER_USERNAME = 'chiro'

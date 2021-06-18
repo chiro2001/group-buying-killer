@@ -52,6 +52,7 @@ import Login from './pages/Login';
 import Tasks from "./pages/Tasks";
 import Predicts from './pages/Predicts';
 import User from './pages/User';
+import ErrorBoundary from './ErrorBondary';
 
 const drawerWidth = 240;
 moment.locale('zh-cn');
@@ -363,56 +364,58 @@ export default function App() {
 
   return (
     <div className={classes.root}>
-      <ThemeProvider theme={store.getState().config.theme}>
-        {content}
-        <Dialog fullWidth open={openUser} onClose={() => { setOpenUser(false); }}>
-          <DialogContent>
-            <User onClose={() => { setOpenUser(false); }}></User>
-          </DialogContent>
-        </Dialog>
-        <Dialog open={errorDialogInfo ? true : false} onClose={() => { setErrorDialogInfo(null); }}>
-          <DialogTitle>遇到错误</DialogTitle>
-          <DialogContent>
-            <Typography variant="body1">错误信息</Typography>
-            <Box component="div">
+      <ErrorBoundary>
+        <ThemeProvider theme={store.getState().config.theme}>
+          {content}
+          <Dialog fullWidth open={openUser} onClose={() => { setOpenUser(false); }}>
+            <DialogContent>
+              <User onClose={() => { setOpenUser(false); }}></User>
+            </DialogContent>
+          </Dialog>
+          <Dialog open={errorDialogInfo ? true : false} onClose={() => { setErrorDialogInfo(null); }}>
+            <DialogTitle>遇到错误</DialogTitle>
+            <DialogContent>
+              <Typography variant="body1">错误信息</Typography>
               <Box component="div">
-                {() => {
-                  if (isIterator(errorDialogInfo) && typeof (errorDialogInfo) !== 'string') {
-                    return <List>
-                      {errorDialogInfo.map((d, i) => <ListItem key={d}>
-                        <code>{JSON.stringify(d) === '{}' ? d.toString() : JSON.stringify(d)}</code>
-                      </ListItem>)}
-                    </List>;
-                  } else {
-                    return <code>{JSON.stringify(errorDialogInfo) === '{}' ? errorDialogInfo.toString() : JSON.stringify(errorDialogInfo)}</code>;
-                  }
-                }}
+                <Box component="div">
+                  {() => {
+                    if (isIterator(errorDialogInfo) && typeof (errorDialogInfo) !== 'string') {
+                      return <List>
+                        {errorDialogInfo.map((d, i) => <ListItem key={d}>
+                          <code>{JSON.stringify(d) === '{}' ? d.toString() : JSON.stringify(d)}</code>
+                        </ListItem>)}
+                      </List>;
+                    } else {
+                      return <code>{JSON.stringify(errorDialogInfo) === '{}' ? errorDialogInfo.toString() : JSON.stringify(errorDialogInfo)}</code>;
+                    }
+                  }}
+                </Box>
               </Box>
-            </Box>
-          </DialogContent>
-          <DialogActions>
-            <Button color="primary" onClick={() => { window.location.reload() }}>刷新</Button>
-            <Button color="primary" onClick={() => { setErrorDialogInfo(null); }}>取消</Button>
-          </DialogActions>
-        </Dialog>
-        <Snackbar
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'right',
-          }}
-          open={myMessage !== null}
-          autoHideDuration={3000}
-          // onClose={(e) => { console.log(e); }}
-          message={myMessage}
-          action={
-            <React.Fragment>
-              <IconButton size="small" aria-label="close" color="inherit" onClick={() => setMyMessage(null)}>
-                <CloseIcon fontSize="small" />
-              </IconButton>
-            </React.Fragment>
-          }
-        />
-      </ThemeProvider>
+            </DialogContent>
+            <DialogActions>
+              <Button color="primary" onClick={() => { window.location.reload() }}>刷新</Button>
+              <Button color="primary" onClick={() => { setErrorDialogInfo(null); }}>取消</Button>
+            </DialogActions>
+          </Dialog>
+          <Snackbar
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'right',
+            }}
+            open={myMessage !== null}
+            autoHideDuration={3000}
+            // onClose={(e) => { console.log(e); }}
+            message={myMessage}
+            action={
+              <React.Fragment>
+                <IconButton size="small" aria-label="close" color="inherit" onClick={() => setMyMessage(null)}>
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </React.Fragment>
+            }
+          />
+        </ThemeProvider>
+      </ErrorBoundary>
     </div >
   );
 }

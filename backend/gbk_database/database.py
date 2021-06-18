@@ -1,4 +1,5 @@
 import os
+import threading
 import time
 # from utils.logger import logger
 from gbk_database.tools import *
@@ -8,6 +9,7 @@ from gbk_session.database import SessionDB
 from gbk_scheduler.task_database import TaskManagerDB
 from gbk_sync.database import SyncDB
 from gbk_daemon.database import DaemonDB
+from utils.error_report import send_report
 
 
 class DataBase:
@@ -58,8 +60,19 @@ class DataBase:
             self.client = pymongo.MongoClient()
         self.db = self.client[Constants.DATABASE_NAME]
 
-    def error_report(self, error):
-        self.db.gbk_bug.insert_one({'time': time.asctime(), 'error': error})
+    def error_report(self, error, error_type: str = 'backend'):
+        try:
+            self.db.gbk_bug.insert_one({'time': time.asctime(), 'error': error, 'error_type': error_type})
+        except Exception as e:
+            logger.error(f'wanna to report err then {e}')
+            self.db.gbk_bug.insert_one({'time': time.asctime(), 'error': str(error), 'error_type': error_type})
+        if Constants.EMAIL_SENDING:
+            send_report(error)
+
+    def start_error_report(self, error, error_type: str = 'backend'):
+        th = threading.Thread(target=self.error_report, args=(error, ), kwargs={'error_type': error_type})
+        th.setDaemon(True)
+        th.start()
 
 
 # 由主进程启动的进程不重新初始化数据库

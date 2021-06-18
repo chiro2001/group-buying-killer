@@ -1,7 +1,8 @@
 import smtplib
 from email.mime.text import MIMEText
 from email.utils import formataddr
-from config import Constants
+
+from gbk_database.config import Constants
 
 
 def send_email(sender: str, password: str, text: str, title_from: str, title_to: str, subject: str):
@@ -13,3 +14,12 @@ def send_email(sender: str, password: str, text: str, title_from: str, title_to:
     server.login(sender, password)  # 括号中对应的是发件人邮箱账号、邮箱密码
     server.sendmail(sender, [sender, ], msg.as_string())  # 括号中对应的是发件人邮箱账号、收件人邮箱账号、发送邮件
     server.quit()  # 关闭连接
+
+
+if __name__ == '__main__':
+    send_email(sender=Constants.EMAIL_SENDER,
+               password=Constants.EMAIL_SMTP_PASSWORD,
+               text="test text",
+               title_from=Constants.EMAIL_ERROR_TITLE,
+               title_to=f'Dear {Constants.OWNER}',
+               subject=f"gbk v{Constants.VERSION}的新bug report")

@@ -1,4 +1,5 @@
 import logging
+import os
 import platform
 
 from colorlog import ColoredFormatter
@@ -13,8 +14,12 @@ def get_logger(name=__name__):
     logger_base = logging.getLogger(name)
     logger_base.setLevel(logging.DEBUG)
     color_formatter = ColoredFormatter('%(log_color)s[%(module)-15s][%(funcName)-15s][%(levelname)-7s] %(message)s')
-    handler = handlers.TimedRotatingFileHandler(filename=LOGGER_FILENAME,
-                                                when=LOGGER_WHEN)
+    try:
+        handler = handlers.TimedRotatingFileHandler(filename=LOGGER_FILENAME,
+                                                    when=LOGGER_WHEN)
+    except FileNotFoundError:
+        handler = handlers.TimedRotatingFileHandler(filename=os.path.join('..', LOGGER_FILENAME),
+                                                    when=LOGGER_WHEN)
     handler.setLevel(logging.DEBUG)
     handler.setFormatter(logging.Formatter('[%(module)-15s][%(funcName)-15s][%(levelname)-7s] %(message)s'))
     logger_base.addHandler(handler)

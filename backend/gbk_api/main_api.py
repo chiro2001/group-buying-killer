@@ -3,6 +3,9 @@ import json
 from flask import Flask, Response
 from flask_cors import CORS
 from flask_restful import Resource, Api
+
+from gbk_error_report.api import ErrorReport
+from utils.error_report import form_report
 from utils.logger import logger
 from utils.docs import get_class_docs
 from utils.make_result import make_result
@@ -71,6 +74,7 @@ add_resource(TriggerName, '/trigger/<string:trigger_type>')
 add_resource(Sync, '/sync')
 add_resource(RemoteLoginAPI, '/remote_login')
 add_resource(DaemonAPI, '/daemon')
+add_resource(ErrorReport, '/error_report')
 if Constants.RUN_WITH_PREDICTS:
     if Constants.RUN_IGNORE_TF_WARNINGS:
         os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -94,10 +98,13 @@ def api_after(res: Response):
             res.data = json.dumps(js).encode()
             if js['code'] != 200:
                 logger.warning(f'response: {js}')
+            if js['code'] == 500:
+                db.start_error_report(js)
         except Exception as e:
             logger.error(e)
             logger.error(f'data: {res.data}')
             res.data = json.dumps(make_result(500, message=f'{e}')[0])
+            db.start_error_report(form_report(e))
             res.status_code = 500
     return res
 
