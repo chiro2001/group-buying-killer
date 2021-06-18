@@ -74,9 +74,9 @@ class Constants:
         # 六小时备份
         'sys_backup': 60 * 60 * 6
     } if ENVIRONMENT == 'release' else {
-        'sys_trade_data': 1.5,
-        'sys_flow_data': 5.2,
-        'sys_backup': 60 * 60 * 6
+        'sys_trade_data': 15,
+        'sys_flow_data': 52,
+        'sys_backup': 60 * 60 * 68
     }
     # Schedule
     SCHEDULE_JOBSTORES = {

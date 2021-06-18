@@ -127,7 +127,7 @@ function ReserveTable(props) {
     // console.log('table', table);
     let rows = [];
     let maxRows = {};
-    let key = 1;
+    // let key = 1;
     for (const periodData of periodIds) {
       const periodId = periodData.id;
       if (!table[periodId]) continue;
@@ -146,12 +146,12 @@ function ReserveTable(props) {
       maxRows[periodId] = index;
     }
     const getCenterTable = (index, maxIndex, content, key) => {
-      return index == (parseInt(maxIndex / 2)) ? (maxIndex % 2 === 1 ? (index === maxIndex - 1 ? <MyTableCell key={`${key}`} align="center" colSpan={1}>{content}</MyTableCell> :
-        <MyTableCell key={`${key}`} align="center" noBorder colSpan={1}>{content}</MyTableCell>) :
-        (index === maxIndex - 1 ? <MyTableCell key={`${key++}`} align="center" colSpan={1}><Box style={{ position: "relative", top: -15 }}>{content}</Box></MyTableCell> :
-          <MyTableCell key={`${key}`} align="center" noBorder colSpan={1}><Box style={{ position: "relative", top: -15 }}>{content}</Box></MyTableCell>)) :
-        (index === maxIndex - 1 ? <MyTableCell key={`${key++}`} align="center" colSpan={1}></MyTableCell> :
-          <MyTableCell key={`${key}`} align="center" colSpan={1} noBorder></MyTableCell>);
+      return index == (parseInt(maxIndex / 2)) ? (maxIndex % 2 === 1 ? (index === maxIndex - 1 ? <MyTableCell key={key} align="center" colSpan={1}>{content}</MyTableCell> :
+        <MyTableCell key={key} align="center" noBorder colSpan={1}>{content}</MyTableCell>) :
+        (index === maxIndex - 1 ? <MyTableCell key={key} align="center" colSpan={1}><Box style={{ position: "relative", top: -15 }}>{content}</Box></MyTableCell> :
+          <MyTableCell key={key} align="center" noBorder colSpan={1}><Box style={{ position: "relative", top: -15 }}>{content}</Box></MyTableCell>)) :
+        (index === maxIndex - 1 ? <MyTableCell key={key} align="center" colSpan={1}></MyTableCell> :
+          <MyTableCell key={key} align="center" colSpan={1} noBorder></MyTableCell>);
     };
     for (const periodData of periodIds) {
       const periodId = periodData.id;
@@ -163,11 +163,11 @@ function ReserveTable(props) {
         // let row = [getCenterTable(index, maxIndex, periodData.id, key++),];
         let row = [getCenterTable(index, maxIndex, <Box component="div" className={classes.foodDesc}>
           {periodData.desc}
-        </Box>, key++),];
+        </Box>, periodId),];
         for (const room of roomList) {
           if (!table[periodId][room.roomName] || !(table[periodId][room.roomName] && table[periodId][room.roomName][index])) {
             for (const i of [0, 1, 2, 3]) {
-              row.push(<MyTableCell key={`${key++}`} colSpan={1}></MyTableCell>);
+              row.push(<MyTableCell key={`${periodId}${room.roomName}${index}-blank-${i}`} colSpan={1}></MyTableCell>);
             }
             continue;
           }
@@ -175,21 +175,21 @@ function ReserveTable(props) {
           const roomItem = table[periodId][room.roomName][index];
           // console.log("roomItem", roomItem);
           // 价格
-          row.push(<MyTableCell key={`${key++}`} align="center" colSpan={1}>{'￥' + roomItem.price}</MyTableCell>);
+          row.push(<MyTableCell key={`${periodId}${room.roomName}${index}-price`} align="center" colSpan={1}>{'￥' + roomItem.price}</MyTableCell>);
           // 说明
-          row.push(<MyTableCell key={`${key++}`} align="center" colSpan={1}>
+          row.push(<MyTableCell key={`${periodId}${room.roomName}${index}-foodDesc`} align="center" colSpan={1}>
             <Box component="div" className={classes.foodDesc}>
               {roomItem.foodDesc}
             </Box>
           </MyTableCell>);
           // 库存
-          row.push(getCenterTable(index, table[periodId][room.roomName] ? table[periodId][room.roomName].length : maxIndex, `${roomItem.stock}间`, key++));
+          row.push(getCenterTable(index, table[periodId][room.roomName] ? table[periodId][room.roomName].length : maxIndex, `${roomItem.stock}间`, `${periodId}${room.roomName}${index}-stock`));
           // 计划
-          // row.push(<MyTableCell key={`${key++}`} align="center" colSpan={1}><Link className={classes.planButton}>计划</Link></MyTableCell>);
-          row.push(<MyTableCell key={`${key++}`} align="center" colSpan={1}>{
+          // row.push(<MyTableCell key={key} align="center" colSpan={1}><Link className={classes.planButton}>计划</Link></MyTableCell>);
+          row.push(<MyTableCell key={`${periodId}${room.roomName}${index}-plan`} align="center" colSpan={1}>{
             (() => {
               let planCount = getTargetTasks({ roomItem }).length;
-              return (<Link key={`${key++}`} onClick={planCount === 0 ? () => {
+              return (<Link onClick={planCount === 0 ? () => {
                 const parent = periodMap[periodId];
                 let roomItemTmp = deepCopy(roomItem);
                 roomItemTmp.parent = parent;
