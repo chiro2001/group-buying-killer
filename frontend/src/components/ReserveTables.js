@@ -89,10 +89,10 @@ export default function ReserveTables(props) {
       aria-label="scrollable auto tabs example"
     >
       {["日", '一', '二', '三', '四', '五', '六'].map((d, i) => {
-        return (<Tab label={'周' + d} key={i} {...a11yProps(i)} />);
+        return (<Tab label={'周' + d} key={d} {...a11yProps(i)} />);
       })}
     </Tabs>
-    {[0, 1, 2, 3, 4, 5, 6].map((d, i) => <TabPanel key={i} value={tabValue} index={d}>
+    {[0, 1, 2, 3, 4, 5, 6].map((d, i) => <TabPanel key={d} value={tabValue} index={d}>
       <ReserveTable day={tabValue}></ReserveTable>
     </TabPanel>)}
   </div>;
@@ -105,7 +105,7 @@ export default function ReserveTables(props) {
           value={tabValue}
           onChange={handleChange}
         >
-          {weekDayList.map((d, i) => <MenuItem key={i} value={i}>{'周' + d}</MenuItem>)}
+          {weekDayList.map((d, i) => <MenuItem key={d} value={i}>{'周' + d}</MenuItem>)}
         </Select>
       </FormControl>
       <IconButton style={{ float: 'right' }} variant="contained" onClick={() => {

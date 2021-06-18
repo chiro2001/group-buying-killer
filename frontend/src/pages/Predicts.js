@@ -36,7 +36,7 @@ function Predicts(props) {
 
   const items = labels.map((v, k) => {
     return useSpan ?
-      <ListItem key={k}>
+      <ListItem key={v}>
         <ListItemText primary={labelShows[v]}></ListItemText>
         <ListItemSecondaryAction>
           <Box>
@@ -53,7 +53,7 @@ function Predicts(props) {
           </Box>
         </ListItemSecondaryAction>
       </ListItem> :
-      <ListItem key={k}>
+      <ListItem key={v}>
         <ListItemText primary={labelShows[v]}></ListItemText>
         <ListItemSecondaryAction>
           <TextField style={{ maxWidth: 90 }} inputProps={{ style: { textAlign: "center" } }} fullWidth value={inputValues[v][0]} onChange={e => {

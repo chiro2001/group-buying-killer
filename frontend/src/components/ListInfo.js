@@ -17,14 +17,14 @@ export default function ListInfo(props) {
           const showName = keyNames ? (keyNames[v] || v) : (v);
           if (!data[v]) return undefined;
           if (typeof (data[v]) === 'object') {
-            return <ListItem key={k} button onClick={() => {
+            return <ListItem key={v} button onClick={() => {
               setChild(data[v]);
               setChildTitle(showName);
               setOpenChild(true);
             }}>{showName}</ListItem>
           } else {
             const s = `${data[v]}`;
-            return <ListItem key={k}>
+            return <ListItem key={v}>
               <ListItemText>{showName}</ListItemText>
               <ListItemSecondaryAction>
                 <Typography variant="body1">{s.slice(0, 20) + (s.length > 20 ? "..." : "")}</Typography>

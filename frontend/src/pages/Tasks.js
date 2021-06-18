@@ -125,7 +125,7 @@ export function TaskList(props) {
   if (targets && targets.roomItem && JSON.stringify(targets.roomItem) !== "{}") console.log('tasks', targets, tasks);
   // if (tasks.length > 0) console.log(tasks, marks);
   return tasks.length > 0 ? <List>
-    {tasks.map((task, k) => marks[k] ? <TaskTag onClick={onClick} onUpdate={onUpdate} key={k} task={task}></TaskTag> : null)}
+    {tasks.map((task, k) => marks[k] ? <TaskTag onClick={onClick} onUpdate={onUpdate} key={task} task={task}></TaskTag> : null)}
   </List> : <List style={{ width: fullWidth ? "100%" : null }}>
     <ListItem>
       <Typography variant="body1" color="textSecondary">空列表</Typography>
@@ -165,7 +165,7 @@ export default function Tasks(props) {
             console.log('Task: onClick', task);
             setTaskDialogUpdate(true);
             setState({ dialogAddTaskOpen: true, addMode: false, task });
-          }} onUpdate={() => { setState({ requestingTasks: false }); }} key={k} task={task}></TaskTag>)}
+          }} onUpdate={() => { setState({ requestingTasks: false }); }} key={v} task={task}></TaskTag>)}
         </List> : <List>
           <ListItem>
             <Typography variant="body1" color="textSecondary">空列表</Typography>

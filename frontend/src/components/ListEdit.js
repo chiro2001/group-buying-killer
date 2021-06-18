@@ -57,7 +57,7 @@ export default function ListEdit(props) {
             value = `${args.type}|${args.value ? args.value : ''}`;
           }
           if (typeof (value) === 'object') {
-            return <ListItem key={k} button onClick={() => {
+            return <ListItem key={v} button onClick={() => {
               setChild(value);
               setChildTitle(showName);
               setOpenChild(true);
@@ -105,7 +105,7 @@ export default function ListEdit(props) {
                   onChange={e => {
                     setTimedeltaUnit(objectUpdate(timedeltaUnit, { [v]: e.target.value }));
                   }} onBlur={updateFixed}>
-                  {Object.keys(timedeltaUnits).map((key, k) => <MenuItem key={k} value={key}>
+                  {Object.keys(timedeltaUnits).map((key, k) => <MenuItem key={key} value={key}>
                     {key}
                   </MenuItem>)}
                 </Select>
@@ -117,7 +117,7 @@ export default function ListEdit(props) {
                 setData({ [v]: newValue });
               }}></TextField>;
             }
-            return <ListItem key={k}>
+            return <ListItem key={v}>
               <ListItemText>{showName}</ListItemText>
               <ListItemSecondaryAction>
                 {actionData}

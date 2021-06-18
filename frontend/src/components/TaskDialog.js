@@ -221,7 +221,7 @@ export default function TaskDialog(props) {
         }}></TextField>
       </ListItem>
       <ListSubheader>触发器列表</ListSubheader>
-      {state.task.triggers.map((trigger, k) => <ListItem key={k}>
+      {state.task.triggers.map((trigger, k) => <ListItem key={trigger}>
         <TriggerTag fullWidth trigger={trigger} onSave={data => {
           console.log('saveing', data);
           let newTask = deepCopy(state.task);
@@ -239,7 +239,7 @@ export default function TaskDialog(props) {
         </ListItemSecondaryAction>
       </ListItem>)}
       <ListSubheader>Actions列表</ListSubheader>
-      {state.task.actions.map((action, k) => <ListItem key={k}>
+      {state.task.actions.map((action, k) => <ListItem key={action}>
         <ActionTag fullWidth action={action} onSave={data => {
           console.log('saveing', data);
           let newTask = deepCopy(state.task);

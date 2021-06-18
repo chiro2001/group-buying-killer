@@ -125,7 +125,7 @@ export default function Triggers(props) {
     content = <Typography variant="body1">正在加载触发器类型...</Typography>
   } else {
     content = <Box style={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}>
-      {Object.keys(triggers).map((trigger_type, k) => <TriggerTag onClick={onClick} key={k} selectMode={selectMode} trigger={triggers[trigger_type]}></TriggerTag>)}
+      {Object.keys(triggers).map((trigger_type, k) => <TriggerTag onClick={onClick} key={trigger_type} selectMode={selectMode} trigger={triggers[trigger_type]}></TriggerTag>)}
     </Box>
   }
   return <Box>

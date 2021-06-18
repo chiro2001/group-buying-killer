@@ -147,7 +147,7 @@ export default function Actions(props) {
     content = <Typography variant="body1">正在加载Action类型...</Typography>
   } else {
     content = <Box style={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}>
-      {Object.keys(actions).map((action_type, k) => <ActionTag targets={targets} onClick={onClick} key={k} selectMode={selectMode} action={actions[action_type]}></ActionTag>)}
+      {Object.keys(actions).map((action_type, k) => <ActionTag targets={targets} onClick={onClick} key={action_type} selectMode={selectMode} action={actions[action_type]}></ActionTag>)}
     </Box>
   }
   return <Box>

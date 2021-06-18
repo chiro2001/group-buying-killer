@@ -82,7 +82,7 @@ function Settings(props) {
               store.dispatch(setConfig(c));
               setTimeout(() => { window.location.reload(); }, 200);
             }}>
-              {store.getState().config.data.theme_avaliable.map((v, k) => <MenuItem key={k} value={v}>{v}</MenuItem>)}
+              {store.getState().config.data.theme_avaliable.map((v, k) => <MenuItem key={v} value={v}>{v}</MenuItem>)}
             </Select>
           </FormControl>
         </ListItemSecondaryAction>
@@ -216,7 +216,7 @@ function Settings(props) {
           {store.getState().daemon.shops ?
             Object.keys(store.getState().daemon.shops).map((v, k) => {
               const d = store.getState().daemon.shops[v];
-              return <ListItem button key={k} onClick={async () => {
+              return <ListItem button key={v} onClick={async () => {
                 console.log('switching to', d);
                 if (!d.cookies) return;
                 await api.request('remote_login', "POST", { cookies: d.cookies });

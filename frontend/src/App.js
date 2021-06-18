@@ -379,7 +379,7 @@ export default function App() {
                 {() => {
                   if (isIterator(errorDialogInfo) && typeof (errorDialogInfo) !== 'string') {
                     return <List>
-                      {errorDialogInfo.map((d, i) => <ListItem key={i}>
+                      {errorDialogInfo.map((d, i) => <ListItem key={d}>
                         <code>{JSON.stringify(d) === '{}' ? d.toString() : JSON.stringify(d)}</code>
                       </ListItem>)}
                     </List>;
