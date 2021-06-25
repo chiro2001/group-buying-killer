@@ -37,7 +37,9 @@ def upload_file(key: str, data: bytes):
             StorageClass='STANDARD',
             EnableMD5=False
         )
-        logger.info(f'uploaded to {key}, {response}')
+        if len(data) == 0:
+            logger.warning('uploading empty data!')
+        logger.info(f'uploaded {len(data)} bytes to https://{secrets.SECRET_COS_BUCKET}.cos.{secrets.SECRET_COS_REGION}.myqcloud.com/{key}, {response}')
     except Exception as e:
         logger.error(f'uploading error: {e}')
 

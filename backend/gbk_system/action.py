@@ -1,5 +1,6 @@
 import multiprocessing
 import os
+import shutil
 import time
 import zipfile
 from io import BytesIO
@@ -12,7 +13,7 @@ from gbk_exceptions import GBKError, GBKPermissionError
 from gbk_scheduler.action import Action, get_first_exist_id
 from gbk_system.database import SystemDB
 from utils.cos_uploader import upload_file
-from utils.files import del_file
+from utils.files import del_file, folder2zip
 from utils.formats import year_month_to_timestamp
 from utils.logger import logger
 
@@ -237,19 +238,24 @@ class ActionBackupData(ActionCycle):
     def run():
         os.chdir('./logs')
         if os.path.exists('dump') and os.path.isdir('dump'):
-            del_file("dump")
+            # del_file("dump")
+            shutil.rmtree('dump')
         os.system(f"mongodump --gzip --uri {secrets.SECRET_MONGO_URI}")
-        # db_name = secrets.SECRET_MONGO_URI.split('/')[-1]
-        # li = os.listdir(os.path.join('dump', db_name))
-        file_data = BytesIO()
-        zip_file = zipfile.ZipFile(file_data, 'w')
-        zip_file.write('dump', compress_type=zipfile.ZIP_DEFLATED)
-        zip_file.close()
-        file_data.seek(0)
-        upload_file(f"mongo/gbk/{time.asctime().replace(' ', '_').replace(':', '-')}.zip",
-                    file_data.read())
+
+        # file_data = BytesIO()
+        # zip_file = zipfile.ZipFile(file_data, 'w')
+        # zip_file.write('dump', compress_type=zipfile.ZIP_DEFLATED)
+        # zip_file.close()
+        # file_data.seek(0)
+        # upload_file(f"mongo/gbk/{time.asctime().replace(' ', '_').replace(':', '-')}.zip",
+        #             file_data.read())
+
+        file_data = folder2zip('dump')
+        upload_file(f"mongo/gbk/{int(time.time())}_{time.asctime().replace(' ', '_').replace(':', '-')}.zip",
+                    file_data)
         if os.path.exists('dump') and os.path.isdir('dump'):
-            del_file("dump")
+            # del_file("dump")
+            shutil.rmtree('dump')
 
     def exec(self):
         p = multiprocessing.Process(target=ActionBackupData.run)
