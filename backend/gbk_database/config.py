@@ -10,14 +10,17 @@ from apscheduler.jobstores.memory import MemoryJobStore
 from apscheduler.executors.pool import ThreadPoolExecutor, ProcessPoolExecutor
 
 
+# 运行时常量
 class Constants:
     # Version info
+    # 版本信息和开发者信息
     VERSION = "0.2.0"
     OWNER = "Chiro"
     EMAIL = "Chiro2001@163.com"
+    # 当前环境判断，['release', 'dev']
     # Environment
     ENVIRONMENT = "release" if platform.system() == 'Linux' else "dev"
-    # Find
+    # Find，默认查找分页块大小
     FIND_LIMIT = 30
     # JWT config
     JWT_SECRET_KEY = secrets.SECRET_WORDS
@@ -25,11 +28,10 @@ class Constants:
     JWT_HEADER_NAME = "Authorization"
     JWT_LOCATIONS = ['headers', ]
     JWT_MESSAGE_401 = f"Authorization required in {', '.join([location for location in JWT_LOCATIONS])}"
-    # JWT_ACCESS_TIME = 60 * 5
-    JWT_ACCESS_TIME = 60 * 50 * 100
-    # JWT_ACCESS_TIME = 1
+    # JWT access_token 认证时间，现在设置为release 5分钟，dev 5000分钟
+    JWT_ACCESS_TIME = (60 * 5) if ENVIRONMENT == 'release' else (60 * 50 * 100)
+    # JWT refresh_token 有效时间，即登录有效时间，暂且设置为100个月
     JWT_REFRESH_TIME = 60 * 60 * 24 * 30 * 100
-    # JWT_REFRESH_TIME = 1
     # Database
     DATABASE_URI = secrets.SECRET_MONGO_URI
     DATABASE_NAME = DATABASE_URI.split('/')[-1]
@@ -40,8 +42,10 @@ class Constants:
     EMAIL_ERROR_TITLE = "gbk errors"
     EMAIL_SMTP_SSL = 'smtp.163.com'
     EMAIL_SMTP_PORT = 465
-    EMAIL_SENDING = True  # ENVIRONMENT == 'release'
+    # release 环境才发消息
+    EMAIL_SENDING = ENVIRONMENT == 'release'
     # Users
+    # 调试用的一个用户，自动加入
     USERS_OWNER_PASSWORD = secrets.SECRET_OWNER_PASSWORD
     USERS_OWNER_USERNAME = 'chiro'
     USERS_OWNER_NICK = 'Chiro'
@@ -57,18 +61,28 @@ class Constants:
         }
     }
     # API config
+    # 总的API Path
     API_PATH = '/api/v2'
-    # Running config
+    # Running config，运行配置
     RUN_LISTENING = "0.0.0.0"
     RUN_PORT = int(os.environ.get("PORT", 8880))
+    # 调试用热重载（并不好用
     RUN_USE_RELOAD = False
+    # 开启时候是否重置数据库
     # RUN_REBASE = True
     RUN_REBASE = False
+    # 是否加载 tensorflow
     RUN_WITH_PREDICTS = ENVIRONMENT == 'release'
     RUN_IGNORE_TF_WARNINGS = True
-    RUN_WITH_DROP_DATA = True
-    # RUN_WITH_SYS_TASK_LOG = True
+    # dev 环境下打开 api 中的删库跑路操作（
+    RUN_WITH_DROP_DATA = ENVIRONMENT == 'dev'
+    # 调试模式下输出系统的TASK信息
     RUN_WITH_SYS_TASK_LOG = ENVIRONMENT != 'release'
+    # 调试模式下忽略这些系统task（是爬虫
+    RUN_DISMISS_TASK = [] if ENVIRONMENT == 'release' else [
+        'sys_trade_data', 'sys_flow_data', 'sys_backup'
+    ]
+    # 系统task运行间隔
     RUN_TASKS_DELAYS = {
         'sys_trade_data': 5.3,
         'sys_flow_data': 15.2,
@@ -80,6 +94,7 @@ class Constants:
         'sys_backup': 60 * 60 * 68
     }
     # Schedule
+    # 配置使用内存做 Job 储存，因为已经在数据库自己实现一套储存结构了
     SCHEDULE_JOBSTORES = {
         # 'default': MongoDBJobStore(
         #     client=(pymongo.MongoClient(DATABASE_URI) if len(DATABASE_URI) > 0 else pymongo.MongoClient)),
@@ -99,6 +114,7 @@ class Constants:
         'timezone': utc
     }
     # Request API
+    # 对外部 API 进行请求的时候的公用参数
     REQUEST_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:86.0) Gecko/20100101 Firefox/86.0"
     # REQUEST_DEBUG_COOKIES = "edper=-qBZL3fxGiq1-SgqKxlawjA90vmkZbHwgpL7h" \
     #                         "UAWDvFX30LKSLwSX6B32fZze_aJrNgBpxt1k2qwS2qiJFpMwQ;"
@@ -115,28 +131,30 @@ class Constants:
     MODULES_RUN_FOREVER = True
     # MODULES_RUN_FOREVER = False
     MODULES_USE_THREAD = False
-    # Remote Login Serverd
+    # Remote Login Server，远程登录用ws服务器，release环境下用远程服务器的
     LOGIN_SERVER_HOST = "127.0.0.1"
     LOGIN_SERVER_PORT = 8881
     LOGIN_SERVER_PROTOCOL = 'ws'
     LOGIN_SERVER = "ws://gbk-dev.chiro.work/ws" if ENVIRONMENT == 'release' else None
     # Dismiss rebase for multiprocessing
+    # 多进程状态下的兼容参数
     PROC_DISMISS_REBASE = 'GBK_DB_RUNNING_PID'
     PROC_DISMISS_COS = 'GBK_COS_RUNNING_PID'
     PROC_DISMISS_DAEMON_INIT = "GBK_DAEMON_RUNNING_PID"
 
 
+# 运行中静态数据
 class Statics:
     tjw_access_token = TJWSS(Constants.JWT_SECRET_KEY, Constants.JWT_ACCESS_TIME)
     tjw_refresh_token = TJWSS(Constants.JWT_SECRET_KEY, Constants.JWT_REFRESH_TIME)
-    cos_readonly: bool = True
+    cos_readonly: bool = True  # 未用
     cos_secret_id: str = None
     cos_secret_key: str = None
     cos_region = 'ap-guangzhou'
     cos_bucket = 'backup-1254016670'
 
 
-
+# 可以及时调整的存在数据库的参数
 class Config:
     def __init__(self):
         self.data_default = {
@@ -145,7 +163,7 @@ class Config:
                 "upgradable": True,
                 "api_prefix": Constants.API_PATH
             },
-            # 调试的时候用
+            # 调试的时候用的静态文件服务器
             "file_server": {
                 "upgradable": True,
                 "static_path": "./public",

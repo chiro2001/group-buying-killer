@@ -85,7 +85,7 @@ class SystemTaskPool:
     """
 
     def __init__(self):
-        self.sys_tasks = sys_tasks
+        self.sys_tasks = {task: sys_tasks[task] for task in sys_tasks if sys_tasks[task] is not None}
 
     def enable(self):
         [self.sys_tasks[task].enable() for task in self.sys_tasks if isinstance(self.sys_tasks[task], Task)]
