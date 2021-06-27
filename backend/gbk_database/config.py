@@ -87,11 +87,14 @@ class Constants:
         'sys_trade_data': 5.3,
         'sys_flow_data': 15.2,
         # 六小时备份
-        'sys_backup': 60 * 60 * 6
+        'sys_backup': 60 * 60 * 6,
+        # 更新库存信息
+        'user_room_stock': 10.2,
+        # 根据库存信息建立任务
+        'user_stock_check': 3
     } if ENVIRONMENT == 'release' else {
-        'sys_trade_data': 15,
-        'sys_flow_data': 52,
-        'sys_backup': 60 * 60 * 68
+        'user_room_stock': 6,
+        'user_stock_check': 3
     }
     # Schedule
     # 配置使用内存做 Job 储存，因为已经在数据库自己实现一套储存结构了

@@ -3,6 +3,5 @@
 
 secrets.py
 
-./logs/*log*
-./logs/*log
-./logs/*.log.*
+*.log*
+*.log

@@ -7,6 +7,7 @@ from apscheduler.triggers.date import DateTrigger
 from apscheduler.triggers.cron import CronTrigger
 from gbk_database.config import Constants
 from gbk_database.database import db
+from gbk_scheduler.trigger import StockTrigger
 from utils.formats import task_data_encode, task_data_decode
 from utils.make_result import limit_list
 from utils.logger import logger
@@ -17,24 +18,28 @@ scheduler = BackgroundScheduler(**Constants.SCHEDULE_CONFIG)
 trigger_types = {
     'interval': IntervalTrigger,
     'date': DateTrigger,
-    'cron': CronTrigger
+    'cron': CronTrigger,
+    'stock': StockTrigger
 }
 
 trigger_names_available = {
     'interval': "间隔触发器",
     'date': "单次触发器",
+    'stock': "库存触发器"
 }
 
 trigger_names = {
     'interval': "间隔触发器",
     'date': "单次触发器",
-    "cron": 'Cron触发器'
+    "cron": 'Cron触发器',
+    'stock': "库存触发器"
 }
 
 trigger_desc = {
     'interval': "能够依照固定时间间隔执行动作。",
     'date': "能在指定时间点执行动作。",
-    "cron": '使用Cron表达式实现复杂的执行规则。'
+    "cron": '使用Cron表达式实现复杂的执行规则。',
+    'stock': "根据实时的库存变化情况来执行动作"
 }
 
 
@@ -73,6 +78,13 @@ trigger_args = {
         # 这个咋弄啊
         'fields': {'value': [], 'editable': False},
         'jitter': {'value': None, 'editable': False}
+    },
+    "stock": {
+        'trigger_type': {'value': 'stock', 'editable': False},
+        'start_date': {'value': trigger_get_info('stock').get('start_date'), 'type': 'datetime', 'editable': True},
+        'end_date': {'value': trigger_get_info('stock').get('end_date'), 'type': 'datetime', 'editable': True},
+        'value': {'value': trigger_get_info('stock').get('value'), 'editable': True},
+        'operator': {'value': '>', 'type': 'select', 'options': ['>', '<', '>=', '<=', '==', '!='], 'editable': True}
     }
 }
 
@@ -104,12 +116,16 @@ action_args = {
 def get_trigger_name_from_dict(trigger: dict):
     if 'data' in trigger:
         trigger = trigger['data']
+    if 'trigger_type' in trigger:
+        return trigger['trigger_type']
     return 'interval' if 'interval' in trigger else 'date' if 'run_date' in trigger else 'cron'
 
 
 def get_trigger_name_from_instance(trigger):
-    return 'interval' if isinstance(trigger, IntervalTrigger) else 'date' if isinstance(trigger,
-                                                                                        DateTrigger) else 'cron'
+    return 'interval' if isinstance(trigger, IntervalTrigger) \
+        else 'date' if isinstance(trigger, DateTrigger) \
+        else 'cron' if isinstance(trigger, CronTrigger) \
+        else 'stock'
 
 
 class Task:
@@ -123,6 +139,12 @@ class Task:
         self.task_name = name if name is not None else self.get_name_by_actions()
         self._name = name
         self.jobs = []
+
+    def get_triggers_by_class(self, classobj):
+        return [trigger for trigger in self.triggers if isinstance(trigger, classobj)]
+
+    def get_actions_by_class(self, classobj):
+        return [action for action in self.actions if isinstance(action, classobj)]
 
     def get_name_by_actions(self):
         return '_'.join(
@@ -241,6 +263,9 @@ class TaskManager:
             if task.tid == tid:
                 return task
         return None
+
+    def find_task_by_trigger_class(self, classobj):
+        return [task for task in self.tasks if len(task.get_triggers_by_class(classobj)) > 0]
 
     def add_task(self, task: Task):
         # logger.warning(f'before insert {self}, {task}')

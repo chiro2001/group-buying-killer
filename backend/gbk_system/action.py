@@ -7,10 +7,14 @@ from io import BytesIO
 
 import secrets
 from data_apis.api import API
+from gbk_daemon.daemon import DaemonBean, daemon
 from gbk_database.database import db, Constants
 from gbk_database.tools import get_next_exist_id
 from gbk_exceptions import GBKError, GBKPermissionError
-from gbk_scheduler.action import Action, get_first_exist_id
+from gbk_scheduler.action import Action, get_first_exist_id, ActionPriceAdjust
+from gbk_scheduler.task import TaskManager
+# from gbk_scheduler.task_pool import task_pool
+from gbk_scheduler.trigger import StockTrigger
 from gbk_system.database import SystemDB
 from utils.cos_uploader import upload_file
 from utils.files import del_file, folder2zip
@@ -161,7 +165,7 @@ class ActionFetchFlowData(ActionCycle):
             logger.error(f"[ flow_data ] {e}")
             self.next_uid()
             self.save(state=SystemDB.SERVICE_STOP)
-            return
+            raise e
         if 'code' not in resp or \
                 ('code' in resp and resp['code'] != 200 and resp['code'] != 0) or \
                 'data' not in resp:
@@ -169,7 +173,7 @@ class ActionFetchFlowData(ActionCycle):
             logger.debug(resp)
             self.next_month()
             self.save(state=SystemDB.SERVICE_STOP)
-            return
+            raise GBKPermissionError()
         db.spider.save(self.uid, {
             'flow_data': resp['data'],
             'task_data': self.__getstate__()
@@ -203,12 +207,12 @@ class ActionFetchTradeData(ActionCycle):
             logger.error(f"[ trade_data ] {e}")
             self.next_uid()
             self.save(state=SystemDB.SERVICE_STOP)
-            return
+            raise e
         if 'code' not in resp or ('code' in resp and resp['code'] != 200):
             logger.error(f"[ trade_data ] Resp error: uid:{self.uid}, {key}, page: {self.page}")
             self.next_page()
             self.save(state=SystemDB.SERVICE_STOP)
-            return
+            raise GBKPermissionError()
         try:
             trade_data_list = resp['data']['itemList']
             self.page_count = resp['data']['pageCount']
@@ -260,3 +264,96 @@ class ActionBackupData(ActionCycle):
     def exec(self):
         p = multiprocessing.Process(target=ActionBackupData.run)
         p.start()
+
+
+class ActionUpdateStockData(ActionCycle):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs, service_type='stock')
+
+    def exec(self):
+        new_service_info = db.system.get_service_info(self.service_type)
+        if new_service_info['state'] != SystemDB.SERVICE_STOP and Constants.RUN_WITH_SYS_TASK_LOG:
+            logger.warning(f"[ stock ] uid:{self.uid} ( SKIP )")
+            self.next_uid()
+            self.save(state=SystemDB.SERVICE_STOP)
+            return
+        self.save(state=SystemDB.SERVICE_RUNNING)
+        if Constants.RUN_WITH_SYS_TASK_LOG:
+            logger.warning(f"[ stock ] uid:{self.uid}")
+        d: DaemonBean = daemon.get_daemon(self.uid)
+        if self.cookies is None:
+            self.cookies = d.cookies
+            if self.cookies is None:
+                self.update_shop_id()
+        try:
+            resp: dict = d.get_api().room_stock.get_room_stock()
+        except GBKPermissionError as e:
+            logger.error(f"[ stock ] {e}")
+            self.next_uid()
+            self.save(state=SystemDB.SERVICE_STOP)
+            raise e
+        if 'code' not in resp or ('code' in resp and resp['code'] != 200) or 'data' not in resp:
+            logger.error(f"[ stock ] Resp error: uid:{self.uid}")
+            logger.debug(resp)
+            self.next_uid()
+            self.save(state=SystemDB.SERVICE_STOP)
+            raise GBKPermissionError()
+        d.room_stock = {
+            'room_stock': resp['data'],
+            'task_data': self.__getstate__()
+        }
+        d.save('room_stock')
+        self.next_uid()
+        self.save(state=SystemDB.SERVICE_STOP)
+
+
+class ActionRoomStockCheck(ActionCycle):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs, service_type='stock_check')
+
+    # @staticmethod
+    # def check_one(uid: int, api: API, manager: TaskManager = None):
+    #     if manager is None:
+    #         manager = task_pool.get_manager(uid)
+    #     if manager is None:
+    #         logger.warning(f"[ stock_check ] uid:{uid} ( NO MANAGER )")
+    #         return
+    #     # 找到根据库存调整的任务
+    #     for task in manager.find_task_by_trigger_class(StockTrigger):
+    #         # 找到对应Actions
+    #         actions: list = task.get_actions_by_class(ActionPriceAdjust)
+
+    # 需要在一次执行过程中检查所有用户的库存信息
+    # 对需要执行任务的房间，建立价格调整任务
+    def exec(self):
+        new_service_info = db.system.get_service_info(self.service_type)
+        if new_service_info['state'] != SystemDB.SERVICE_STOP and Constants.RUN_WITH_SYS_TASK_LOG:
+            logger.warning(f"[ stock_check ] ( SKIP )")
+            self.save(state=SystemDB.SERVICE_STOP)
+            return
+        self.save(state=SystemDB.SERVICE_RUNNING)
+        # if Constants.RUN_WITH_SYS_TASK_LOG:
+        #     logger.warning(f"[ stock_check ]")
+        # d: DaemonBean = daemon.get_daemon(self.uid)
+        # if self.cookies is None:
+        #     self.cookies = d.cookies
+        #     if self.cookies is None:
+        #         self.update_shop_id()
+        # try:
+        #     resp: dict = d.get_api().room_stock.get_room_stock()
+        # except GBKPermissionError as e:
+        #     logger.error(f"[ stock ] {e}")
+        #     self.save(state=SystemDB.SERVICE_STOP)
+        #     raise e
+        # if 'code' not in resp or ('code' in resp and resp['code'] != 200) or 'data' not in resp:
+        #     logger.error(f"[ stock ] Resp error: uid:{self.uid}")
+        #     logger.debug(resp)
+        #     self.save(state=SystemDB.SERVICE_STOP)
+        #     raise GBKPermissionError()
+        # d.room_stock = {
+        #     'room_stock': resp['data'],
+        #     'task_data': self.__getstate__()
+        # }
+        # d.save('room_stock')
+        # self.next_uid()
+        self.save(state=SystemDB.SERVICE_STOP)
