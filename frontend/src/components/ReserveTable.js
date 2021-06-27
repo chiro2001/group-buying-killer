@@ -190,7 +190,9 @@ function ReserveTable(props) {
             (() => {
               let planCount = getTargetTasks({ roomItem }).length;
               return (<Link onClick={planCount === 0 ? () => {
-                const parent = periodMap[periodId];
+                let parent = periodMap[periodId];
+                parent.date = date;
+                parent.day = day;
                 let roomItemTmp = deepCopy(roomItem);
                 roomItemTmp.parent = parent;
                 setRoomItemNow(roomItemTmp);
