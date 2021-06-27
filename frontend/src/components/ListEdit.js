@@ -56,6 +56,7 @@ export default function ListEdit(props) {
           if ((!value && typeof (value) !== "number") && dataType && typeName && args) {
             value = `${args.type}|${args.value ? args.value : ''}`;
           }
+          console.log('v', v, 'args', args, 'value', value);
           if (typeof (value) === 'object') {
             return <ListItem key={v} button onClick={() => {
               setChild(value);
@@ -110,6 +111,16 @@ export default function ListEdit(props) {
                   </MenuItem>)}
                 </Select>
               </Box>
+            } else if (args.type === 'select' && args.options) {
+              actionData = <Box style={{ display: "flex", flexDirection: 'row', justifyItems: 'center', justifyContent: 'center', alignContent: 'center'}}>
+                <Box>设定值</Box>
+                <Select value={value} onChange={e => {
+                  setData({ [v]: e.target.value });
+                }}>
+                  {Object.keys(args.options).map(key => <MenuItem key={key} value={key}>{args.options[key]}</MenuItem>)}
+                </Select>
+                <Box>库存量</Box>
+              </Box>;
             } else {
               actionData = <TextField value={`${value}`} onChange={e => {
                 const newValue = typeof (value) === "number" ? getNewNumberString(e.target.value) : `${value}`;
