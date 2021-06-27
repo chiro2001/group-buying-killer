@@ -332,9 +332,10 @@ class ActionRoomStockCheck(ActionCycle):
         for task in manager.find_task_by_trigger_class(StockTrigger):
             # 找到对应Actions
             actions: list = task.get_actions_by_class(ActionPriceAdjust)
-            print(actions)
+            print(actions[0].__getstate__())
 
-    def start_branch(self):
+    @staticmethod
+    def start_branch():
         # 获取所有uid
         uid_cnt = get_current_id(db.user.d.user_uid, "cnt_uid")
         ths = []

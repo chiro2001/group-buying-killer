@@ -25,7 +25,10 @@ export default class ErrorBoundary extends React.Component {
     if (this.state.error) {
       const content = (this.state.requesting && !this.state.requested) ?
         <div style={{ color: 'orange' }}>正在收集数据并且上报开发者...</div> :
-        <div style={{ color: 'green' }}>错误数据上报完成！<br />你可以选择：<a href="/">回到主页</a></div>;
+        <div style={{ color: 'green' }}>错误数据上报完成！<div>
+          {window.location.hash === '#/' ? null : <div><br />你可以选择：<a href="/">回到主页</a></div>}
+        </div>
+        </div>;
       return <div>
         <b><h3>很抱歉</h3></b>
         <p>页面崩溃了！</p>

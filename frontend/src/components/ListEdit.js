@@ -56,7 +56,7 @@ export default function ListEdit(props) {
           if ((!value && typeof (value) !== "number") && dataType && typeName && args) {
             value = `${args.type}|${args.value ? args.value : ''}`;
           }
-          console.log('v', v, 'args', args, 'value', value);
+          // console.log('v', v, 'args', args, 'value', value);
           if (typeof (value) === 'object') {
             return <ListItem key={v} button onClick={() => {
               setChild(value);

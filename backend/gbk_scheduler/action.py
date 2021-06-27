@@ -69,10 +69,12 @@ class ActionPriceAdjust(Action):
         resp = api.ktv.update_price(item_id=self.item_id, price=self.target_price)
         logger.debug(f'{self.get_self_name()}: resp = {resp}')
 
-    def __setstate__(self, state):
+    def __setstate__(self, state: dict):
         super(ActionPriceAdjust, self).__setstate__(state)
         self.target_price = state.get('target_price')
         self.item_id = state.get('item_id')
+        self.periodDesc = state.get('periodDesc')
+        self.roomName = state.get('roomName')
 
 
 action_types = {

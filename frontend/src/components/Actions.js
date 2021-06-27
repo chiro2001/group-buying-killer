@@ -80,6 +80,7 @@ export function ActionTag(props) {
   let { action, selectMode, onClick, onSave, fullWidth, targets } = props;
   const [dialogOpen, setDialogOpen] = React.useState(false);
   // console.log('targets', targets);
+  console.log('action', action);
   const [actionTemp, setActionTemp] = React.useState((() => {
     if (action.data.action_type === "adjust_price" && targets && targets.roomItem) {
       let tmp = deepCopy(action);
@@ -116,6 +117,10 @@ export function ActionTag(props) {
         onSave={newData => {
           let newAction = deepCopy(action);
           newAction.data = newData;
+          // if (action_type === 'adjust_price' && actions && actions.roomItem && targets.roomItem.parent) {
+          //   newAction.data.periodDesc = targets.roomItem.parent.periodDesc;
+          //   newAction.data.roomName = targets.roomItem.parent.roomType;
+          // }
           console.log('newData', newData);
           onSave && onSave(newAction);
           handleCloseDialog();
@@ -137,7 +142,7 @@ export default function Actions(props) {
   const [requesting, setRequesting] = React.useState(false);
   const [ignored, forceUpdate] = React.useReducer(x => x + 1, 0);
   const actions = store.getState().types.actions;
-  // console.log('targets', targets);
+  console.log('targets', targets);
   if (!actions && !requesting) {
     setRequesting(true);
     updateActionData().then(() => { forceUpdate(); });
@@ -149,11 +154,14 @@ export default function Actions(props) {
   } else {
     console.log(actions);
     content = <Box style={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}>
-      {Object.keys(actions).map((action_type, k) => <ActionTag targets={targets} onClick={onClick} key={action_type} selectMode={selectMode} action={(action_type === 'adjust_price' && actions && actions.roomItem && targets.roomItem.parent) ? 
-      Object.assign(actions[action_type], {data: Object.assign(actions[action_type].data, {
-        periodDesc: targets.roomItem.parent.periodDesc,
-        roomName: targets.roomItem.roomType
-      })}): actions[action_type]}></ActionTag>)}
+      {Object.keys(actions).map((action_type, k) => <ActionTag targets={targets} onClick={onClick} key={action_type} selectMode={selectMode} action={(action_type === 'adjust_price' && targets && targets.roomItem && targets.roomItem.parent) ?
+        (() => {
+          let newAction = deepCopy(actions[action_type]);
+          newAction.data.periodDesc = targets.roomItem.parent.periodDesc;
+          newAction.data.roomName = targets.roomItem.roomType;
+          console.log('newAction', newAction);
+          return newAction;
+        })() : actions[action_type]}></ActionTag>)}
     </Box>
   }
   return <Box>
