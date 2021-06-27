@@ -182,8 +182,8 @@ def get_next_id(col: pymongo.collection.Collection, id_name: str) -> int:
 
 def get_current_id(col: pymongo.collection.Collection, id_name: str) -> int:
     ret = col.find_one({"_id": id_name})
-    new_id = ret["sequence_value"]
-    return new_id
+    cnt_id = ret["sequence_value"]
+    return cnt_id
 
 
 def get_next_exist_id(col: pymongo.collection.Collection, id_name: str, now: int) -> int:

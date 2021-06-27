@@ -56,6 +56,9 @@ class ActionPriceAdjust(Action):
         if self.item_id is None:
             logger.warning('got empty item_id')
             self.item_id = 0
+        # TODO: 设置ActionPrice时候需要设置额外参数
+        self.periodDesc: str = kwargs.get('periodDesc')
+        self.roomName: str = kwargs.get('roomName')
 
     def exec(self):
         logger.info(f'adjusting price to {self.target_price}')

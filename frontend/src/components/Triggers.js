@@ -12,7 +12,9 @@ const keyNames = {
   'start_date': "开始时间",
   'end_date': '结束时间',
   "interval": "间隔",
-  "run_date": '运行时间'
+  "run_date": '运行时间',
+  'value': '设置值',
+  'operator': '比较方式'
 };
 
 export function updateTriggerData(callback) {
@@ -119,7 +121,7 @@ export default function Triggers(props) {
     setRequesting(true);
     updateTriggerData().then(() => { forceUpdate(); });
   }
-  // console.log('types', store.getState().types)
+  console.log('types', store.getState().types)
   let content = null;
   if (!triggers) {
     content = <Typography variant="body1">正在加载触发器类型...</Typography>

@@ -1,6 +1,7 @@
 import multiprocessing
 import os
 import shutil
+import threading
 import time
 import zipfile
 from io import BytesIO
@@ -9,7 +10,7 @@ import secrets
 from data_apis.api import API
 from gbk_daemon.daemon import DaemonBean, daemon
 from gbk_database.database import db, Constants
-from gbk_database.tools import get_next_exist_id
+from gbk_database.tools import get_next_exist_id, get_current_id
 from gbk_exceptions import GBKError, GBKPermissionError
 from gbk_scheduler.action import Action, get_first_exist_id, ActionPriceAdjust
 from gbk_scheduler.task import TaskManager
@@ -311,17 +312,39 @@ class ActionRoomStockCheck(ActionCycle):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs, service_type='stock_check')
 
-    # @staticmethod
-    # def check_one(uid: int, api: API, manager: TaskManager = None):
-    #     if manager is None:
-    #         manager = task_pool.get_manager(uid)
-    #     if manager is None:
-    #         logger.warning(f"[ stock_check ] uid:{uid} ( NO MANAGER )")
-    #         return
-    #     # 找到根据库存调整的任务
-    #     for task in manager.find_task_by_trigger_class(StockTrigger):
-    #         # 找到对应Actions
-    #         actions: list = task.get_actions_by_class(ActionPriceAdjust)
+    @staticmethod
+    def check_one(uid: int, api: API = None, manager: TaskManager = None):
+        logger.info(f'uid: {uid}')
+        d: DaemonBean = daemon.get_daemon(uid)
+        if d is not None:
+            api = d.get_api()
+        if api is None:
+            logger.warning(f'[ stock_check_one ] uid:{uid} got empty api!')
+            return
+        from gbk_scheduler.task_pool import task_pool
+        if manager is None:
+            manager = task_pool.get_manager(uid)
+        if manager is None:
+            logger.warning(f"[ stock_check_one ] uid:{uid} ( NO MANAGER )")
+            print(task_pool)
+            return
+        # 找到根据库存调整的任务
+        for task in manager.find_task_by_trigger_class(StockTrigger):
+            # 找到对应Actions
+            actions: list = task.get_actions_by_class(ActionPriceAdjust)
+            print(actions)
+
+    def start_branch(self):
+        # 获取所有uid
+        uid_cnt = get_current_id(db.user.d.user_uid, "cnt_uid")
+        ths = []
+        for uid in range(1, uid_cnt + 1):
+            t = threading.Thread(target=ActionRoomStockCheck.check_one, args=(uid,))
+            t.setDaemon(True)
+            t.start()
+            ths.append(t)
+        for t in ths:
+            t.join()
 
     # 需要在一次执行过程中检查所有用户的库存信息
     # 对需要执行任务的房间，建立价格调整任务
@@ -332,8 +355,11 @@ class ActionRoomStockCheck(ActionCycle):
             self.save(state=SystemDB.SERVICE_STOP)
             return
         self.save(state=SystemDB.SERVICE_RUNNING)
-        # if Constants.RUN_WITH_SYS_TASK_LOG:
-        #     logger.warning(f"[ stock_check ]")
+        if Constants.RUN_WITH_SYS_TASK_LOG:
+            logger.warning(f"[ stock_check ]")
+
+        self.start_branch()
+
         # d: DaemonBean = daemon.get_daemon(self.uid)
         # if self.cookies is None:
         #     self.cookies = d.cookies

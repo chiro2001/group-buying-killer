@@ -28,6 +28,8 @@ trigger_names_available = {
     'stock': "库存触发器"
 }
 
+trigger_names_time = ['interval', 'date', 'cron']
+
 trigger_names = {
     'interval': "间隔触发器",
     'date': "单次触发器",
@@ -84,7 +86,11 @@ trigger_args = {
         'start_date': {'value': trigger_get_info('stock').get('start_date'), 'type': 'datetime', 'editable': True},
         'end_date': {'value': trigger_get_info('stock').get('end_date'), 'type': 'datetime', 'editable': True},
         'value': {'value': trigger_get_info('stock').get('value'), 'editable': True},
-        'operator': {'value': '>', 'type': 'select', 'options': ['>', '<', '>=', '<=', '==', '!='], 'editable': True}
+        'operator': {'value': '>', 'type': 'select',
+                     'options': {
+                         '>': '大于', '<': '小于', '>=': '大于等于', '<=': '小于等于', '==': '等于', '!=': '不等于'
+                     },
+                     'editable': True}
     }
 }
 
@@ -96,6 +102,8 @@ action_args = {
         'uid': {'value': None, 'editable': False},
         'item_id': {'value': 0, 'editable': True},
         'target_price': {'value': 0, 'editable': True},
+        'periodDesc': {'value': None, 'editable': False},
+        'roomName': {'value': None, 'editable': False}
     },
     'base': {
         'action_type': {'value': 'base', 'editable': False},
@@ -160,11 +168,15 @@ class Task:
                 trigger_the_args = self.triggers[j].__getstate__()
                 if 'version' in trigger_the_args:
                     del trigger_the_args['version']
-                job = scheduler.add_job(self.actions[i].exec, self.triggers[j])
-                # logger.warning(f'trigger: {self.triggers[j]}')
-                # logger.warning(f'trigger_args: {trigger_args}')
-                # logger.warning(f'job: {job}')
-                self.jobs.append(job)
+                if 'trigger_type' not in trigger_the_args or \
+                        ('trigger_type' in trigger_the_args and trigger_the_args['trigger_type'] in trigger_names_time):
+                    job = scheduler.add_job(self.actions[i].exec, self.triggers[j])
+                    # logger.warning(f'trigger: {self.triggers[j]}')
+                    # logger.warning(f'trigger_args: {trigger_args}')
+                    # logger.warning(f'job: {job}')
+                    self.jobs.append(job)
+                else:
+                    logger.warning(f'trigger that need not a scheduler: {trigger_the_args}')
         # logger.warning(f'enable jobs: {self.jobs}')
         return self
 
