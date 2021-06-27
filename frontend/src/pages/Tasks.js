@@ -34,9 +34,14 @@ function TaskTag(props) {
     if (!onClick) return;
     let taskOrigin = deepCopy(task);
     console.log('task before', taskOrigin);
-    const taskWrapped = await wrapTask(taskOrigin);
-    console.log('task after', taskWrapped);
-    taskWrapped && onClick && onClick(taskWrapped);
+    try {
+      // TODO: fix 任务修改界面
+      const taskWrapped = await wrapTask(taskOrigin);
+      console.log('task after', taskWrapped);
+      taskWrapped && onClick && onClick(taskWrapped);
+    } catch (e) {
+      console.log();
+    }
   }}>
     <ListItemText>
       <Box>

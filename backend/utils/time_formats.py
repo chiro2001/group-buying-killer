@@ -17,6 +17,16 @@ def get_date_today() -> str:
 
 def get_date_tomorrow(date_now=None) -> str:
     if date_now is None:
-        return get_timestamp_date(datetime.datetime.today().timestamp() + 60 * 60 * 24)
+        return get_timestamp_date(1000 * (datetime.datetime.today().timestamp() + 60 * 60 * 24))
     else:
-        return get_timestamp_date(get_date_timestamp(date_now) + 60 * 60 * 24)
+        return get_timestamp_date(1000 * (get_date_timestamp(date_now) + 60 * 60 * 24))
+
+
+def get_next_week_date(day: int) -> str:
+    day_now = datetime.datetime.now().weekday()
+    if day == day_now:
+        return get_timestamp_date(1000 * datetime.datetime.today().timestamp())
+    if day > day_now:
+        return get_timestamp_date(1000 * (datetime.datetime.today().timestamp() + 60 * 60 * 24 * (day - day_now)))
+    # day < day_now
+    return get_timestamp_date(1000 * (datetime.datetime.today().timestamp() + 60 * 60 * 24 * (day - day_now + 7)))

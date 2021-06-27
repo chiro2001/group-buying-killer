@@ -58,10 +58,12 @@ function getDataString(data, typeName, dataType) {
     if (args && !args.editable) continue;
     let value = data[key];
     if (!value) continue;
-    if (value.startsWith("datetime|")) {
-      value = moment(value.slice('datetime|'.length)).calendar();
-    } else if (value.startsWith('timedelta|')) {
-      value = getTimedeltaString(parseFloat(value.slice('timedelta|'.length)));
+    if (typeof(value) === 'string') {
+      if (value.startsWith("datetime|")) {
+        value = moment(value.slice('datetime|'.length)).calendar();
+      } else if (value.startsWith('timedelta|')) {
+        value = getTimedeltaString(parseFloat(value.slice('timedelta|'.length)));
+      }
     }
     res = `${(res.length === 0 ? '' : (res + '/'))}${showName}:${value}`
   }

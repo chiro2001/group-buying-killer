@@ -111,8 +111,8 @@ export default function ListEdit(props) {
                   </MenuItem>)}
                 </Select>
               </Box>
-            } else if (args.type === 'select' && args.options) {
-              actionData = <Box style={{ display: "flex", flexDirection: 'row', justifyItems: 'center', justifyContent: 'center', alignContent: 'center'}}>
+            } else if (args && args.type === 'select' && args.options) {
+              actionData = <Box style={{ display: "flex", flexDirection: 'row', justifyItems: 'center', justifyContent: 'center', alignContent: 'center' }}>
                 <Box>设定值</Box>
                 <Select value={value} onChange={e => {
                   setData({ [v]: e.target.value });

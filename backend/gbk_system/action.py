@@ -21,6 +21,7 @@ from utils.cos_uploader import upload_file
 from utils.files import del_file, folder2zip
 from utils.formats import year_month_to_timestamp
 from utils.logger import logger
+from utils.time_formats import get_date_today, get_next_week_date, get_timestamp_date
 
 
 class ActionCycle(Action):
@@ -308,6 +309,47 @@ class ActionUpdateStockData(ActionCycle):
         self.save(state=SystemDB.SERVICE_STOP)
 
 
+class ActionUpdateStockData(ActionCycle):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs, service_type='stock')
+
+    def exec(self):
+        new_service_info = db.system.get_service_info(self.service_type)
+        if new_service_info['state'] != SystemDB.SERVICE_STOP and Constants.RUN_WITH_SYS_TASK_LOG:
+            logger.warning(f"[ stock ] uid:{self.uid} ( SKIP )")
+            self.next_uid()
+            self.save(state=SystemDB.SERVICE_STOP)
+            return
+        self.save(state=SystemDB.SERVICE_RUNNING)
+        if Constants.RUN_WITH_SYS_TASK_LOG:
+            logger.warning(f"[ stock ] uid:{self.uid}")
+        d: DaemonBean = daemon.get_daemon(self.uid)
+        if self.cookies is None:
+            self.cookies = d.cookies
+            if self.cookies is None:
+                self.update_shop_id()
+        try:
+            resp: dict = d.get_api().room_stock.get_room_stock()
+        except GBKPermissionError as e:
+            logger.error(f"[ stock ] {e}")
+            self.next_uid()
+            self.save(state=SystemDB.SERVICE_STOP)
+            raise e
+        if 'code' not in resp or ('code' in resp and resp['code'] != 200) or 'data' not in resp:
+            logger.error(f"[ stock ] Resp error: uid:{self.uid}")
+            logger.debug(resp)
+            self.next_uid()
+            self.save(state=SystemDB.SERVICE_STOP)
+            raise GBKPermissionError()
+        d.room_stock = {
+            'room_stock': resp['data'],
+            'task_data': self.__getstate__()
+        }
+        d.save('room_stock')
+        self.next_uid()
+        self.save(state=SystemDB.SERVICE_STOP)
+
+
 class ActionRoomStockCheck(ActionCycle):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs, service_type='stock_check')
@@ -321,6 +363,19 @@ class ActionRoomStockCheck(ActionCycle):
         if api is None:
             logger.warning(f'[ stock_check_one ] uid:{uid} got empty api!')
             return
+        if d.room_stock is None:
+            logger.warning(f'[ stock_check_one ] uid:{uid} got empty room stock data!')
+            return
+        # date_today = get_date_today()
+        # changed: bool = False
+        # if d.reserve_table is None:
+        #     d.reserve_table = {date_today: api.ktv.get_reserve_table(date=date_today)}
+        #     changed = True
+        # if date_today not in d.reserve_table:
+        #     d.reserve_table[date_today] = api.ktv.get_reserve_table(date=date_today)
+        #     changed = True
+        # if changed:
+        #     d.save('reserve_table')
         from gbk_scheduler.task_pool import task_pool
         if manager is None:
             manager = task_pool.get_manager(uid)
@@ -328,11 +383,68 @@ class ActionRoomStockCheck(ActionCycle):
             logger.warning(f"[ stock_check_one ] uid:{uid} ( NO MANAGER )")
             print(task_pool)
             return
+
+        def find_room_from_stock(stocks: list, date: str, period_desc_: str, room_name: str):
+            for daily_stock in stocks:
+                reserve_date = get_timestamp_date(daily_stock['reserveDate'])
+                if reserve_date == date:
+                    for period_stock in daily_stock['periodStockList']:
+                        if period_stock['periodDesc'] == period_desc_:
+                            for room_stock in period_stock['roomStockList']:
+                                if room_stock['roomName'] == room_name:
+                                    return room_stock
+            return None
+
+        def check_stock_trigger(stock_trigger: StockTrigger, stock: dict):
+            if stock_trigger.operator == '<':
+                return stock_trigger.value < stock['remainCount']
+            elif stock_trigger.operator == '>':
+                return stock_trigger.value > stock['remainCount']
+            elif stock_trigger.operator == '==':
+                return stock_trigger.value == stock['remainCount']
+            elif stock_trigger.operator == '<=':
+                return stock_trigger.value <= stock['remainCount']
+            elif stock_trigger.operator == '>=':
+                return stock_trigger.value >= stock['remainCount']
+            elif stock_trigger.operator == '!=':
+                return stock_trigger.value != stock['remainCount']
+            logger.warning(f'[ stock_check_one ] uid:{uid}, check_failed!')
+            return False
+
         # 找到根据库存调整的任务
         for task in manager.find_task_by_trigger_class(StockTrigger):
             # 找到对应Actions
             actions: list = task.get_actions_by_class(ActionPriceAdjust)
-            print(actions[0].__getstate__())
+            triggers: list = task.get_triggers_by_class(StockTrigger)
+            # 通过 Action 找 RoomStock
+            for action in actions:
+                # action = ActionPriceAdjust()
+                if not isinstance(action, ActionPriceAdjust):
+                    continue
+                if action.day is None:
+                    logger.warning(f'[ stock_check_one ] uid:{uid}, got empty day!')
+                    continue
+                next_date: int = get_next_week_date(action.day)
+                logger.info(f'next_date: {next_date}')
+                period_desc: str = action.periodDesc[:-2] if action.periodDesc.endswith('包段') else action.periodDesc
+                logger.info(f'period_desc: {period_desc}')
+                # 在 room_stock 中找到对应的 StockItem
+                stock = find_room_from_stock(d.room_stock['room_stock']['dailyStockList'], next_date, period_desc,
+                                             action.roomName)
+                if stock is None:
+                    logger.warning(f'[ stock_check_one ] uid:{uid}, got empty stock!')
+                to_adjust: bool = False
+                for trigger in triggers:
+                    if not check_stock_trigger(trigger, stock):
+                        logger.info(f'[ stock_check_one ] uid:{uid}, not to adjust...')
+                        continue
+                    else:
+                        logger.info(f'[ stock_check_one ] uid:{uid}, to adjust...')
+                        to_adjust = True
+                if to_adjust:
+                    # TODO: 调整价格之后记录调整状态
+                    # action.exec()
+                    pass
 
     @staticmethod
     def start_branch():

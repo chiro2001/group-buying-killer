@@ -159,6 +159,8 @@ export default function Actions(props) {
           let newAction = deepCopy(actions[action_type]);
           newAction.data.periodDesc = targets.roomItem.parent.periodDesc;
           newAction.data.roomName = targets.roomItem.roomType;
+          newAction.data.date = targets.roomItem.parent.date;
+          newAction.data.day = targets.roomItem.parent.day;
           console.log('newAction', newAction);
           return newAction;
         })() : actions[action_type]}></ActionTag>)}

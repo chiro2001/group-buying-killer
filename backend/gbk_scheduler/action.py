@@ -59,6 +59,8 @@ class ActionPriceAdjust(Action):
         # TODO: 设置ActionPrice时候需要设置额外参数
         self.periodDesc: str = kwargs.get('periodDesc')
         self.roomName: str = kwargs.get('roomName')
+        self.day: int = kwargs.get('day')
+        self.date: str = kwargs.get('date')
 
     def exec(self):
         logger.info(f'adjusting price to {self.target_price}')
@@ -75,6 +77,8 @@ class ActionPriceAdjust(Action):
         self.item_id = state.get('item_id')
         self.periodDesc = state.get('periodDesc')
         self.roomName = state.get('roomName')
+        self.day: int = state.get('day')
+        self.date: str = state.get('date')
 
 
 action_types = {
