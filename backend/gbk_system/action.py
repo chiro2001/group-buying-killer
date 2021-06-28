@@ -449,3 +449,8 @@ class ActionRoomStockCheck(ActionCycle):
 
         self.start_branch()
         self.save(state=SystemDB.SERVICE_STOP)
+
+# TODO: 1. fix 前端点击无反应
+#  2. fix 后端根据索引而不是id改变价格
+#  3. fix 前端计划计数
+#  4. fix ....?

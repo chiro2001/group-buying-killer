@@ -46,7 +46,9 @@ export default function ListEdit(props) {
           if (dismiss.indexOf(v) >= 0) return null;
           // console.log("store.getState().types", store.getState().types);
           // console.log("typeName", typeName, "dataType", dataType);
-          const args = dataType && typeName && store.getState().types[typeName][dataType].args[v] ?
+          const args = dataType && typeName && store.getState().types && store.getState().types[typeName] &&
+          store.getState().types[typeName][dataType] && store.getState().types[typeName][dataType].args &&
+          store.getState().types[typeName][dataType].args[v] ?
             store.getState().types[typeName][dataType].args[v] : null;
           // console.log('v', v, 'args', args);
           if (dataType && typeName && args && !args.editable) return null;
