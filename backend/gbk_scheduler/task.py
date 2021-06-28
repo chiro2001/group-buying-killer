@@ -88,7 +88,10 @@ trigger_args = {
         'value': {'value': trigger_get_info('stock').get('value'), 'editable': True},
         'operator': {'value': '>', 'type': 'select',
                      'options': {
-                         '>': '大于', '<': '小于', '>=': '大于等于', '<=': '小于等于', '==': '等于', '!=': '不等于'
+                         '>': '大于', '<': '小于',
+                         '>=': '大于等于', '<=': '小于等于',
+                         # 如果可以选择大于等于/小于等于的话，会有恢复task重复情况
+                         '==': '等于', '!=': '不等于'
                      },
                      'editable': True}
     }

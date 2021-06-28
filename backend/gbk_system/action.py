@@ -309,47 +309,6 @@ class ActionUpdateStockData(ActionCycle):
         self.save(state=SystemDB.SERVICE_STOP)
 
 
-class ActionUpdateStockData(ActionCycle):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs, service_type='stock')
-
-    def exec(self):
-        new_service_info = db.system.get_service_info(self.service_type)
-        if new_service_info['state'] != SystemDB.SERVICE_STOP and Constants.RUN_WITH_SYS_TASK_LOG:
-            logger.warning(f"[ stock ] uid:{self.uid} ( SKIP )")
-            self.next_uid()
-            self.save(state=SystemDB.SERVICE_STOP)
-            return
-        self.save(state=SystemDB.SERVICE_RUNNING)
-        if Constants.RUN_WITH_SYS_TASK_LOG:
-            logger.warning(f"[ stock ] uid:{self.uid}")
-        d: DaemonBean = daemon.get_daemon(self.uid)
-        if self.cookies is None:
-            self.cookies = d.cookies
-            if self.cookies is None:
-                self.update_shop_id()
-        try:
-            resp: dict = d.get_api().room_stock.get_room_stock()
-        except GBKPermissionError as e:
-            logger.error(f"[ stock ] {e}")
-            self.next_uid()
-            self.save(state=SystemDB.SERVICE_STOP)
-            raise e
-        if 'code' not in resp or ('code' in resp and resp['code'] != 200) or 'data' not in resp:
-            logger.error(f"[ stock ] Resp error: uid:{self.uid}")
-            logger.debug(resp)
-            self.next_uid()
-            self.save(state=SystemDB.SERVICE_STOP)
-            raise GBKPermissionError()
-        d.room_stock = {
-            'room_stock': resp['data'],
-            'task_data': self.__getstate__()
-        }
-        d.save('room_stock')
-        self.next_uid()
-        self.save(state=SystemDB.SERVICE_STOP)
-
-
 class ActionRoomStockCheck(ActionCycle):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs, service_type='stock_check')
@@ -366,22 +325,12 @@ class ActionRoomStockCheck(ActionCycle):
         if d.room_stock is None:
             logger.warning(f'[ stock_check_one ] uid:{uid} got empty room stock data!')
             return
-        # date_today = get_date_today()
-        # changed: bool = False
-        # if d.reserve_table is None:
-        #     d.reserve_table = {date_today: api.ktv.get_reserve_table(date=date_today)}
-        #     changed = True
-        # if date_today not in d.reserve_table:
-        #     d.reserve_table[date_today] = api.ktv.get_reserve_table(date=date_today)
-        #     changed = True
-        # if changed:
-        #     d.save('reserve_table')
         from gbk_scheduler.task_pool import task_pool
         if manager is None:
             manager = task_pool.get_manager(uid)
         if manager is None:
             logger.warning(f"[ stock_check_one ] uid:{uid} ( NO MANAGER )")
-            print(task_pool)
+            # print(task_pool)
             return
 
         def find_room_from_stock(stocks: list, date: str, period_desc_: str, room_name: str):
@@ -433,6 +382,25 @@ class ActionRoomStockCheck(ActionCycle):
                                              action.roomName)
                 if stock is None:
                     logger.warning(f'[ stock_check_one ] uid:{uid}, got empty stock!')
+                # item_id 可能随时间变化
+                # sys_key = f'{task.tid}_{action.item_id}'
+                sys_key = {
+                    'tid': task.tid,
+                    'day': action.day,
+                    'periodDesc': period_desc,
+                    'roomName': action.roomName
+                }
+                logger.info(f'sys_key: {sys_key}')
+                running_state: dict = db.system.load_key(uid=uid, key=sys_key, data_type='room_stock_check')
+                running_state: dict = running_state.get('data') if running_state is not None else None
+                if running_state is not None and \
+                        isinstance(running_state, dict) and \
+                        'state' in running_state and \
+                        running_state['state'] == 'effecting':
+                    logger.warning(f'[ stock_check_one ] uid:{uid}, {sys_key}, ( SKIP )')
+                    continue
+                else:
+                    logger.warning(f'[ stock_check_one ] uid:{uid}, running_state: {running_state}')
                 to_adjust: bool = False
                 for trigger in triggers:
                     if not check_stock_trigger(trigger, stock):
@@ -441,10 +409,18 @@ class ActionRoomStockCheck(ActionCycle):
                     else:
                         logger.info(f'[ stock_check_one ] uid:{uid}, to adjust...')
                         to_adjust = True
-                if to_adjust:
-                    # TODO: 调整价格之后记录调整状态
-                    # action.exec()
-                    pass
+                if not to_adjust:
+                    # 恢复状态
+                    db.system.save_key(uid=uid, key=sys_key, data={
+                        'state': 'available'
+                    }, data_type='room_stock_check')
+                    logger.info(f'[ stock_check_one ] uid:{uid}, resume.')
+                else:
+                    action.exec()
+                    db.system.save_key(uid=uid, key=sys_key, data={
+                        'state': 'effecting'
+                    }, data_type='room_stock_check')
+                    logger.info(f'[ stock_check_one ] uid:{uid}, effecting')
 
     @staticmethod
     def start_branch():
@@ -472,27 +448,4 @@ class ActionRoomStockCheck(ActionCycle):
             logger.warning(f"[ stock_check ]")
 
         self.start_branch()
-
-        # d: DaemonBean = daemon.get_daemon(self.uid)
-        # if self.cookies is None:
-        #     self.cookies = d.cookies
-        #     if self.cookies is None:
-        #         self.update_shop_id()
-        # try:
-        #     resp: dict = d.get_api().room_stock.get_room_stock()
-        # except GBKPermissionError as e:
-        #     logger.error(f"[ stock ] {e}")
-        #     self.save(state=SystemDB.SERVICE_STOP)
-        #     raise e
-        # if 'code' not in resp or ('code' in resp and resp['code'] != 200) or 'data' not in resp:
-        #     logger.error(f"[ stock ] Resp error: uid:{self.uid}")
-        #     logger.debug(resp)
-        #     self.save(state=SystemDB.SERVICE_STOP)
-        #     raise GBKPermissionError()
-        # d.room_stock = {
-        #     'room_stock': resp['data'],
-        #     'task_data': self.__getstate__()
-        # }
-        # d.save('room_stock')
-        # self.next_uid()
         self.save(state=SystemDB.SERVICE_STOP)

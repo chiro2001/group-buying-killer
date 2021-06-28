@@ -22,8 +22,10 @@ def get_date_tomorrow(date_now=None) -> str:
         return get_timestamp_date(1000 * (get_date_timestamp(date_now) + 60 * 60 * 24))
 
 
+# weekday: Monday是0，Sunday是6
 def get_next_week_date(day: int) -> str:
-    day_now = datetime.datetime.now().weekday()
+    day_now = (datetime.datetime.now().weekday() + 1) % 7
+    # print(f'day: {day}, day_now: {day_now}, += {day - day_now + 7}')
     if day == day_now:
         return get_timestamp_date(1000 * datetime.datetime.today().timestamp())
     if day > day_now:

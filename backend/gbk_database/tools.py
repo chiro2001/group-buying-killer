@@ -133,10 +133,12 @@ class DataDB(BaseDB):
         auto_time_update(self.col, {'uid': uid, 'data_type': data_type}, {'data': data},
                          insert_if_necessary=True)
 
-    def load(self, uid: int, data_type: str = 'base'):
+    def load(self, uid: int, data_type: str = 'base', filter_: dict = None):
         if uid is None:
             return find_many(self.col, {'data_type': data_type})
-        return find_one(self.col, {'uid': uid, 'data_type': data_type})
+        fil = {'uid': uid, 'data_type': data_type}
+        fil.update(filter_ if filter_ is not None else {})
+        return find_one(self.col, fil)
 
 
 # 根据 uid, key 和 data_type 保存数据

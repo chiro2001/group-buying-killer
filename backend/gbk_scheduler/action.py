@@ -1,6 +1,7 @@
 from data_apis.api import API
 from gbk_daemon.daemon import daemon, DaemonBean
 from gbk_database.tools import *
+from utils.time_formats import get_date_today
 
 
 class Action:
@@ -56,7 +57,6 @@ class ActionPriceAdjust(Action):
         if self.item_id is None:
             logger.warning('got empty item_id')
             self.item_id = 0
-        # TODO: 设置ActionPrice时候需要设置额外参数
         self.periodDesc: str = kwargs.get('periodDesc')
         self.roomName: str = kwargs.get('roomName')
         self.day: int = kwargs.get('day')
@@ -81,23 +81,82 @@ class ActionPriceAdjust(Action):
         self.date: str = state.get('date')
 
 
+# 按照相对值改变价格
+class ActionPriceAdjustRelative(ActionPriceAdjust):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.action_type = 'adjust_price_relative'
+        self.price_relative = kwargs.get('price_relative', None)
+        if self.price_relative is None:
+            logger.warning('got empty price!')
+            self.price_relative = 0
+
+    def exec(self):
+        logger.info(f'adjusting price by {self.price_relative}')
+        if self.uid is None:
+            raise GBKError(f"Empty uid")
+        d: DaemonBean = daemon.get_daemon(self.uid, init_new=True)
+        api: API = d.get_api()
+        # 获取当前价格
+        date_today = get_date_today()
+        changed: bool = False
+        if d.reserve_table is None:
+            d.reserve_table = {date_today: api.ktv.get_reserve_table(date=date_today)}
+            changed = True
+        if date_today not in d.reserve_table or True:
+            d.reserve_table[date_today] = api.ktv.get_reserve_table(date=date_today)
+            changed = True
+        if changed:
+            d.save('reserve_table')
+        if d.reserve_table is None:
+            d.reserve_table = {}
+        # 找到当前价格数据
+        if date_today not in d.reserve_table:
+            logger.warning(f'Cannot find reserve table now!')
+            return
+        target_room_item = None
+        for period_list in d.reserve_table[date_today]['periodList']:
+            if period_list['periodDesc'] == self.periodDesc:
+                for room_item_map_entry in d.reserve_table[date_today]['periodList']['roomItemMapEntry']:
+                    if self.roomName in room_item_map_entry:
+                        for room_item in room_item_map_entry[self.roomName]:
+                            if room_item['itemId'] == self.item_id:
+                                target_room_item = room_item
+                                break
+        if target_room_item is None:
+            logger.warning(f'Cannot find target room item now!')
+            return
+        target_price = target_room_item['price'] + self.price_relative
+        resp = api.ktv.update_price(item_id=self.item_id, price=target_price)
+        logger.info(f'updating price by {self.price_relative}, to {target_price}')
+        logger.debug(f'{self.get_self_name()}: resp = {resp}')
+
+    def __setstate__(self, state: dict):
+        super(ActionPriceAdjustRelative, self).__setstate__(state)
+        self.price_relative = state.get('price_relative')
+
+
 action_types = {
     'base': Action,
     'simple_run': ActionSimpleRun,
-    'adjust_price': ActionPriceAdjust
+    'adjust_price': ActionPriceAdjust,
+    'adjust_price_relative': ActionPriceAdjustRelative
 }
 
 # 能够让用户操作的Action
 action_names_available = {
-    'adjust_price': "调整价格action"
+    'adjust_price': "调整价格动作",
+    'adjust_price_relative': "调整相对价格动作"
 }
 
 action_desc = {
-    'adjust_price': "利用此Action可以调整价格到目标价格，或者设定价格上调、下调目标。"
+    'adjust_price': "利用此动作可以调整价格到目标价格，设定价格上调、下调目标。",
+    'adjust_price_relative': "利用此动作可以依照当前价格调整价格上浮/下调。"
 }
 
 action_names = {
     'base': "基础action",
     'simple_run': "简单action",
-    'adjust_price': "调整价格action"
+    'adjust_price': "调整价格工作",
+    'adjust_price_relative': "调整相对价格动作"
 }

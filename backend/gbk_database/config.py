@@ -199,7 +199,6 @@ class Config:
             logger.warning('loading default config data...')
             self.data = self.data_default
         else:
-            # TODO: 数据库升级操作
             self.data = result
         self.save()
         client.close()

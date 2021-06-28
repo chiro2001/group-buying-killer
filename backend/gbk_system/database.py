@@ -1,7 +1,7 @@
 from gbk_database.tools import *
 
 
-class SystemDB(BaseDB):
+class SystemDB(DataDB):
     SERVICE_START = 'service_start'
     SERVICE_RUNNING = 'service_running'
     SERVICE_STOP = 'service_stop'
@@ -25,6 +25,16 @@ class SystemDB(BaseDB):
     def get_service_info(self, service_type: str):
         res = find_one(self.col_service, {'service_type': service_type})
         return res
+
+    def load_key(self, uid: int, key, data_type: str = 'base'):
+        return self.load(uid, data_type=data_type, filter_={'data.key': key})
+
+    def save_key(self, uid: int, key, data: dict, data_type: str = 'base'):
+        if not isinstance(data, dict):
+            logger.error(f'Must be dict data')
+            return
+        data.update({'key': key})
+        return self.save(uid, data, data_type=data_type)
 
 
 class SpiderDB(DataKeyDB):

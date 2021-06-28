@@ -29,8 +29,7 @@ sys_tasks = {
                                  'user_stock_check']), ]) if 'user_stock_check' not in Constants.RUN_DISMISS_TASK else None,
 }
 
-# TODO: 1. 队列式获取库存数据，并且调用价格调整
-#  2. fix: 遇到不可用的cookies
+# TODO: fix: 遇到不可用的cookies
 
 if __name__ == '__main__':
     ActionBackupData().exec()
