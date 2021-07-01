@@ -11,7 +11,7 @@ from data_apis.api import API
 from gbk_daemon.daemon import DaemonBean, daemon
 from gbk_database.database import db, Constants
 from gbk_database.tools import get_next_exist_id, get_current_id
-from gbk_exceptions import GBKError, GBKPermissionError
+from gbk_exceptions import GBKError, GBKPermissionError, GBKLoginError
 from gbk_scheduler.action import Action, get_first_exist_id, ActionPriceAdjust
 from gbk_scheduler.task import TaskManager
 # from gbk_scheduler.task_pool import task_pool
@@ -132,12 +132,17 @@ class ActionCycle(Action):
             if self.cookies is None:
                 cookies = db.daemon.load(self.uid, 'cookies')
                 cookies = cookies if cookies is None else cookies.get('data')
-                # TODO: Cookies校验
+                # T-O-D-O: Cookies校验
                 if cookies is None:
                     self.next_uid()
                     return
                 self.cookies = cookies
-            api = API.from_cookies(self.cookies)
+            try:
+                api = API.from_cookies(self.cookies)
+            except GBKLoginError as e:
+                # 删除该cookies
+                db.daemon.delete(self.uid, data_type="cookies")
+                raise e
             self.shop_id = api.shop_id
 
 
