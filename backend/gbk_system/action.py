@@ -174,7 +174,8 @@ class ActionFetchFlowData(ActionCycle):
             self.cookies = None
             self.next_uid()
             self.save(state=SystemDB.SERVICE_STOP)
-            raise e
+            # raise e
+            return
         if 'code' not in resp or \
                 ('code' in resp and resp['code'] != 200 and resp['code'] != 0) or \
                 'data' not in resp:
@@ -218,7 +219,8 @@ class ActionFetchTradeData(ActionCycle):
             self.cookies = None
             self.next_uid()
             self.save(state=SystemDB.SERVICE_STOP)
-            raise e
+            # raise e
+            return
         if 'code' not in resp or ('code' in resp and resp['code'] != 200):
             logger.error(f"[ trade_data ] Resp error: uid:{self.uid}, {key}, page: {self.page}")
             self.next_page()
@@ -292,6 +294,9 @@ class ActionUpdateStockData(ActionCycle):
         if Constants.RUN_WITH_SYS_TASK_LOG:
             logger.warning(f"[ stock ] uid:{self.uid}")
         d: DaemonBean = daemon.get_daemon(self.uid)
+        if d is None:
+            logger.warning(f"[ stock ] uid:{self.uid}, no daemon!")
+            return
         if self.cookies is None:
             self.cookies = d.cookies
             if self.cookies is None:
@@ -304,7 +309,8 @@ class ActionUpdateStockData(ActionCycle):
             self.cookies = None
             self.next_uid()
             self.save(state=SystemDB.SERVICE_STOP)
-            raise e
+            # raise e
+            return
         if 'code' not in resp or ('code' in resp and resp['code'] != 200) or 'data' not in resp:
             logger.error(f"[ stock ] Resp error: uid:{self.uid}")
             logger.debug(resp)
