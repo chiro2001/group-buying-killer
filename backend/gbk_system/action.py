@@ -165,6 +165,8 @@ class ActionFetchFlowData(ActionCycle):
                                                          end_time=next_key)
         except GBKPermissionError as e:
             logger.error(f"[ flow_data ] {e}")
+            db.daemon.delete(uid=self.uid, data_type="cookies")
+            self.cookies = None
             self.next_uid()
             self.save(state=SystemDB.SERVICE_STOP)
             raise e
@@ -207,6 +209,8 @@ class ActionFetchTradeData(ActionCycle):
                                                           page=self.page, shop_id=self.shop_id)
         except GBKPermissionError as e:
             logger.error(f"[ trade_data ] {e}")
+            db.daemon.delete(uid=self.uid, data_type="cookies")
+            self.cookies = None
             self.next_uid()
             self.save(state=SystemDB.SERVICE_STOP)
             raise e
@@ -291,6 +295,8 @@ class ActionUpdateStockData(ActionCycle):
             resp: dict = d.get_api().room_stock.get_room_stock()
         except GBKPermissionError as e:
             logger.error(f"[ stock ] {e}")
+            db.daemon.delete(uid=self.uid, data_type="cookies")
+            self.cookies = None
             self.next_uid()
             self.save(state=SystemDB.SERVICE_STOP)
             raise e
