@@ -295,7 +295,7 @@ class ActionUpdateStockData(ActionCycle):
             logger.warning(f"[ stock ] uid:{self.uid}")
         d: DaemonBean = daemon.get_daemon(self.uid)
         if d is None:
-            logger.warning(f"[ stock ] uid:{self.uid}, no daemon!")
+            logger.debug(f"[ stock ] uid:{self.uid}, no daemon!")
             return
         if self.cookies is None:
             self.cookies = d.cookies
