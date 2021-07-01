@@ -86,6 +86,7 @@ class ActionPriceAdjustRelative(ActionPriceAdjust):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.action_type = 'adjust_price_relative'
+        del self.target_price
         self.price_relative = kwargs.get('price_relative', None)
         if self.price_relative is None:
             logger.warning('got empty price!')
@@ -117,12 +118,11 @@ class ActionPriceAdjustRelative(ActionPriceAdjust):
         target_room_item = None
         for period_list in d.reserve_table[date_today]['periodList']:
             if period_list['periodDesc'] == self.periodDesc:
-                for room_item_map_entry in d.reserve_table[date_today]['periodList']['roomItemMapEntry']:
-                    if self.roomName in room_item_map_entry:
-                        for room_item in room_item_map_entry[self.roomName]:
-                            if room_item['itemId'] == self.item_id:
-                                target_room_item = room_item
-                                break
+                if self.roomName in period_list['roomMapItemEntry']:
+                    for room_item in period_list['roomMapItemEntry'][self.roomName]:
+                        if room_item['itemId'] == self.item_id:
+                            target_room_item = room_item
+                            break
         if target_room_item is None:
             logger.warning(f'Cannot find target room item now!')
             return

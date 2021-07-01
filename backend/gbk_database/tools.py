@@ -50,7 +50,7 @@ def auto_time_update(col: pymongo.collection.Collection,
         # 先看看原来有没有数据
         res = find_one(col, filter_dict)
         if res is None:
-            all_data = filter_dict
+            all_data = {k: filter_dict[k] for k in filter_dict if '.' not in k}
             all_data.update(update_dict)
             return auto_time_insert(col, all_data)
     dt0 = datetime.datetime.utcnow()
@@ -129,8 +129,12 @@ class DataDB(BaseDB):
         except Exception as e:
             logger.error(e)
 
-    def save(self, uid: int, data, data_type: str = 'base'):
-        auto_time_update(self.col, {'uid': uid, 'data_type': data_type}, {'data': data},
+    def save(self, uid: int, data, data_type: str = 'base', filter_: dict = None):
+        fil = {'uid': uid, 'data_type': data_type}
+        fil.update(filter_ if filter_ is not None else {})
+        auto_time_update(self.col,
+                         fil,
+                         {'data': data},
                          insert_if_necessary=True)
 
     def load(self, uid: int, data_type: str = 'base', filter_: dict = None):

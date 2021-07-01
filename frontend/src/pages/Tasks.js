@@ -40,7 +40,7 @@ function TaskTag(props) {
       console.log('task after', taskWrapped);
       taskWrapped && onClick && onClick(taskWrapped);
     } catch (e) {
-      console.log();
+      console.log(e);
     }
   }}>
     <ListItemText>
@@ -73,7 +73,8 @@ export function getTargetTasks(targets) {
       if (!action) return [];
       const target = action.data ? action.data : action;
       // console.log('target', target, 'require', targets);
-      if (target.action_type === "adjust_price") {
+      if (target.action_type.includes("adjust_price")) {
+        // console.log(targets.roomItem, target);
         if (targets.roomItem && target.item_id === targets.roomItem.itemId) {
           result.push(task);
           break;
@@ -89,14 +90,15 @@ export function getTargetTasks(targets) {
 }
 
 export function getTargetTasksMarks(targets) {
-  if (targets) console.log(targets);
+  // if (targets) console.log(targets);
   const tasks = store.getState().tasks;
   const marks = tasks.map((task, k) => {
     for (const action of task.actions) {
       const target = action.data ? action.data : action;
-      if (target.action_type === "adjust_price") {
+      // console.log('search', target);
+      if (target.action_type.includes("adjust_price")) {
         if (targets && targets.roomItem && target.item_id === targets.roomItem.itemId) {
-          console.log('found', task);
+          // console.log('found', task);
           return true;
         } else if (!targets) return true;
       }
@@ -127,10 +129,11 @@ export function TaskList(props) {
   // const tasks = getTargetTasks(targets);
   const tasks = props.tasks ? props.tasks : store.getState().tasks;
   const marks = props.tasks ? getTargetTasksMarks(null) : getTargetTasksMarks(targets);
-  if (targets && targets.roomItem && JSON.stringify(targets.roomItem) !== "{}") console.log('tasks', targets, tasks);
-  // if (tasks.length > 0) console.log(tasks, marks);
+  // if (targets && targets.roomItem && JSON.stringify(targets.roomItem) !== "{}") console.log('tasks', targets, tasks);
+  // if (tasks.length > 0) console.log(tasks, marks, props.tasks);
   return tasks.length > 0 ? <List>
     {tasks.map((task, k) => marks[k] ? <TaskTag onClick={onClick} onUpdate={onUpdate} key={task} task={task}></TaskTag> : null)}
+    {/* {tasks.map((task, k) => <TaskTag onClick={onClick} onUpdate={onUpdate} key={task} task={task}></TaskTag>)} */}
   </List> : <List style={{ width: fullWidth ? "100%" : null }}>
     <ListItem>
       <Typography variant="body1" color="textSecondary">空列表</Typography>

@@ -108,6 +108,18 @@ action_args = {
         'periodDesc': {'value': None, 'editable': False},
         'roomName': {'value': None, 'editable': False}
     },
+    'adjust_price_relative': {
+        'action_type': {'value': 'adjust_price_relative', 'editable': False},
+        'args': {'value': [], 'editable': False},
+        'kwargs': {'value': {}, 'editable': False},
+        'uid': {'value': None, 'editable': False},
+        'item_id': {'value': 0, 'editable': True},
+        'day': {'value': None, 'editable': False},
+        'date': {'value': None, 'editable': False},
+        'price_relative': {'value': 0, 'editable': True},
+        'periodDesc': {'value': None, 'editable': False},
+        'roomName': {'value': None, 'editable': False}
+    },
     'base': {
         'action_type': {'value': 'base', 'editable': False},
         'args': {'value': [], 'editable': False},

@@ -416,11 +416,11 @@ class ActionRoomStockCheck(ActionCycle):
                     }, data_type='room_stock_check')
                     logger.info(f'[ stock_check_one ] uid:{uid}, resume.')
                 else:
-                    action.exec()
                     db.system.save_key(uid=uid, key=sys_key, data={
                         'state': 'effecting'
                     }, data_type='room_stock_check')
                     logger.info(f'[ stock_check_one ] uid:{uid}, effecting')
+                    action.exec()
 
     @staticmethod
     def start_branch():
@@ -450,7 +450,11 @@ class ActionRoomStockCheck(ActionCycle):
         self.start_branch()
         self.save(state=SystemDB.SERVICE_STOP)
 
-# TODO: 1. fix 前端点击无反应
-#  2. fix 后端根据索引而不是id改变价格
-#  3. fix 前端计划计数
-#  4. fix ....?
+# T-O-D-O: 1. fix [x] 前端点击无反应
+#  2.
+#  3. [x] fix 前端计划计数
+#  4. [x] fix got empty day
+#  5. [x] 添加简便用法
+#  6. [x] fix 有些任务不显示
+
+# TODO: fix 后端根据索引而不是id改变价格

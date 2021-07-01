@@ -193,6 +193,7 @@ function ReserveTable(props) {
                 let parent = periodMap[periodId];
                 parent.date = date;
                 parent.day = day;
+                console.log('day', day, 'date', date);
                 let roomItemTmp = deepCopy(roomItem);
                 roomItemTmp.parent = parent;
                 setRoomItemNow(roomItemTmp);
@@ -202,6 +203,9 @@ function ReserveTable(props) {
                 const tasks = getTargetTasks({ roomItem });
                 console.log('got tasks', tasks);
                 const parent = periodMap[periodId];
+                parent.date = date;
+                parent.day = day;
+                console.log('- day', day, 'date', date);
                 let roomItemTmp = deepCopy(roomItem);
                 roomItemTmp.parent = parent;
                 setRoomItemNow(roomItemTmp);
@@ -353,6 +357,7 @@ function ReserveTable(props) {
           if (isOk) updateTaskData();
         }}
         onSave={task => {
+          console.log("post task", task);
           return api.request_key('task', task.tid, "POST", { task }).then(resp => {
             // setState({ requestingTasks: false });
             console.log("update task done");

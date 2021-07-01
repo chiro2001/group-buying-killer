@@ -34,7 +34,7 @@ class SystemDB(DataDB):
             logger.error(f'Must be dict data')
             return
         data.update({'key': key})
-        return self.save(uid, data, data_type=data_type)
+        return self.save(uid, data, data_type=data_type, filter_={'data.key': key})
 
 
 class SpiderDB(DataKeyDB):

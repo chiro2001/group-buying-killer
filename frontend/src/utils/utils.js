@@ -111,7 +111,9 @@ export function deepCopy(data) {
 }
 
 export function objectUpdate(origin, update) {
+  if (!origin && !update) return null;
   let now = deepCopy(origin);
+  if (!now) now = {};
   for (const k in update) {
     now[k] = update[k];
   }

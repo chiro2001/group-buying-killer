@@ -80,6 +80,8 @@ export function TriggerTag(props) {
   const handleClick = newTrigger => {
     onClick(newTrigger ? newTrigger : trigger, selectMode);
   };
+
+  console.log('bug trigger', trigger);
   return <Card style={{ minWidth: 200, margin: 10, width: (fullWidth ? "100%" : "auto") }}>
     <CardContent onClick={selectMode ? () => { } : () => { handleClick(); }}>
       <Typography variant="h5">{trigger.name}</Typography>

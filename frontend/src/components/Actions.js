@@ -10,7 +10,8 @@ import ListInfo from "./ListInfo";
 
 const keyNames = {
   "item_id": "目标项目ID",
-  "target_price": "目标价格"
+  "target_price": "目标价格",
+  'price_relative': "价格调整幅度(上调+x/下调-x元)"
 };
 
 export function isActionModified(item, type = "actions") {
@@ -59,7 +60,9 @@ function getDataString(data, typeName, dataType) {
   if (typeof (data) !== 'object') return;
   for (const key in data) {
     const showName = keyNames ? (keyNames[key] || key) : (key);
-    const args = dataType && typeName && store.getState().types[typeName][dataType].args[key] ?
+    const args = dataType && typeName && store.getState().types && store.getState().types[typeName] &&
+      store.getState().types[typeName][dataType] && store.getState().types[typeName][dataType].args &&
+      store.getState().types[typeName][dataType].args[key] ?
       store.getState().types[typeName][dataType].args[key] : null;
     if (args && !args.editable) continue;
     let value = data[key];
@@ -87,6 +90,11 @@ export function ActionTag(props) {
       tmp.data.item_id = targets.roomItem.itemId;
       tmp.data.target_price = targets.roomItem.price;
       return tmp;
+    } else if (action.data.action_type === "adjust_price_relative" && targets && targets.roomItem) {
+      let tmp = deepCopy(action);
+      tmp.data.item_id = targets.roomItem.itemId;
+      tmp.data.price_relative = 0;
+      return tmp;
     } else return action;
   })());
   const [toUse, setToUse] = React.useState(false);
@@ -98,6 +106,9 @@ export function ActionTag(props) {
     console.log("selected action:", selected);
     onClick(selected, selectMode);
   };
+
+  // console.log('To edit:', action, actionTemp);
+
   return <Card style={{ minWidth: 200, margin: 10, width: (fullWidth ? "100%" : "auto") }}>
     <CardContent onClick={selectMode ? () => { } : () => { handleClick(); }}>
       <Typography variant="h5">{action.name}</Typography>
@@ -154,16 +165,17 @@ export default function Actions(props) {
   } else {
     console.log(actions);
     content = <Box style={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}>
-      {Object.keys(actions).map((action_type, k) => <ActionTag targets={targets} onClick={onClick} key={action_type} selectMode={selectMode} action={(action_type === 'adjust_price' && targets && targets.roomItem && targets.roomItem.parent) ?
-        (() => {
-          let newAction = deepCopy(actions[action_type]);
-          newAction.data.periodDesc = targets.roomItem.parent.periodDesc;
-          newAction.data.roomName = targets.roomItem.roomType;
-          newAction.data.date = targets.roomItem.parent.date;
-          newAction.data.day = targets.roomItem.parent.day;
-          console.log('newAction', newAction);
-          return newAction;
-        })() : actions[action_type]}></ActionTag>)}
+      {Object.keys(actions).map((action_type, k) => <ActionTag targets={targets} onClick={onClick} key={action_type} selectMode={selectMode} action={
+        (action_type.includes("adjust_price") && targets && targets.roomItem && targets.roomItem.parent) ?
+          (() => {
+            let newAction = deepCopy(actions[action_type]);
+            newAction.data.periodDesc = targets.roomItem.parent.periodDesc;
+            newAction.data.roomName = targets.roomItem.roomType;
+            newAction.data.date = targets.roomItem.parent.date;
+            newAction.data.day = targets.roomItem.parent.day;
+            console.log('newAction', newAction);
+            return newAction;
+          })() : actions[action_type]}></ActionTag>)}
     </Box>
   }
   return <Box>
