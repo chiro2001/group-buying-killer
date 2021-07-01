@@ -315,21 +315,21 @@ class ActionRoomStockCheck(ActionCycle):
 
     @staticmethod
     def check_one(uid: int, api: API = None, manager: TaskManager = None):
-        logger.info(f'uid: {uid}')
+        logger.debug(f'uid: {uid}')
         d: DaemonBean = daemon.get_daemon(uid)
         if d is not None:
             api = d.get_api()
         if api is None:
-            logger.warning(f'[ stock_check_one ] uid:{uid} got empty api!')
+            logger.debug(f'[ stock_check_one ] uid:{uid} got empty api!')
             return
         if d.room_stock is None:
-            logger.warning(f'[ stock_check_one ] uid:{uid} got empty room stock data!')
+            logger.debug(f'[ stock_check_one ] uid:{uid} got empty room stock data!')
             return
         from gbk_scheduler.task_pool import task_pool
         if manager is None:
             manager = task_pool.get_manager(uid)
         if manager is None:
-            logger.warning(f"[ stock_check_one ] uid:{uid} ( NO MANAGER )")
+            logger.debug(f"[ stock_check_one ] uid:{uid} ( NO MANAGER )")
             # print(task_pool)
             return
 
@@ -374,9 +374,9 @@ class ActionRoomStockCheck(ActionCycle):
                     logger.warning(f'[ stock_check_one ] uid:{uid}, got empty day!')
                     continue
                 next_date: int = get_next_week_date(action.day)
-                logger.info(f'next_date: {next_date}')
+                logger.debug(f'next_date: {next_date}')
                 period_desc: str = action.periodDesc[:-2] if action.periodDesc.endswith('包段') else action.periodDesc
-                logger.info(f'period_desc: {period_desc}')
+                logger.debug(f'period_desc: {period_desc}')
                 # 在 room_stock 中找到对应的 StockItem
                 stock = find_room_from_stock(d.room_stock['room_stock']['dailyStockList'], next_date, period_desc,
                                              action.roomName)
@@ -390,7 +390,7 @@ class ActionRoomStockCheck(ActionCycle):
                     'periodDesc': period_desc,
                     'roomName': action.roomName
                 }
-                logger.info(f'sys_key: {sys_key}')
+                logger.debug(f'sys_key: {sys_key}')
                 running_state: dict = db.system.load_key(uid=uid, key=sys_key, data_type='room_stock_check')
                 running_state: dict = running_state.get('data') if running_state is not None else None
                 if running_state is not None and \
@@ -404,7 +404,7 @@ class ActionRoomStockCheck(ActionCycle):
                 to_adjust: bool = False
                 for trigger in triggers:
                     if not check_stock_trigger(trigger, stock):
-                        logger.info(f'[ stock_check_one ] uid:{uid}, not to adjust...')
+                        logger.debug(f'[ stock_check_one ] uid:{uid}, not to adjust...')
                         continue
                     else:
                         logger.info(f'[ stock_check_one ] uid:{uid}, to adjust...')
