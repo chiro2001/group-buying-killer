@@ -140,7 +140,8 @@ class Daemon:
     def update_data(self, uid: int, api: API = None, cookies: str = None, update_all: bool = False, **kwargs):
         if api is None:
             if cookies is None:
-                cookies = db.daemon.load(uid, data_type='cookies').get('data', None)
+                cookies = db.daemon.load(uid, data_type='cookies')
+                cookies = cookies.get('data', None) if cookies is not None else None
                 if cookies is None:
                     raise GBKError("No cookies!")
             api = self.get_api(uid, cookies=cookies)
