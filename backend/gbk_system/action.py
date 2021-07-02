@@ -74,7 +74,7 @@ class ActionCycle(Action):
         self.uid_list = [uid, ].extend(self.uid_list)
 
     def next_uid(self):
-        if len(self.uid_list) == 0 or not isinstance(self.uid_list, list):
+        if self.uid_list is None or len(self.uid_list) == 0 or not isinstance(self.uid_list, list):
             self.uid_list = []
             next_uid = get_first_exist_id(db.user.col, 'uid')
             while next_uid is not None:
