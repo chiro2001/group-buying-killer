@@ -19,7 +19,8 @@ class Constants:
     EMAIL = "Chiro2001@163.com"
     # 当前环境判断，['release', 'dev']
     # Environment
-    ENVIRONMENT = "release" if platform.system() == 'Linux' else "dev"
+    ENVIRONMENT = os.environ.get("ENV") if os.environ.get("ENV") is not None else (
+        "release" if platform.system() == 'Linux' else "dev")
     # Find，默认查找分页块大小
     FIND_LIMIT = 30
     # JWT config
