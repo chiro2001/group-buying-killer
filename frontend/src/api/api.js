@@ -1,4 +1,4 @@
-import { setConfig, setErrorInfo, setUser } from "../data/action";
+import { setConfig, setDaemon, setErrorInfo, setUser } from "../data/action";
 import store from "../data/store";
 import { isIterator, urlEncode } from "../utils/utils"
 
@@ -122,8 +122,19 @@ class API {
         return { code: resp2.status, error: resp2.statusText };
       }
       return this.request(router, method, data);
-    }
-    if (js.code === 200) {
+    } else if (js.code === 424) {
+      // 需要重新远程登录了
+      store.dispatch(setDaemon(null));
+      // store.dispatch(setUser(null));
+      await this.request("remote_login", "DELETE");
+      const config = store.getState().config;
+      // this.set_token('', '');
+      config.save();
+      // window.location.reload();
+      store.dispatch(setConfig(config));
+      store.dispatch(setErrorInfo("远程登录失效，请重新登录美团账号"));
+      return js;
+    } else if (js.code === 200) {
       // 登录自动储存 JWT 数据
       if (router === 'session' && method === 'POST') {
         const { access_token, refresh_token } = js.data;

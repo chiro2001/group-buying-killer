@@ -143,7 +143,7 @@ class Daemon:
                 cookies = db.daemon.load(uid, data_type='cookies')
                 cookies = cookies.get('data', None) if cookies is not None else None
                 if cookies is None:
-                    raise GBKError("No cookies!")
+                    raise GBKLoginError(Constants.EXCEPTION_LOGIN)
             api = self.get_api(uid, cookies=cookies)
         daemon_old = self.get_daemon(uid)
         # reserve_date = None if daemon_old is None else daemon_old.reserve_date

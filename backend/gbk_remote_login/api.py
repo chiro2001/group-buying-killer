@@ -36,9 +36,9 @@ def post_cookies(uid: int, cookies: str, use_this_cookies: bool = True):
 
 class RemoteLoginAPI(Resource):
     args_set_cookies = reqparse.RequestParser().add_argument("cookies", type=str, required=True, location=["json", ])
-    args_delete_cookies = reqparse.RequestParser() \
-        .add_argument("cookies", type=str, required=False, location=["json", ]) \
-        .add_argument("shop_id", type=int, required=False, location=["json", ])
+    # args_delete_cookies = reqparse.RequestParser() \
+    #     .add_argument("cookies", type=str, required=False, location=["json", ]) \
+    #     .add_argument("shop_id", type=int, required=False, location=["json", ])
 
     @auth_required_method
     def get(self, uid: int):
@@ -66,14 +66,17 @@ class RemoteLoginAPI(Resource):
             ]
         })
 
-    @args_required_method(args_delete_cookies)
+    # Bug: DELETE 请求并不能含有 body，所以不能在 body 解析 json 。
+    # @args_required_method(args_delete_cookies)
     @auth_required_method
     def delete(self, uid: int):
         """
         删除登录凭据
         """
-        cookies = self.args_delete_cookies.parse_args().get('cookies')
-        shop_id = self.args_delete_cookies.parse_args().get('shop_id')
+        # cookies = self.args_delete_cookies.parse_args().get('cookies')
+        # shop_id = self.args_delete_cookies.parse_args().get('shop_id')
+        cookies = None
+        shop_id = None
         if cookies is None and shop_id is None:
             # 不指定就删除整个daemon
             if not daemon.delete_daemon(uid):

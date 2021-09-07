@@ -144,6 +144,8 @@ class Constants:
     PROC_DISMISS_REBASE = 'GBK_DB_RUNNING_PID'
     PROC_DISMISS_COS = 'GBK_COS_RUNNING_PID'
     PROC_DISMISS_DAEMON_INIT = "GBK_DAEMON_RUNNING_PID"
+    # 兼容参数：raise 一个 Exception 时候的固定参数
+    EXCEPTION_LOGIN = "No cookies!"
 
 
 # 运行中静态数据

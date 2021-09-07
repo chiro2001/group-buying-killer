@@ -7,7 +7,7 @@ try:
     import flask.scaffold
 
     flask.helpers._endpoint_from_view_func = flask.scaffold._endpoint_from_view_func
-except Exception as e:
+except ImportError as e:
     if platform.system() == 'Linux':
         logger.error(f'Maynot start without flask.scaffold!')
 import flask_restful

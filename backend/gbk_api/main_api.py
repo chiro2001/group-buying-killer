@@ -94,8 +94,18 @@ def api_after(res: Response):
     if len(res.data) > 0:
         try:
             js = json.loads(res.data)
-            js['code'] = res.status_code
-            res.data = json.dumps(js).encode()
+            if isinstance(js, str):
+                # decode 到 str 表示 raise 了 Error...但是为什么呢？？
+                if js == Constants.EXCEPTION_LOGIN:
+                    # http code 424 表示需要重新远程登录了
+                    js = make_result(424, message=js)[0]
+                else:
+                    js = make_result(400, message=js)[0]
+                res.data = json.dumps(js).encode()
+                res.status_code = js['code']
+            else:
+                js['code'] = res.status_code
+                res.data = json.dumps(js).encode()
             if js['code'] != 200:
                 logger.warning(f'response: {js}')
             if js['code'] == 500:

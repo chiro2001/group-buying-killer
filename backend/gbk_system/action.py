@@ -71,7 +71,7 @@ class ActionCycle(Action):
         return d
 
     def update_uid(self, uid: int):
-        self.uid_list = [uid, ].extend(self.uid_list)
+        self.uid_list = [uid, ].extend(self.uid_list) if isinstance(self.uid_list, list) else []
 
     def next_uid(self):
         if self.uid_list is None or len(self.uid_list) == 0 or not isinstance(self.uid_list, list):
@@ -285,6 +285,9 @@ class ActionUpdateStockData(ActionCycle):
 
     def exec(self):
         new_service_info = db.system.get_service_info(self.service_type)
+        if new_service_info is None:
+            logger.warning('got None new_service_info!')
+            return
         if new_service_info['state'] != SystemDB.SERVICE_STOP and Constants.RUN_WITH_SYS_TASK_LOG:
             logger.warning(f"[ stock ] uid:{self.uid} ( SKIP )")
             self.next_uid()
@@ -456,6 +459,9 @@ class ActionRoomStockCheck(ActionCycle):
     # 对需要执行任务的房间，建立价格调整任务
     def exec(self):
         new_service_info = db.system.get_service_info(self.service_type)
+        if new_service_info is None:
+            logger.warning('got None new_service_info!')
+            return
         if new_service_info['state'] != SystemDB.SERVICE_STOP and Constants.RUN_WITH_SYS_TASK_LOG:
             logger.warning(f"[ stock_check ] ( SKIP )")
             self.save(state=SystemDB.SERVICE_STOP)

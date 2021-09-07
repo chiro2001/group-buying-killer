@@ -198,11 +198,16 @@ function Settings(props) {
       <DialogActions>
         <Button onClick={() => { setOpenResetShop(false); }}>取消</Button>
         <Button onClick={async () => {
+          // const resp2 = await api.request("remote_login", "GET");
+          // console.log(resp2);
           const resp = await api.request("remote_login", "DELETE");
           console.log('delete cookies:', resp);
-          if (resp.code !== 200) store.dispatch(setErrorInfo(`删除失败: ${resp.code}, ${resp.message}, ${resp.error}`));
-          // setOpenResetShop(false);
-          window.location.reload();
+          if (resp.code !== 200) {
+            store.dispatch(setErrorInfo(`删除失败: ${resp.code}, ${resp.message}, ${resp.error}`));
+          } else {
+            window.location.reload();
+            // setOpenResetShop(false);
+          }
         }} color="secondary">确定</Button>
       </DialogActions>
     </Dialog>
