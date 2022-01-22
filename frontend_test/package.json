@@ -3,6 +3,6 @@
     "start": "node test_kwt.js"
   },
   "dependencies": {
-    "node-fetch": "^2.6.1"
+    "node-fetch": "^3.1.1"
   }
 }
